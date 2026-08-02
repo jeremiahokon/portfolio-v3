@@ -196,6 +196,12 @@ body {
   }
 }
 
+/* House style for inline text links: accent color + persistent underline so
+   they read as clickable at rest (hover only strengthens the underline). */
+@utility text-link {
+  @apply font-family-instrument text-sky-deep decoration-sky-deep/40 hover:decoration-sky-deep italic underline underline-offset-4 transition-colors;
+}
+
 /* Marquee animations */
 @keyframes marquee-left {
   0% {

@@ -109,7 +109,7 @@ function ProofStack({ disabled }: { disabled: boolean }) {
             style={{
               zIndex: shot.depth,
               boxShadow:
-                '0 30px 60px -18px rgba(44,51,51,0.35), 0 12px 24px -12px rgba(44,51,51,0.2)',
+                '0 30px 60px -18px rgba(0,0,0,0.5), 0 12px 24px -12px rgba(0,0,0,0.3)',
               transform: `translateZ(${shot.z}px) rotate(${shot.rotate}deg)`,
             }}
             whileHover={disabled ? undefined : { scale: 1.04, zIndex: 10 }}
@@ -135,7 +135,7 @@ function ProofStack({ disabled }: { disabled: boolean }) {
 
         {/* Floating label */}
         <span
-          className="bg-footer-background font-family-inter absolute -top-3 right-[4%] z-10 rotate-3 rounded-full px-3.5 py-1.5 text-[10px] font-semibold tracking-[0.18em] text-white uppercase shadow-lg"
+          className="bg-paper text-ink font-family-inter absolute -top-3 right-[4%] z-10 rotate-3 rounded-full px-3.5 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase shadow-lg"
           style={{ transform: 'translateZ(40px) rotate(3deg)' }}
         >
           Shipped for real clients
@@ -179,28 +179,28 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="bg-background sticky top-0 z-0 flex h-[calc(100dvh-4.5rem)] w-full flex-col overflow-hidden md:h-[calc(100dvh-8.25rem)]"
+      className="bg-ink sticky top-0 z-0 -mt-[4.5rem] flex h-dvh w-full flex-col overflow-hidden md:-mt-[8.25rem]"
     >
-      {/* Depth on the same palette: a soft light source over the headline and
-          a faint sky wash behind the collage. */}
+      {/* Depth on the dark surface: a faint paper lift over the headline and
+          a soft sky wash behind the collage. */}
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(50% 65% at 18% 42%, rgba(255,255,255,0.5), transparent 70%)',
+            'radial-gradient(50% 65% at 18% 42%, rgba(217,217,217,0.06), transparent 70%)',
         }}
       />
       <div
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(45% 65% at 82% 62%, rgba(123,182,221,0.22), transparent 70%)',
+            'radial-gradient(45% 65% at 82% 62%, rgba(123,182,221,0.14), transparent 70%)',
         }}
       />
 
       <m.div
         style={recedeStyle}
-        className="relative z-10 flex h-full w-full flex-col justify-between px-4 pt-6 pb-8 md:px-10 md:pt-8"
+        className="relative z-10 flex h-full w-full flex-col justify-between px-4 pt-[6rem] pb-8 md:px-10 md:pt-[10.25rem]"
       >
         {/* Headline + CTAs + proof collage */}
         <div className="grid flex-1 items-center gap-10 lg:grid-cols-[11fr_9fr] lg:gap-6">
@@ -209,20 +209,20 @@ export default function Hero() {
               {/* Eyebrow sits directly on the headline */}
               <m.p
                 {...enter(0)}
-                className="font-family-inter text-ink/60 text-xs font-medium tracking-[0.3em] uppercase md:text-sm"
+                className="font-family-inter text-paper/70 text-xs font-medium tracking-[0.3em] uppercase md:text-sm"
               >
                 Jeremiah Okon — Frontend &amp; Full-Stack Developer
-                <span className="text-ink/35 hidden sm:inline">
+                <span className="text-paper/40 hidden sm:inline">
                   {' '}
                   · React · Next.js · Node.js
                 </span>
               </m.p>
               <m.h1
                 {...enter(0)}
-                className="text-ink text-[clamp(3.25rem,8.5vw,9.5rem)] leading-[0.95] font-bold tracking-tighter"
+                className="text-paper text-[clamp(3.25rem,8.5vw,9.5rem)] leading-[0.95] font-bold tracking-tighter"
               >
                 Websites that load{' '}
-                <em className="font-family-instrument text-sky-deep font-normal italic">
+                <em className="font-family-instrument text-sky font-normal italic">
                   fast
                 </em>{' '}
                 — and sell faster.
@@ -244,17 +244,17 @@ export default function Hero() {
                   event_label: 'hero_trust_strip',
                 });
               }}
-              className="font-family-inter text-ink/70 hover:text-ink flex w-fit flex-wrap items-center gap-x-3 gap-y-1 text-sm transition-colors md:text-base"
-              aria-label="4.9 star average rating from 5 client reviews on Upwork — view profile"
+              className="font-family-inter text-paper/70 hover:text-paper flex w-fit flex-wrap items-center gap-x-3 gap-y-1 text-sm transition-colors md:text-base"
+              aria-label="4.9 star average rating from 6 client reviews on Upwork — view profile"
             >
               <span>
                 <span className="text-[#e58f2a]">4.9★</span> Upwork rating
               </span>
-              <span aria-hidden="true" className="text-ink/30">
+              <span aria-hidden="true" className="text-paper/30">
                 ·
               </span>
-              <span>5 client reviews</span>
-              <span aria-hidden="true" className="text-ink/30">
+              <span>6 client reviews</span>
+              <span aria-hidden="true" className="text-paper/30">
                 ·
               </span>
               <span className="flex items-center gap-1.5">
@@ -282,7 +282,7 @@ export default function Hero() {
                   });
                   setIsCalendlyOpen(true);
                 }}
-                className="bg-footer-background group relative overflow-hidden rounded-full px-8 py-4 text-white shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.45)] md:px-10 md:py-5"
+                className="bg-paper text-ink group relative overflow-hidden rounded-full px-8 py-4 shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.45)] md:px-10 md:py-5"
                 whileHover={
                   prefersReducedMotion ? undefined : { scale: 1.04, y: -2 }
                 }
@@ -321,7 +321,7 @@ export default function Hero() {
                     event_label: 'hero_upwork_badge',
                   });
                 }}
-                className="inline-flex items-center gap-2.5 rounded-full border border-[#14A800]/25 bg-[#14A800]/10 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#14A800] transition-all duration-300 hover:border-[#14A800]/50 hover:bg-[#14A800]/15 md:text-base"
+                className="inline-flex items-center gap-2.5 rounded-full border border-[#1DB954]/40 bg-[#14A800]/15 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#3ddc74] transition-all duration-300 hover:border-[#1DB954]/60 hover:bg-[#14A800]/25 md:text-base"
                 aria-label="View my Upwork profile"
               >
                 <UpworkIcon className="h-5 w-5" />
@@ -342,18 +342,18 @@ export default function Hero() {
         {/* Scroll cue */}
         <m.div
           {...enter(0.5)}
-          className="font-family-inter text-ink/50 flex items-center gap-3 text-xs tracking-[0.25em] uppercase"
+          className="font-family-inter text-paper/50 flex items-center gap-3 text-xs tracking-[0.25em] uppercase"
         >
           <span>Scroll</span>
           <m.span
             aria-hidden="true"
-            className="bg-ink/40 block h-px w-10 origin-left"
+            className="bg-paper/40 block h-px w-10 origin-left"
             animate={
               prefersReducedMotion ? undefined : { scaleX: [0.3, 1, 0.3] }
             }
             transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
           />
-          <span className="text-ink/35">The work is right below</span>
+          <span className="text-paper/40">The work is right below</span>
         </m.div>
       </m.div>
 

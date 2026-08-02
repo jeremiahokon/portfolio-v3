@@ -1,6 +1,8 @@
 import {
   EMAIL,
+  FACEBOOK_URL,
   GITHUB_URL,
+  INSTAGRAM_URL,
   LINKEDIN_URL,
   SITE_URL,
   TIKTOK_URL,
@@ -30,6 +32,8 @@ export default function StructuredData() {
       GITHUB_URL,
       YOUTUBE_CHANNEL_URL,
       TIKTOK_URL,
+      INSTAGRAM_URL,
+      FACEBOOK_URL,
       ...(UPWORK_PROFILE_URL ? [UPWORK_PROFILE_URL] : []),
     ],
     knowsAbout: [
@@ -90,11 +94,16 @@ export default function StructuredData() {
       addressRegion: 'Kwara State',
       addressCountry: 'Nigeria',
     },
-    areaServed: {
-      '@type': 'Country',
-      name: 'Nigeria',
-    },
+    areaServed: 'Worldwide',
     priceRange: '$$',
+    // Mirrors the visible Upwork proof: rating in the hero/stats band,
+    // review count in the testimonials marquee. Keep all three in sync.
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: 4.9,
+      reviewCount: 6,
+      bestRating: 5,
+    },
     serviceType: [
       'Frontend Development',
       'React Development',

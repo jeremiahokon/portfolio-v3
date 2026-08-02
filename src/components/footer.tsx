@@ -9,7 +9,9 @@ import { m, useInView } from 'motion/react';
 import {
   BOOK_A_CALL,
   EMAIL,
+  FACEBOOK_URL,
   GITHUB_URL,
+  INSTAGRAM_URL,
   LINKEDIN_URL,
   TIKTOK_URL,
   YOUTUBE_CHANNEL_URL,
@@ -68,6 +70,8 @@ export default function Footer() {
     { name: 'Github', url: GITHUB_URL },
     { name: 'Youtube', url: YOUTUBE_CHANNEL_URL },
     { name: 'Tiktok', url: TIKTOK_URL },
+    { name: 'Instagram', url: INSTAGRAM_URL },
+    { name: 'Facebook', url: FACEBOOK_URL },
   ];
 
   return (

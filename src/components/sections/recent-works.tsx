@@ -202,7 +202,7 @@ function FeaturedCaseCard({
           href={project.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-family-instrument text-ink hover:text-sky-deep w-fit text-xl italic underline-offset-4 transition-colors hover:underline"
+          className="text-link w-fit text-xl"
           onClick={() => {
             sendGAEvent({
               event: 'project_click',
@@ -214,7 +214,7 @@ function FeaturedCaseCard({
             });
           }}
         >
-          visit live site
+          visit live site <span aria-hidden="true">↗</span>
         </Link>
       </div>
     </Reveal>

@@ -78,7 +78,8 @@ export default function Header() {
     { id: 'contact', label: 'Contact' },
   ];
 
-  const tone = 'text-footer-background';
+  // Light over the dark home hero, dark ink on the light tool pages.
+  const tone = isHome ? 'text-paper' : 'text-footer-background';
 
   // The circle grows from the toggle button (top-right) so the overlay reads as
   // an expansion of the hamburger itself. Reduced-motion users get a plain fade.

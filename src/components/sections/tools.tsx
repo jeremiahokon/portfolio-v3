@@ -48,10 +48,7 @@ export default function Tools() {
             >
               Open the audio extractor
             </TransitionLink>
-            <TransitionLink
-              href="/tools"
-              className="font-family-instrument text-ink hover:text-sky-deep text-xl italic underline-offset-4 transition-colors hover:underline"
-            >
+            <TransitionLink href="/tools" className="text-link text-xl">
               browse all tools
             </TransitionLink>
           </div>

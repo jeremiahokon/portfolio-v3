@@ -5,11 +5,15 @@ import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 
 // ffmpeg.wasm touches Worker/window, so it must never render on the server.
+// The skeleton mirrors the idle dropzone's footprint (card shell + min-height)
+// so hydration doesn't shift the layout.
 const AudioExtractor = dynamic(() => import('./audio-extractor'), {
   ssr: false,
   loading: () => (
-    <div className="mx-auto flex w-full max-w-2xl items-center justify-center rounded-3xl border border-[#2C3333]/10 bg-white/60 p-12 shadow-xl backdrop-blur-sm">
-      <Loader2 className="h-6 w-6 animate-spin text-[#5BA4D1]" />
+    <div className="mx-auto w-full max-w-2xl">
+      <div className="border-ink/10 flex min-h-[380px] items-center justify-center rounded-3xl border bg-white/60 p-3 shadow-xl backdrop-blur-sm md:min-h-[460px] md:p-4">
+        <Loader2 className="text-sky-deep h-6 w-6 animate-spin" />
+      </div>
     </div>
   ),
 });

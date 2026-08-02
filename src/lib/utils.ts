@@ -11,3 +11,18 @@ export function formatCompact(n: number): string {
     maximumFractionDigits: 1,
   }).format(n);
 }
+
+export function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024)
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
+export function baseName(name: string): string {
+  const dot = name.lastIndexOf('.');
+
+  return dot === -1 ? name : name.slice(0, dot);
+}

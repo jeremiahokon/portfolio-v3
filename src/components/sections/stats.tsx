@@ -10,17 +10,32 @@ import { useCountUp, useReducedMotion } from '@/lib/hooks';
 
 interface Stat {
   target: number;
+  prefix?: string;
   suffix: string;
   decimals: number;
   label: string;
   href?: string;
 }
 
-// Every number here is verifiable: years/projects are backed by the work
-// section, the Upwork stats link straight to the profile.
+// Every number here is verifiable: years are backed by the work section,
+// the Upwork stats link straight to the profile.
 const stats: Stat[] = [
   { target: 4, suffix: '+', decimals: 0, label: 'Years Experience' },
-  { target: 15, suffix: '+', decimals: 0, label: 'Projects Shipped' },
+  {
+    target: 7,
+    suffix: '',
+    decimals: 0,
+    label: 'Jobs on Upwork',
+    href: UPWORK_PROFILE_URL,
+  },
+  {
+    target: 1,
+    prefix: '$',
+    suffix: 'K+',
+    decimals: 0,
+    label: 'Earned on Upwork',
+    href: UPWORK_PROFILE_URL,
+  },
   {
     target: 4.9,
     suffix: '★',
@@ -28,17 +43,10 @@ const stats: Stat[] = [
     label: 'Avg. Upwork Rating',
     href: UPWORK_PROFILE_URL,
   },
-  {
-    target: 5,
-    suffix: '',
-    decimals: 0,
-    label: 'Upwork Client Reviews',
-    href: UPWORK_PROFILE_URL,
-  },
 ];
 
 function StatItem({ stat, index }: { stat: Stat; index: number }) {
-  const { target, suffix, decimals, label, href } = stat;
+  const { target, prefix, suffix, decimals, label, href } = stat;
   const prefersReducedMotion = useReducedMotion();
   const { count, ref } = useCountUp(
     target,
@@ -54,13 +62,14 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
   const content = (
     <>
       <span
-        className={`leading-none font-bold text-[#2C3333] ${
+        className={`text-ink leading-none font-bold ${
           href
-            ? 'transition-colors duration-300 group-hover/stat:text-[#5BA4D1]'
+            ? 'group-hover/stat:text-sky-deep transition-colors duration-300'
             : ''
         }`}
         style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}
       >
+        {prefix}
         {displayValue}
         {suffix === '★' ? (
           <span className="text-[#e58f2a]" style={{ fontSize: '0.6em' }}>
@@ -70,7 +79,7 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
           suffix
         )}
       </span>
-      <span className="font-family-inter flex items-center gap-1 text-xs font-medium tracking-[0.2em] text-[#2C3333]/40 uppercase md:text-sm">
+      <span className="font-family-inter text-ink/40 flex items-center gap-1 text-xs font-medium tracking-[0.2em] uppercase md:text-sm">
         {label}
         {href && (
           <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity duration-300 group-hover/stat:opacity-100" />

@@ -54,6 +54,18 @@ const testimonials: Testimonial[] = [
     rating: 5.0,
     endorsements: ['Reliable', 'Committed to Quality'],
   },
+  {
+    quote:
+      'Jeremiah is a high proficient developer, strong communicator and all around pleasure to work with. Highly recommend him!',
+    project: 'Senior frontend developer, Blockchain x AI Company',
+    period: 'May – Jul 2026',
+    rating: 5.0,
+    endorsements: [
+      'Committed to Quality',
+      'Clear Communicator',
+      'Detail Oriented',
+    ],
+  },
 ];
 
 function StarRating({ rating }: { rating: number }) {

@@ -45,7 +45,7 @@ export default async function Home() {
       {/* The hero is pinned (sticky, z-0); everything below lives in this
           opaque z-10 sheet that slides up over it — the "sheet overlap". */}
       <Hero />
-      <div className="bg-background relative z-10 rounded-t-[2rem] shadow-[0_-28px_70px_rgba(44,51,51,0.3)] md:rounded-t-[2.5rem]">
+      <div className="bg-background relative z-10 rounded-t-[2rem] shadow-[0_-28px_70px_rgba(0,0,0,0.45)] md:rounded-t-[2.5rem]">
         <RecentWorks />
         <Manifesto />
         <Skills />

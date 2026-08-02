@@ -3,6 +3,8 @@ import { Link as TransitionLink } from 'next-view-transitions';
 import { Check } from 'lucide-react';
 import type { Metadata } from 'next';
 
+import { BookCallCta } from '@/components/book-call-cta';
+
 import { tools } from '@/lib/tools';
 
 export const metadata: Metadata = {
@@ -37,37 +39,32 @@ export default function ToolsPage() {
         </p>
       </div>
 
-      {/* Tool grid */}
-      <div className="grid w-full max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Tool cards — only live tools are listed */}
+      <div className="flex w-full max-w-6xl flex-wrap justify-center gap-6">
         {tools.map((tool) => {
           const Icon = tool.icon;
-          const isLive = tool.status === 'live';
 
-          const cardBody = (
-            <>
+          return (
+            <TransitionLink
+              key={tool.slug}
+              href={tool.href}
+              className="border-ink/10 bg-ink/[0.03] group hover:border-sky/40 flex w-full max-w-md flex-col gap-5 rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+            >
               <div className="flex items-center justify-between">
                 <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-xl">
                   <Icon className="text-sky-deep h-5 w-5" strokeWidth={1.5} />
                 </span>
-                {isLive ? (
-                  <span className="font-family-inter bg-sky/15 text-sky-deep rounded-full px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
-                    Free · Private
-                  </span>
-                ) : (
-                  <span className="font-family-inter text-ink/50 bg-ink/5 rounded-full px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
-                    Coming soon
-                  </span>
-                )}
+                <span className="font-family-inter bg-sky/15 text-sky-deep rounded-full px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
+                  Free · Private
+                </span>
               </div>
 
               <div className="flex flex-col gap-2">
                 <h2 className="text-footer-background flex items-baseline gap-2.5 text-xl font-bold tracking-tight md:text-2xl">
                   {tool.name}
-                  {isLive && (
-                    <em className="font-family-instrument text-sky-deep text-lg font-normal italic opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                      open
-                    </em>
-                  )}
+                  <em className="font-family-instrument text-sky-deep text-lg font-normal italic opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                    open
+                  </em>
                 </h2>
                 <p className="font-family-inter text-ink/60 text-sm leading-relaxed">
                   {tool.description}
@@ -85,31 +82,6 @@ export default function ToolsPage() {
                   </li>
                 ))}
               </ul>
-            </>
-          );
-
-          const cardClass =
-            'flex h-full flex-col gap-5 rounded-2xl border border-[#2C3333]/10 bg-[#2C3333]/[0.03] p-7';
-
-          if (!isLive) {
-            return (
-              <div
-                key={tool.slug}
-                aria-disabled="true"
-                className={`${cardClass} opacity-55`}
-              >
-                {cardBody}
-              </div>
-            );
-          }
-
-          return (
-            <TransitionLink
-              key={tool.slug}
-              href={tool.href}
-              className={`${cardClass} group hover:border-sky/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl`}
-            >
-              {cardBody}
             </TransitionLink>
           );
         })}
@@ -117,13 +89,12 @@ export default function ToolsPage() {
 
       <p className="font-family-inter text-ink/50 mt-14 max-w-md text-center text-sm leading-relaxed">
         More tools are on the way. Want one built for your team?{' '}
-        <TransitionLink
-          href="/#contact"
-          className="font-family-instrument text-sky-deep text-base italic underline-offset-4 hover:underline"
-        >
+        <TransitionLink href="/#contact" className="text-link text-base">
           let&apos;s talk
         </TransitionLink>
       </p>
+
+      <BookCallCta location="tools_page" />
     </section>
   );
 }
