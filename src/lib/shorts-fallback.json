@@ -1,10 +1,24 @@
 {
-  "generatedAt": "2026-07-14T13:07:31.722Z",
+  "generatedAt": "2026-07-31T19:39:52.597Z",
   "videos": [
+    {
+      "id": "-0kmwpvGJVc",
+      "title": "Dokita Product Demo",
+      "viewCount": 4,
+      "thumbnailUrl": "https://i.ytimg.com/vi/-0kmwpvGJVc/maxresdefault.jpg",
+      "publishedAt": "2026-07-24T16:27:47Z"
+    },
+    {
+      "id": "cPlMLAKCJeg",
+      "title": "Extract audio from any video for free, no signup, no watermark, and no upload.",
+      "viewCount": 13,
+      "thumbnailUrl": "https://i.ytimg.com/vi/cPlMLAKCJeg/maxresdefault.jpg",
+      "publishedAt": "2026-07-23T11:30:15Z"
+    },
     {
       "id": "Hn4ZPBhCKpk",
       "title": "Before you Judge, Try it!",
-      "viewCount": 24,
+      "viewCount": 28,
       "thumbnailUrl": "https://i.ytimg.com/vi/Hn4ZPBhCKpk/maxresdefault.jpg",
       "publishedAt": "2026-07-14T07:15:49Z"
     },
@@ -18,30 +32,16 @@
     {
       "id": "he-uobSPSzY",
       "title": "Coding is Not a Skill Anymore!",
-      "viewCount": 8,
+      "viewCount": 10,
       "thumbnailUrl": "https://i.ytimg.com/vi/he-uobSPSzY/maxresdefault.jpg",
       "publishedAt": "2026-06-26T14:47:24Z"
     },
     {
       "id": "2xFkMccBZo0",
       "title": "Keep Going at It!",
-      "viewCount": 5,
+      "viewCount": 6,
       "thumbnailUrl": "https://i.ytimg.com/vi/2xFkMccBZo0/maxresdefault.jpg",
       "publishedAt": "2026-06-26T14:41:43Z"
-    },
-    {
-      "id": "UTmr9NrpPUk",
-      "title": "Overcome Shyness and Speak with Confidence",
-      "viewCount": 2,
-      "thumbnailUrl": "https://i.ytimg.com/vi/UTmr9NrpPUk/maxresdefault.jpg",
-      "publishedAt": "2026-06-26T14:35:14Z"
-    },
-    {
-      "id": "QWuZ9gC0B94",
-      "title": "Anthropic Claude Corps Program",
-      "viewCount": 2,
-      "thumbnailUrl": "https://i.ytimg.com/vi/QWuZ9gC0B94/maxresdefault.jpg",
-      "publishedAt": "2026-06-26T14:28:23Z"
     }
   ]
 }

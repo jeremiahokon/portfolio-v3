@@ -125,7 +125,7 @@ export default function Testimonials() {
   return (
     <section
       id="reviews"
-      className="relative w-full snap-start overflow-hidden py-20 md:py-32"
+      className="relative w-full overflow-hidden py-20 md:py-32"
     >
       {/* Header */}
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center md:mb-16 md:px-10">

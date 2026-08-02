@@ -3,6 +3,10 @@
 
 :root {
   --footer-background: #2c3333;
+  --ink: #2c3333;
+  --sky: #7bb6dd;
+  --sky-deep: #5ba4d1;
+  --paper: #d9d9d9;
   --radius: 0.625rem;
   --background: #d9d9d9;
   --foreground: oklch(0.13 0.028 261.692);
@@ -41,6 +45,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-footer-background: var(--footer-background);
+  --color-ink: var(--ink);
+  --color-sky: var(--sky);
+  --color-sky-deep: var(--sky-deep);
+  --color-paper: var(--paper);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -75,10 +83,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-family-sans: var(--font-neue-montreal);
-  --font-family-alegreya: var(--font-alegreya-sans);
-  --font-family-inter: var(--font-inter);
-  --font-family-playfair: var(--font-playfair-display);
+  --font-family-inter: var(--font-geist-sans);
   --font-family-instrument: var(--font-instrument-serif);
+  --font-display: var(--font-neue-montreal);
+  --font-copy: var(--font-geist-sans);
+  --font-accent: var(--font-instrument-serif);
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -117,7 +126,11 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: color-mix(in srgb, var(--footer-background) 30%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--footer-background) 30%,
+    transparent
+  );
   background-clip: padding-box;
   border: 3px solid transparent;
   border-radius: 9999px;
@@ -125,11 +138,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: color-mix(in srgb, var(--footer-background) 55%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--footer-background) 55%,
+    transparent
+  );
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background-color: color-mix(in srgb, var(--footer-background) 70%, transparent);
+  background-color: color-mix(
+    in srgb,
+    var(--footer-background) 70%,
+    transparent
+  );
 }
 
 .dark {
@@ -202,44 +223,6 @@ body {
   animation: marquee-right 30s linear infinite;
 }
 
-/* Rotating gradient border */
-@keyframes rotate-gradient {
-  0% {
-    --gradient-angle: 0deg;
-  }
-  100% {
-    --gradient-angle: 360deg;
-  }
-}
-
-@property --gradient-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-.rotating-gradient-border {
-  position: relative;
-  border-radius: 50%;
-}
-
-.rotating-gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  border-radius: 50%;
-  background: conic-gradient(
-    from var(--gradient-angle),
-    #7bb6dd,
-    #5ba4d1,
-    #a855f7,
-    #7bb6dd
-  );
-  animation: rotate-gradient 4s linear infinite;
-  opacity: 0.6;
-  z-index: -1;
-}
-
 /* Gradient mesh animation */
 @keyframes gradient-mesh {
   0%,
@@ -288,16 +271,72 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Grain/noise texture utility */
-.grain-overlay::after {
-  content: '';
-  position: absolute;
+/* Film grain — one fixed full-viewport layer so the texture is seamless
+   across header, hero, and content. High baseFrequency keeps the specks fine
+   so it reads as film, not static. Sits above page content (z-30) but below
+   the header (z-50), menu overlay, and dialogs, and ignores the pointer. */
+.film-grain {
+  position: fixed;
   inset: 0;
-  opacity: 0.04;
+  z-index: 30;
+  opacity: 0.12;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.35' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   background-repeat: repeat;
-  background-size: 256px 256px;
+  background-size: 180px 180px;
+}
+
+/* Cross-page view transitions (next-view-transitions). Compositor-driven
+   snapshot crossfade with a slight vertical drift; browsers without support
+   navigate instantly, which is the intended fallback. */
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-fade-in 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+/* Scroll-driven parallax for featured work images — compositor thread only,
+   absent (harmlessly) where animation-timeline is unsupported. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes sda-parallax-drift {
+      from {
+        transform: translateY(4%);
+      }
+      to {
+        transform: translateY(-4%);
+      }
+    }
+
+    .sda-parallax {
+      animation: sda-parallax-drift linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+    }
+  }
 }
 
 /* Testimonials auto-scroll */

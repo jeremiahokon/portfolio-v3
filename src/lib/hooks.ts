@@ -4,8 +4,19 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useReducedMotion as useFramerReducedMotion } from 'motion/react';
 
+// Hydration-safe: the server always renders the animated branch, so the first
+// client render must match it; the real preference applies right after mount.
+// Components can therefore swap DOM structure on this flag without tripping
+// React hydration mismatches.
 export function useReducedMotion(): boolean {
-  return useFramerReducedMotion() ?? false;
+  const prefersReducedMotion = useFramerReducedMotion() ?? false;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  return mounted && prefersReducedMotion;
 }
 
 export function useCountUp(

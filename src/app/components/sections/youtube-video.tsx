@@ -4,7 +4,7 @@ const VIDEO_ID = 'tN3F0NwmBc8';
 
 export default function YouTubeVideo() {
   return (
-    <section className="relative flex w-full snap-start flex-col items-center gap-8 px-4 py-20 md:gap-12 md:px-10 md:py-32">
+    <section className="relative flex w-full flex-col items-center gap-8 px-4 py-20 md:gap-12 md:px-10 md:py-32">
       {/* Eyebrow + Heading */}
       <div className="flex flex-col items-center gap-4 text-center">
         <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/50 uppercase">

@@ -1,3 +1,5 @@
+import { Link as TransitionLink } from 'next-view-transitions';
+
 import { ShieldCheck, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 
@@ -30,6 +32,12 @@ export default function ExtractAudioPage() {
       <section className="relative flex w-full flex-col items-center px-4 py-20 md:px-10 md:py-28">
         {/* Header */}
         <div className="mb-12 flex flex-col items-center gap-5 text-center">
+          <TransitionLink
+            href="/tools"
+            className="font-family-instrument text-ink/60 hover:text-ink text-lg italic underline-offset-4 transition-colors hover:underline"
+          >
+            back to all tools
+          </TransitionLink>
           <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/50 uppercase">
             [ FREE TOOL ]
           </span>

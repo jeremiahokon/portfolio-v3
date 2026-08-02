@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Link as TransitionLink } from 'next-view-transitions';
 import { sendGAEvent } from '@next/third-parties/google';
 
 import { AnimatePresence, m } from 'motion/react';
@@ -69,14 +70,15 @@ export default function Header() {
 
   const navLinks = [
     { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About' },
-    { id: 'services', label: 'Services' },
     { id: 'work', label: 'Work' },
-    { id: 'tools', label: 'Tools' },
+    { id: 'about', label: 'About' },
+    { id: 'tools', label: 'Tools', href: '/tools' },
     { id: 'reviews', label: 'Reviews' },
     { id: 'content', label: 'Content' },
     { id: 'contact', label: 'Contact' },
   ];
+
+  const tone = 'text-footer-background';
 
   // The circle grows from the toggle button (top-right) so the overlay reads as
   // an expansion of the hamburger itself. Reduced-motion users get a plain fade.
@@ -119,23 +121,27 @@ export default function Header() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <span className="font-family-playfair text-footer-background text-3xl leading-[100%] font-black tracking-tight italic md:text-4xl">
+          <span
+            className={`font-family-instrument ${tone} text-3xl leading-[100%] font-normal tracking-tight italic md:text-4xl`}
+          >
             JO
           </span>
           <m.div
-            className="border-footer-background absolute -inset-2 rounded-full border-2 opacity-0 group-hover:opacity-100"
+            className={`absolute -inset-2 rounded-full border-2 border-current opacity-0 group-hover:opacity-100 ${tone}`}
             initial={{ scale: 0.8, opacity: 0 }}
             whileHover={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
           />
         </m.a>
 
-        <div className="flex flex-col items-center justify-center gap-3">
+        <div
+          className={`flex flex-col items-center justify-center gap-3 ${tone}`}
+        >
           <LocalTimeClock />
           <Link
             href={`mailto:${EMAIL}`}
             target="_blank"
-            className="text-footer-background hidden text-xl leading-[100%] font-medium -tracking-[1%] md:inline-block"
+            className="hidden text-xl leading-[100%] font-medium -tracking-[1%] text-current md:inline-block"
             onClick={() => {
               sendGAEvent({
                 event: 'email_click',
@@ -157,7 +163,7 @@ export default function Header() {
           aria-expanded={isMenuOpen}
           aria-controls="site-menu"
           onClick={() => setIsMenuOpen(true)}
-          className="group text-footer-background relative flex h-8 w-9 cursor-pointer items-center justify-center"
+          className={`group ${tone} relative flex h-8 w-9 cursor-pointer items-center justify-center`}
         >
           <span className="sr-only">Menu</span>
           <span className="relative block h-[14px] w-7" aria-hidden="true">
@@ -205,29 +211,65 @@ export default function Header() {
                 },
               }}
             >
-              {navLinks.map((link) => (
-                <m.a
-                  key={link.id}
-                  href={hashHref(link.id)}
-                  onClick={(e) => handleNavClick(e, link.id)}
-                  className="cursor-pointer text-3xl font-bold tracking-tighter text-white transition-colors hover:text-gray-300 md:text-4xl"
-                  variants={{
-                    hidden: { opacity: 0, y: reduced ? 0 : 24 },
-                    visible: {
-                      opacity: 1,
-                      y: 0,
-                      transition: {
-                        duration: 0.7,
-                        ease: [0.16, 1, 0.3, 1] as const,
-                      },
+              {navLinks.map((link) => {
+                const itemVariants = {
+                  hidden: { opacity: 0, y: reduced ? 0 : 24 },
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: {
+                      duration: 0.7,
+                      ease: [0.16, 1, 0.3, 1] as const,
                     },
-                  }}
-                  whileHover={reduced ? undefined : { x: 10 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                >
-                  {link.label}
-                </m.a>
-              ))}
+                  },
+                };
+
+                if (link.href) {
+                  return (
+                    <m.span
+                      key={link.id}
+                      variants={itemVariants}
+                      whileHover={reduced ? undefined : { x: 10 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 260,
+                        damping: 24,
+                      }}
+                    >
+                      <TransitionLink
+                        href={link.href}
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          sendGAEvent({
+                            event: 'nav_click',
+                            value: link.id,
+                            click_location: 'header',
+                            event_category: 'engagement',
+                            event_label: 'nav_link',
+                          });
+                        }}
+                        className="cursor-pointer text-3xl font-bold tracking-tighter text-white transition-colors hover:text-gray-300 md:text-4xl"
+                      >
+                        {link.label}
+                      </TransitionLink>
+                    </m.span>
+                  );
+                }
+
+                return (
+                  <m.a
+                    key={link.id}
+                    href={hashHref(link.id)}
+                    onClick={(e) => handleNavClick(e, link.id)}
+                    className="cursor-pointer text-3xl font-bold tracking-tighter text-white transition-colors hover:text-gray-300 md:text-4xl"
+                    variants={itemVariants}
+                    whileHover={reduced ? undefined : { x: 10 }}
+                    transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+                  >
+                    {link.label}
+                  </m.a>
+                );
+              })}
             </m.nav>
 
             <m.div

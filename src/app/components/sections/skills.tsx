@@ -108,7 +108,7 @@ function MarqueeRow({
 
 export default function Skills() {
   return (
-    <section className="group grain-overlay relative w-full snap-start overflow-hidden py-20 md:py-32">
+    <section className="group relative w-full overflow-hidden py-20 md:py-32">
       {/* Header */}
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center md:mb-16 md:px-10">
         <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/50 uppercase">

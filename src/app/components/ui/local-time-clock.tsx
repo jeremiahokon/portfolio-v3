@@ -1,16 +1,10 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 
 import { AnimatePresence, m } from 'motion/react';
 
-function subscribe(callback: () => void) {
-  const id = setInterval(callback, 1000);
-
-  return () => clearInterval(id);
-}
-
-function getSnapshot() {
+function getCurrentTime() {
   return new Date().toLocaleTimeString('en-US', {
     timeZone: 'Africa/Lagos',
     hour: 'numeric',
@@ -19,20 +13,25 @@ function getSnapshot() {
   });
 }
 
-function getServerSnapshot() {
-  return null;
-}
-
 export function LocalTimeClock() {
-  const time = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  // Starts null so the first client render matches the server-rendered
+  // placeholder exactly; the real time fills in right after mount.
+  const [time, setTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTime(getCurrentTime());
+    const id = setInterval(() => setTime(getCurrentTime()), 1000);
+
+    return () => clearInterval(id);
+  }, []);
 
   if (!time) {
     return (
       <span className="flex flex-col items-center gap-1">
-        <span className="text-xs font-medium tracking-widest text-[#666666B2] uppercase">
+        <span className="text-xs font-medium tracking-widest text-current uppercase opacity-70">
           Local Time
         </span>
-        <span className="text-xl leading-[100%] font-normal -tracking-[2%] text-[#666666B2]">
+        <span className="text-xl leading-[100%] font-normal -tracking-[2%] text-current opacity-70">
           --:-- GMT+1
         </span>
       </span>
@@ -53,10 +52,10 @@ export function LocalTimeClock() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <span className="text-xs font-medium tracking-widest text-[#666666B2] uppercase">
+      <span className="text-xs font-medium tracking-widest text-current uppercase opacity-70">
         Local Time
       </span>
-      <span className="inline-flex items-baseline text-xl leading-[100%] font-normal -tracking-[2%] text-[#666666B2]">
+      <span className="inline-flex items-baseline text-xl leading-[100%] font-normal -tracking-[2%] text-current opacity-70">
         <span>{hours}</span>
         <m.span
           animate={{ opacity: [1, 0.3, 1] }}
@@ -76,7 +75,7 @@ export function LocalTimeClock() {
           </m.span>
         </AnimatePresence>
         <span className="ml-1">{period}</span>
-        <span className="ml-1.5 text-sm text-[#66666680]">GMT+1</span>
+        <span className="ml-1.5 text-sm text-current opacity-50">GMT+1</span>
       </span>
     </m.span>
   );

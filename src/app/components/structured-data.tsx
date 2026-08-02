@@ -13,9 +13,9 @@ export default function StructuredData() {
     '@type': 'Person',
     '@id': `${SITE_URL}/#person`,
     name: 'Jeremiah Okon',
-    jobTitle: 'Frontend Developer',
+    jobTitle: 'Frontend & Full-Stack Developer',
     description:
-      'Experienced Frontend Developer specializing in React, Next.js, and TypeScript',
+      'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js',
     url: SITE_URL,
     image: `${SITE_URL}/assets/profile.jpg`,
     email: EMAIL,
@@ -37,6 +37,7 @@ export default function StructuredData() {
       'Next.js',
       'TypeScript',
       'JavaScript',
+      'Node.js',
       'Frontend Development',
       'Web Development',
       'UI/UX Design',
@@ -57,7 +58,7 @@ export default function StructuredData() {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
     url: SITE_URL,
-    name: 'Jeremiah Okon - Frontend Developer',
+    name: 'Jeremiah Okon - Frontend & Full-Stack Developer',
     mainEntity: personSchema,
   };
 
@@ -77,9 +78,9 @@ export default function StructuredData() {
   const professionalServiceSchema = {
     '@context': 'https://schema.org',
     '@type': 'ProfessionalService',
-    name: 'Jeremiah Okon - Frontend Development Services',
+    name: 'Jeremiah Okon - Frontend & Full-Stack Development Services',
     description:
-      'Professional frontend development services specializing in React, Next.js, and modern web technologies',
+      'Professional frontend and full-stack development services specializing in React, Next.js, Node.js, and modern web technologies',
     url: SITE_URL,
     telephone: '',
     email: EMAIL,
@@ -98,6 +99,7 @@ export default function StructuredData() {
       'Frontend Development',
       'React Development',
       'Next.js Development',
+      'Node.js API Development',
       'Web Application Development',
       'UI/UX Development',
     ],

@@ -1,17 +1,22 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { sendGAEvent } from '@next/third-parties/google';
 
 import { Calendar } from 'lucide-react';
-import { m, useMotionValue, useSpring } from 'motion/react';
+import {
+  m,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'motion/react';
 
 import { CalendlyModal } from '@/components/calendly-modal';
 
 import { BOOK_A_CALL, UPWORK_PROFILE_URL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
-
-import { ScrollButton } from '@/ui/scroll-button';
 
 function UpworkIcon({ className }: { className?: string }) {
   return (
@@ -27,202 +32,329 @@ function UpworkIcon({ className }: { className?: string }) {
   );
 }
 
-export default function Hero() {
-  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
+// Overlapping collage — each card gets its own place, tilt, and depth plane
+// instead of a uniform cascade.
+const proofShots = [
+  {
+    src: '/assets/webp/torrista-v2.webp',
+    alt: 'Torrista — travel platform',
+    className: 'top-0 left-0 w-[64%]',
+    rotate: -4,
+    z: -140,
+    depth: 1,
+  },
+  {
+    src: '/assets/webp/dripa.webp',
+    alt: 'DriPA — driver performance platform',
+    className: 'top-[4%] right-0 w-[60%]',
+    rotate: 3,
+    z: -70,
+    depth: 2,
+  },
+  {
+    src: '/assets/webp/dokita.webp',
+    alt: 'Dokita — telemedicine platform',
+    className: 'bottom-0 left-[6%] w-[82%]',
+    rotate: -1.5,
+    z: 0,
+    depth: 3,
+  },
+];
 
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const springConfig = { damping: 30, stiffness: 100, mass: 0.5 };
-  const orbX = useSpring(mouseX, springConfig);
-  const orbY = useSpring(mouseY, springConfig);
+/**
+ * A collage of real project screenshots on staggered 3D depth planes. The
+ * whole scene tilts a few degrees toward the pointer — it reads as WebGL but
+ * is three transformed divs, so it costs nothing to ship.
+ */
+function ProofStack({ disabled }: { disabled: boolean }) {
+  const nx = useMotionValue(0);
+  const ny = useMotionValue(0);
+  const springConfig = { damping: 30, stiffness: 120, mass: 0.6 };
+  const rotateY = useSpring(useTransform(nx, [-1, 1], [-6, 6]), springConfig);
+  const rotateX = useSpring(useTransform(ny, [-1, 1], [6, -6]), springConfig);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  useEffect(() => {
-    if (prefersReducedMotion) return;
+    if (disabled) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
+      nx.set((e.clientX / window.innerWidth - 0.5) * 2);
+      ny.set((e.clientY / window.innerHeight - 0.5) * 2);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
 
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [mouseX, mouseY, prefersReducedMotion]);
+  }, [disabled, nx, ny]);
 
-  const text = 'Your website could work better—if I developed it.';
-  const words = text.split(' ');
+  return (
+    <div
+      aria-hidden="true"
+      className="relative h-[34vh] min-h-[260px] w-full lg:h-[46vh] lg:max-h-[560px] lg:min-h-[380px]"
+      style={{ perspective: '1400px' }}
+    >
+      <m.div
+        className="absolute inset-0"
+        style={{
+          transformStyle: 'preserve-3d',
+          rotateX: disabled ? 0 : rotateX,
+          rotateY: disabled ? 0 : rotateY,
+        }}
+        animate={disabled ? undefined : { y: [0, -12, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {proofShots.map((shot) => (
+          <m.div
+            key={shot.src}
+            className={`absolute overflow-hidden rounded-xl bg-white ring-1 ring-black/5 ${shot.className}`}
+            style={{
+              zIndex: shot.depth,
+              boxShadow:
+                '0 30px 60px -18px rgba(44,51,51,0.35), 0 12px 24px -12px rgba(44,51,51,0.2)',
+              transform: `translateZ(${shot.z}px) rotate(${shot.rotate}deg)`,
+            }}
+            whileHover={disabled ? undefined : { scale: 1.04, zIndex: 10 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+          >
+            <div className="border-ink/10 flex items-center gap-1.5 border-b bg-white px-3 py-2">
+              <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
+              <span className="h-2 w-2 rounded-full bg-[#febc2e]" />
+              <span className="h-2 w-2 rounded-full bg-[#28c840]" />
+            </div>
+            <Image
+              src={shot.src}
+              alt={shot.alt}
+              width={840}
+              height={520}
+              priority={shot.depth === 3}
+              quality={90}
+              sizes="(min-width: 1024px) 44vw, (min-width: 768px) 60vw, 0px"
+              className="h-auto w-full object-cover"
+            />
+          </m.div>
+        ))}
+
+        {/* Floating label */}
+        <span
+          className="bg-footer-background font-family-inter absolute -top-3 right-[4%] z-10 rotate-3 rounded-full px-3.5 py-1.5 text-[10px] font-semibold tracking-[0.18em] text-white uppercase shadow-lg"
+          style={{ transform: 'translateZ(40px) rotate(3deg)' }}
+        >
+          Shipped for real clients
+        </span>
+      </m.div>
+    </div>
+  );
+}
+
+export default function Hero() {
+  const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(800);
+  const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    setViewportHeight(window.innerHeight);
+  }, []);
+
+  // The hero is pinned (sticky) while the rest of the page slides over it,
+  // so plain document scroll drives its recede animation.
+  const { scrollY } = useScroll();
+  const scale = useTransform(scrollY, [0, viewportHeight * 0.9], [1, 0.95]);
+  const opacity = useTransform(scrollY, [0, viewportHeight * 0.9], [1, 0.3]);
+  const y = useTransform(scrollY, [0, viewportHeight * 0.9], [0, -40]);
+
+  const recedeStyle = prefersReducedMotion ? undefined : { scale, opacity, y };
+
+  const enter = (delay: number) =>
+    prefersReducedMotion
+      ? {}
+      : {
+          initial: { opacity: 0, y: 16 },
+          animate: { opacity: 1, y: 0 },
+          transition: {
+            delay,
+            duration: 0.55,
+            ease: [0.22, 1, 0.36, 1] as const,
+          },
+        };
 
   return (
     <section
       id="home"
-      className="grain-overlay relative flex min-h-screen w-full snap-start flex-col justify-between overflow-hidden px-4 py-8 md:min-h-[calc(100dvh-6rem)] md:px-10 md:py-12"
+      className="bg-background sticky top-0 z-0 flex h-[calc(100dvh-4.5rem)] w-full flex-col overflow-hidden md:h-[calc(100dvh-8.25rem)]"
     >
-      {/* Cursor-following gradient orb */}
-      {!prefersReducedMotion && (
-        <m.div
-          className="pointer-events-none fixed z-0 h-[500px] w-[500px] rounded-full opacity-20 blur-[120px]"
-          style={{
-            left: orbX,
-            top: orbY,
-            x: '-50%',
-            y: '-50%',
-            background:
-              'radial-gradient(circle, #7BB6DD 0%, #a855f7 50%, transparent 70%)',
-          }}
-        />
-      )}
-
-      <div className="relative z-10 flex w-full flex-1 flex-col items-center justify-center gap-6 md:gap-8">
-        <p className="font-family-inter text-center text-xs font-medium tracking-[0.3em] text-[#2C3333]/60 uppercase md:text-sm">
-          Jeremiah Okon — Frontend Developer · React &amp; Next.js Expert
-        </p>
-
-        <m.a
-          href={UPWORK_PROFILE_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => {
-            sendGAEvent({
-              event: 'upwork_click',
-              value: 'Hire me on Upwork',
-              click_location: 'hero',
-              event_category: 'engagement',
-              event_label: 'hero_upwork_badge',
-            });
-          }}
-          className="inline-flex items-center gap-2.5 rounded-full border border-[#14A800]/25 bg-[#14A800]/10 px-4 py-2 text-sm font-semibold text-[#14A800] shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-[#14A800]/50 hover:bg-[#14A800]/15 hover:shadow-[0_0_30px_rgba(20,168,0,0.25)] md:text-base"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-          whileHover={prefersReducedMotion ? undefined : { scale: 1.04 }}
-          whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
-          aria-label="View my Upwork profile"
-        >
-          <UpworkIcon className="h-5 w-5 md:h-[1.4rem] md:w-[1.4rem]" />
-          <span>Hire me on Upwork</span>
-        </m.a>
-        <h1 className="text-footer-background text-[clamp(4.5rem,12vw,12.5rem)] leading-[100%] font-bold tracking-tighter">
-          {words.map((word, index) => (
-            <span
-              key={index}
-              className="mr-2 inline-block sm:mr-3 md:mr-4 lg:mr-5"
-            >
-              {word}
-            </span>
-          ))}
-        </h1>
-      </div>
+      {/* Depth on the same palette: a soft light source over the headline and
+          a faint sky wash behind the collage. */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(50% 65% at 18% 42%, rgba(255,255,255,0.5), transparent 70%)',
+        }}
+      />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(45% 65% at 82% 62%, rgba(123,182,221,0.22), transparent 70%)',
+        }}
+      />
 
       <m.div
-        className="relative z-10 flex w-full flex-col items-center justify-center gap-6 pb-6 md:flex-row md:items-end md:justify-between md:pb-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 2, duration: 0.8 }}
+        style={recedeStyle}
+        className="relative z-10 flex h-full w-full flex-col justify-between px-4 pt-6 pb-8 md:px-10 md:pt-8"
       >
-        {/* CTA */}
-        <div className="flex flex-col items-center gap-4 md:items-start">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:gap-5">
-            <m.button
+        {/* Headline + CTAs + proof collage */}
+        <div className="grid flex-1 items-center gap-10 lg:grid-cols-[11fr_9fr] lg:gap-6">
+          <div className="flex flex-col gap-8 md:gap-10">
+            <div className="flex flex-col gap-3 md:gap-4">
+              {/* Eyebrow sits directly on the headline */}
+              <m.p
+                {...enter(0)}
+                className="font-family-inter text-ink/60 text-xs font-medium tracking-[0.3em] uppercase md:text-sm"
+              >
+                Jeremiah Okon — Frontend &amp; Full-Stack Developer
+                <span className="text-ink/35 hidden sm:inline">
+                  {' '}
+                  · React · Next.js · Node.js
+                </span>
+              </m.p>
+              <m.h1
+                {...enter(0)}
+                className="text-ink text-[clamp(3.25rem,8.5vw,9.5rem)] leading-[0.95] font-bold tracking-tighter"
+              >
+                Websites that load{' '}
+                <em className="font-family-instrument text-sky-deep font-normal italic">
+                  fast
+                </em>{' '}
+                — and sell faster.
+              </m.h1>
+            </div>
+
+            {/* Trust strip */}
+            <m.a
+              {...enter(0.15)}
+              href={UPWORK_PROFILE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => {
                 sendGAEvent({
-                  event: 'book_call_click',
-                  value: 'Book a Free Call',
-                  button_location: 'hero',
-                  event_category: 'conversion',
-                  event_label: 'cta_button',
+                  event: 'upwork_click',
+                  value: 'Hero trust strip',
+                  click_location: 'hero',
+                  event_category: 'engagement',
+                  event_label: 'hero_trust_strip',
                 });
-                setIsCalendlyOpen(true);
               }}
-              className="bg-footer-background group relative overflow-hidden rounded-full px-10 py-5 text-white shadow-2xl transition-all duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.4)] md:px-12 md:py-6"
-              whileHover={
-                prefersReducedMotion ? undefined : { scale: 1.05, y: -4 }
-              }
-              whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 2.5, duration: 0.8 }}
+              className="font-family-inter text-ink/70 hover:text-ink flex w-fit flex-wrap items-center gap-x-3 gap-y-1 text-sm transition-colors md:text-base"
+              aria-label="4.9 star average rating from 5 client reviews on Upwork — view profile"
             >
-              {/* Animated gradient background */}
-              <m.div
-                className="absolute inset-0 bg-gradient-to-r from-[#7BB6DD] via-[#5BA4D1] to-[#7BB6DD]"
-                animate={
-                  prefersReducedMotion
-                    ? undefined
-                    : {
-                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-                      }
-                }
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'linear',
-                }}
-                style={{
-                  backgroundSize: '200% 100%',
-                }}
-              />
-
-              <span className="relative z-10 flex items-center gap-3 text-xl font-black tracking-wide uppercase md:text-2xl">
-                <m.div
-                  animate={
-                    prefersReducedMotion
-                      ? undefined
-                      : {
-                          scale: [1, 1.2, 1],
-                          rotate: [0, 5, -5, 0],
-                        }
-                  }
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                >
-                  <Calendar className="h-7 w-7 md:h-8 md:w-8" />
-                </m.div>
-                Book a Free Call
+              <span>
+                <span className="text-[#e58f2a]">4.9★</span> Upwork rating
               </span>
+              <span aria-hidden="true" className="text-ink/30">
+                ·
+              </span>
+              <span>5 client reviews</span>
+              <span aria-hidden="true" className="text-ink/30">
+                ·
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#14A800] opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#14A800]" />
+                </span>
+                Available now
+              </span>
+            </m.a>
 
-              {/* Ripple effect on hover */}
-              <m.div
-                className="absolute inset-0 rounded-full bg-white/50"
-                initial={{ scale: 0, opacity: 0.5 }}
-                whileHover={{
-                  scale: 2,
-                  opacity: 0,
-                  transition: { duration: 0.6 },
+            {/* CTAs — visible fast; a 6-second visitor must see these */}
+            <m.div
+              {...enter(0.3)}
+              className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5"
+            >
+              <m.button
+                onClick={() => {
+                  sendGAEvent({
+                    event: 'book_call_click',
+                    value: 'Book a Free Call',
+                    button_location: 'hero',
+                    event_category: 'conversion',
+                    event_label: 'cta_button',
+                  });
+                  setIsCalendlyOpen(true);
                 }}
-              />
-            </m.button>
+                className="bg-footer-background group relative overflow-hidden rounded-full px-8 py-4 text-white shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.45)] md:px-10 md:py-5"
+                whileHover={
+                  prefersReducedMotion ? undefined : { scale: 1.04, y: -2 }
+                }
+                whileTap={prefersReducedMotion ? undefined : { scale: 0.96 }}
+              >
+                <span className="relative z-10 flex items-center gap-3 text-base font-black tracking-wide whitespace-nowrap uppercase md:text-lg">
+                  <m.span
+                    className="inline-flex"
+                    animate={
+                      prefersReducedMotion
+                        ? undefined
+                        : { scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }
+                    }
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  >
+                    <Calendar className="h-5 w-5 md:h-6 md:w-6" />
+                  </m.span>
+                  Book a Free Call
+                </span>
+              </m.button>
+
+              <a
+                href={UPWORK_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => {
+                  sendGAEvent({
+                    event: 'upwork_click',
+                    value: 'Hire me on Upwork',
+                    click_location: 'hero',
+                    event_category: 'engagement',
+                    event_label: 'hero_upwork_badge',
+                  });
+                }}
+                className="inline-flex items-center gap-2.5 rounded-full border border-[#14A800]/25 bg-[#14A800]/10 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#14A800] transition-all duration-300 hover:border-[#14A800]/50 hover:bg-[#14A800]/15 md:text-base"
+                aria-label="View my Upwork profile"
+              >
+                <UpworkIcon className="h-5 w-5" />
+                <span>Hire me on Upwork</span>
+              </a>
+            </m.div>
           </div>
+
+          {/* Collage bleeds into the right edge of the viewport */}
+          <m.div
+            {...enter(0.4)}
+            className="mx-auto hidden w-full max-w-xl md:block lg:mx-0 lg:-mr-10 lg:max-w-none"
+          >
+            <ProofStack disabled={prefersReducedMotion} />
+          </m.div>
         </div>
 
-        {/* Scroll indicator - Right side */}
-        <div className="hidden flex-col items-center gap-3 md:flex md:flex-row md:gap-5">
+        {/* Scroll cue */}
+        <m.div
+          {...enter(0.5)}
+          className="font-family-inter text-ink/50 flex items-center gap-3 text-xs tracking-[0.25em] uppercase"
+        >
+          <span>Scroll</span>
           <m.span
-            className="text-footer-background text-base leading-[100%] font-medium md:text-lg"
+            aria-hidden="true"
+            className="bg-ink/40 block h-px w-10 origin-left"
             animate={
-              prefersReducedMotion
-                ? undefined
-                : {
-                    opacity: [0.5, 1, 0.5],
-                  }
+              prefersReducedMotion ? undefined : { scaleX: [0.3, 1, 0.3] }
             }
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: 'easeInOut',
-            }}
-          >
-            Scroll to be saved
-          </m.span>
-          <ScrollButton />
-        </div>
+            transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <span className="text-ink/35">The work is right below</span>
+        </m.div>
       </m.div>
 
       <CalendlyModal

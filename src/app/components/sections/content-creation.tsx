@@ -132,7 +132,7 @@ export default function ContentCreation({
   return (
     <section
       id="content"
-      className="relative flex w-full snap-start flex-col items-center gap-10 px-4 py-20 md:gap-14 md:px-10 md:py-32"
+      className="relative flex w-full flex-col items-center gap-10 px-4 py-20 md:gap-14 md:px-10 md:py-32"
     >
       {/* Eyebrow + Heading */}
       <div className="flex flex-col items-center gap-4 text-center">

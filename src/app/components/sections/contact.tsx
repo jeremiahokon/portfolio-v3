@@ -18,7 +18,7 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="relative flex w-full snap-start flex-col items-center justify-center overflow-hidden px-4 py-24 md:min-h-[80vh] md:px-10 md:py-32"
+      className="relative flex w-full flex-col items-center justify-center overflow-hidden px-4 py-24 md:min-h-[80vh] md:px-10 md:py-32"
     >
       {/* Background gradient mesh */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -38,6 +38,23 @@ export default function Contact() {
           }`}
         />
       </div>
+
+      {/* Proof at the moment of decision — verbatim Upwork review */}
+      <m.figure
+        className="mb-10 flex max-w-2xl flex-col items-center gap-3 text-center"
+        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
+        whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <blockquote className="font-family-instrument text-ink/80 text-xl italic md:text-2xl">
+          &ldquo;Jeremiah understands the customer requirement from very little
+          information provided. I love working with him.&rdquo;
+        </blockquote>
+        <figcaption className="font-family-inter text-ink/50 text-xs tracking-[0.2em] uppercase">
+          Upwork client · React frontend development
+        </figcaption>
+      </m.figure>
 
       {/* Heading */}
       <m.h2

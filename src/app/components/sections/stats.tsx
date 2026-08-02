@@ -116,7 +116,7 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
 
 export default function Stats() {
   return (
-    <section className="relative w-full snap-start px-4 py-20 md:px-10 md:py-32">
+    <section className="relative w-full px-4 py-20 md:px-10 md:py-32">
       {/* Top gradient divider */}
       <div className="mx-auto mb-16 h-px max-w-5xl bg-gradient-to-r from-transparent via-[#7BB6DD]/30 to-transparent" />
 
