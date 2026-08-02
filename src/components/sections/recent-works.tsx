@@ -7,9 +7,9 @@ import { sendGAEvent } from '@next/third-parties/google';
 
 import { m } from 'motion/react';
 
-import { useCountUp, useReducedMotion } from '@/lib/hooks';
-
 import { Reveal } from '@/ui/reveal';
+
+import { useCountUp, useReducedMotion } from '@/lib/hooks';
 
 interface FeaturedCase {
   name: string;

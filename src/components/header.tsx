@@ -8,10 +8,10 @@ import { sendGAEvent } from '@next/third-parties/google';
 
 import { AnimatePresence, m } from 'motion/react';
 
+import { LocalTimeClock } from '@/ui/local-time-clock';
+
 import { EMAIL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
-
-import { LocalTimeClock } from '@/ui/local-time-clock';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

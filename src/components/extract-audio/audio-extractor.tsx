@@ -7,11 +7,11 @@ import { toBlobURL } from '@ffmpeg/util';
 import { AudioLines, FileVideo, RotateCcw } from 'lucide-react';
 import { AnimatePresence, m } from 'motion/react';
 
-import { useReducedMotion } from '@/lib/hooks';
-import { cn } from '@/lib/utils';
-
 import { Button } from '@/ui/button';
 import { Progress } from '@/ui/progress';
+
+import { useReducedMotion } from '@/lib/hooks';
+import { cn } from '@/lib/utils';
 
 import { EqualizerBars, SuccessCheck, UploadCloudAnim } from './animated-icons';
 

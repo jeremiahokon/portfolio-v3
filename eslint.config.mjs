@@ -136,25 +136,21 @@ const config = [
             ['^react(-|\\/|$)', '^next(-|\\/|$)', '^@next(-|\\/|$)'],
             // 2. Other third-party packages
             ['^@?\\w'],
-            // 3. `@ui` imports
-            ['^@ui(-|\\/|$)'],
+            // 3. `@/ui` imports
+            ['^@/ui(-|\\/|$)'],
             // 4. `@/components` imports
             ['^@/components'],
-            // 5. `@/app` imports
-            ['^@/app'],
-            // 6. `@/store` imports
-            ['^@/store'],
-            // 7. `@/lib` imports
+            // 5. `@/lib` imports
             ['^@/lib'],
-            // 8. `@assets` imports
+            // 6. `@assets` imports
             ['^@assets(-|\\/|$)'],
-            // 9. Other absolute imports
+            // 7. Other absolute imports
             ['^@/'],
-            // 10. Relative imports
+            // 8. Relative imports
             ['^\\.'],
-            // 11. Style imports
+            // 9. Style imports
             ['^.+\\.s?css$'],
-            // 12. Side effect imports
+            // 10. Side effect imports
             ['^\\u0000'],
           ],
         },

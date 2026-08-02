@@ -3,7 +3,7 @@ import { Link as TransitionLink } from 'next-view-transitions';
 import { ShieldCheck, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 
-import AudioExtractorLoader from './audio-extractor-loader';
+import AudioExtractorLoader from '@/components/extract-audio/audio-extractor-loader';
 
 export const metadata: Metadata = {
   title: 'Free Video to MP3 Audio Extractor',

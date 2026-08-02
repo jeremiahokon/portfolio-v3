@@ -1,8 +1,8 @@
 import { Star } from 'lucide-react';
 
-import { UPWORK_PROFILE_URL } from '@/lib/constant';
-
 import { TrackedLink } from '@/ui/tracked-link';
+
+import { UPWORK_PROFILE_URL } from '@/lib/constant';
 
 interface Testimonial {
   quote: string;

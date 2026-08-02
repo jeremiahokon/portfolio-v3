@@ -20,8 +20,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@/components/*": ["./src/app/components/*"],
-      "@/ui/*": ["./src/app/components/ui/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/ui/*": ["./src/components/ui/*"],
       "@assets/*": ["./public/assets/*"]
     }
   },

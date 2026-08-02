@@ -1,16 +1,16 @@
-import { getShortsData } from '@/lib/youtube';
+import Contact from '@/components/sections/contact';
+import ContentCreation from '@/components/sections/content-creation';
+import Hero from '@/components/sections/hero';
+import Manifesto from '@/components/sections/manifesto';
+import RecentWorks from '@/components/sections/recent-works';
+import Skills from '@/components/sections/skills';
+import Stats from '@/components/sections/stats';
+import Testimonials from '@/components/sections/testimonials';
+import Tools from '@/components/sections/tools';
+import YouTubeVideo from '@/components/sections/youtube-video';
+import { StickyCta } from '@/components/sticky-cta';
 
-import Contact from './components/sections/contact';
-import ContentCreation from './components/sections/content-creation';
-import Hero from './components/sections/hero';
-import Manifesto from './components/sections/manifesto';
-import RecentWorks from './components/sections/recent-works';
-import Skills from './components/sections/skills';
-import Stats from './components/sections/stats';
-import Testimonials from './components/sections/testimonials';
-import Tools from './components/sections/tools';
-import YouTubeVideo from './components/sections/youtube-video';
-import { StickyCta } from './components/sticky-cta';
+import { getShortsData } from '@/lib/youtube';
 
 export default async function Home() {
   const shortsData = await getShortsData();
