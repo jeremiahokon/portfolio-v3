@@ -1,7 +1,9 @@
-import { Instrument_Serif, Playfair_Display } from 'next/font/google';
+import { Instrument_Serif } from 'next/font/google';
 import localFont from 'next/font/local';
+import { ViewTransitions } from 'next-view-transitions';
 import { GoogleAnalytics } from '@next/third-parties/google';
 
+import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 
 import Footer from '@/components/footer';
@@ -16,56 +18,27 @@ import './globals.css';
 const neueMontreal = localFont({
   src: [
     {
-      path: '../../public/fonts/NeueMontreal-Light.otf',
+      path: '../../public/fonts/NeueMontreal-Light.woff2',
       weight: '300',
-      style: 'light',
+      style: 'normal',
     },
     {
-      path: '../../public/fonts/NeueMontreal-Regular.otf',
+      path: '../../public/fonts/NeueMontreal-Regular.woff2',
       weight: '400',
       style: 'normal',
     },
     {
-      path: '../../public/fonts/NeueMontreal-Medium.otf',
+      path: '../../public/fonts/NeueMontreal-Medium.woff2',
       weight: '500',
-      style: 'medium',
+      style: 'normal',
     },
     {
-      path: '../../public/fonts/NeueMontreal-Bold.otf',
+      path: '../../public/fonts/NeueMontreal-Bold.woff2',
       weight: '700',
-      style: 'bold',
+      style: 'normal',
     },
   ],
   variable: '--font-neue-montreal',
-});
-
-const alegreyaSans = localFont({
-  src: [
-    {
-      path: '../../public/fonts/AlegreyaSans-ExtraBold.ttf',
-      weight: '800',
-      style: 'extra-bold',
-    },
-  ],
-  variable: '--font-alegreya-sans',
-});
-
-const inter = localFont({
-  src: [
-    {
-      path: '../../public/fonts/Inter-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-inter',
-});
-
-const playfairDisplay = Playfair_Display({
-  subsets: ['latin'],
-  weight: ['700', '900'],
-  variable: '--font-playfair-display',
-  display: 'swap',
 });
 
 const instrumentSerif = Instrument_Serif({
@@ -78,15 +51,18 @@ const instrumentSerif = Instrument_Serif({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Jeremiah Okon - Frontend Developer | React & Next.js Expert',
+    default:
+      'Jeremiah Okon - Frontend & Full-Stack Developer | React, Next.js & Node.js',
     template: '%s | Jeremiah Okon',
   },
   description:
-    'Experienced Frontend Developer specializing in React, Next.js, and TypeScript. I build fast, high-converting websites with seamless animations and interactions that keep users engaged.',
+    'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js. I build fast, high-converting web apps — from pixel-perfect interfaces to the APIs behind them.',
   keywords: [
     'Frontend Developer',
+    'Full-Stack Developer',
     'React Developer',
     'Next.js Developer',
+    'Node.js Developer',
     'JavaScript Developer',
     'TypeScript Developer',
     'Web Developer Nigeria',
@@ -102,6 +78,7 @@ export const metadata: Metadata = {
     'Animation Developer',
     'Portfolio Website',
     'Hire Frontend Developer',
+    'Hire Full Stack Developer',
   ],
   authors: [{ name: 'Jeremiah Okon', url: SITE_URL }],
   creator: 'Jeremiah Okon',
@@ -116,9 +93,10 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Jeremiah Okon - Frontend Developer | React & Next.js Expert',
+    title:
+      'Jeremiah Okon - Frontend & Full-Stack Developer | React, Next.js & Node.js',
     description:
-      'Experienced Frontend Developer specializing in React, Next.js, and TypeScript. Creating seamless animations and engaging user interactions for high-converting websites.',
+      'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js. Fast, high-converting web apps — from pixel-perfect interfaces to the APIs behind them.',
     url: SITE_URL,
     siteName: 'Jeremiah Okon Portfolio',
     locale: 'en_US',
@@ -126,9 +104,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jeremiah Okon - Frontend Developer | React & Next.js Expert',
+    title:
+      'Jeremiah Okon - Frontend & Full-Stack Developer | React, Next.js & Node.js',
     description:
-      'Experienced Frontend Developer specializing in React, Next.js, and TypeScript. Creating seamless animations and engaging user interactions.',
+      'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js. Fast, high-converting web apps.',
     creator: '@okonjeremiah4',
   },
   icons: {
@@ -179,23 +158,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-pt-0">
-      <head>
-        <link rel="preconnect" href="https://cdn.simpleicons.org" />
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-        <StructuredData />
-      </head>
-      <body
-        className={`${neueMontreal.variable} ${alegreyaSans.variable} ${inter.variable} ${playfairDisplay.variable} ${instrumentSerif.variable} snap-y snap-mandatory overflow-x-hidden antialiased`}
-      >
-        <MotionProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </MotionProvider>
+    <ViewTransitions>
+      <html lang="en" className="scroll-pt-0">
+        <head>
+          <link rel="preconnect" href="https://cdn.simpleicons.org" />
+          <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+          <StructuredData />
+        </head>
+        <body
+          className={`${neueMontreal.variable} ${GeistSans.variable} ${instrumentSerif.variable} overflow-x-hidden antialiased`}
+        >
+          <MotionProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </MotionProvider>
 
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!} />
-      </body>
-    </html>
+          {/* Seamless film-grain texture over the whole page */}
+          <div className="film-grain" aria-hidden="true" />
+
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!} />
+        </body>
+      </html>
+    </ViewTransitions>
   );
 }

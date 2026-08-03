@@ -77,6 +77,7 @@ async function fetchLatestShorts(key) {
           : null,
         thumbnailUrl: best?.url ?? null,
         publishedAt: item.snippet?.publishedAt,
+        description: item.snippet?.description?.trim() || undefined,
         durationSeconds: parseIsoDurationSeconds(item.contentDetails?.duration),
       };
     })
@@ -93,6 +94,7 @@ async function fetchLatestShorts(key) {
       viewCount: video.viewCount,
       thumbnailUrl: video.thumbnailUrl,
       publishedAt: video.publishedAt,
+      description: video.description,
     }));
 }
 
