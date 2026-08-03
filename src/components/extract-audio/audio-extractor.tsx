@@ -1,9 +1,11 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import { sendGAEvent } from '@next/third-parties/google';
 
 import { AnimatePresence, m } from 'motion/react';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { useReducedMotion } from '@/lib/hooks';
 
 import { BusyPanel } from './busy-panel';
@@ -21,9 +23,19 @@ export default function AudioExtractor() {
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const startExtraction = (file: File) => {
+    sendGAEvent({
+      event: GA_EVENTS.EXTRACTOR_FILE_SELECTED,
+      value: file.name.split('.').pop()?.toLowerCase() ?? 'unknown',
+      file_extension: file.name.split('.').pop()?.toLowerCase() ?? 'unknown',
+      event_category: 'tool_usage',
+    });
+    void extract(file);
+  };
+
   const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) void extract(file);
+    if (file) startExtraction(file);
     e.target.value = '';
   };
 
@@ -32,7 +44,7 @@ export default function AudioExtractor() {
     setIsDragging(false);
     if (busy) return;
     const file = e.dataTransfer.files?.[0];
-    if (file) void extract(file);
+    if (file) startExtraction(file);
   };
 
   return (

@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { sendGAEvent } from '@next/third-parties/google';
 
 import { type FFFSType, FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { baseName, formatBytes } from '@/lib/utils';
 
 // The input is streamed into ffmpeg via a WORKERFS mount (read by reference,
@@ -184,18 +186,29 @@ export function useAudioExtractor() {
         setResult({ url, name: outputName });
         setProgress(100);
         setStatus('done');
+        sendGAEvent({
+          event: GA_EVENTS.EXTRACTOR_SUCCESS,
+          value: outputName,
+          event_category: 'tool_usage',
+        });
       } catch (err) {
         // Surface the real cause — the friendly copy below hides it, and this
         // path swallowed a cross-origin-isolation failure once already.
         console.error('[audio-extractor] extraction failed', err);
         const tail = logTailRef.current.join('\n');
-        setError(
+        const friendlyError =
           tail.includes('does not contain any stream') ||
-            tail.includes('Output file is empty')
+          tail.includes('Output file is empty')
             ? 'This video doesn’t seem to have an audio track.'
-            : 'Extraction failed — the file may be corrupted or in an unsupported format.'
-        );
+            : 'Extraction failed — the file may be corrupted or in an unsupported format.';
+        setError(friendlyError);
         setStatus('idle');
+        sendGAEvent({
+          event: GA_EVENTS.EXTRACTOR_FAILED,
+          value: friendlyError,
+          error_message: friendlyError,
+          event_category: 'tool_usage',
+        });
       } finally {
         // Always clean up, even when exec throws — a dirty /mount would make
         // the next attempt's mount fail.

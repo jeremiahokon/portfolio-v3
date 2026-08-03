@@ -7,6 +7,7 @@ import { AnimatePresence, m } from 'motion/react';
 
 import { CalendlyModal } from '@/components/calendly-modal';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { BOOK_A_CALL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 
@@ -66,11 +67,9 @@ export function StickyCta() {
               type="button"
               onClick={() => {
                 sendGAEvent({
-                  event: 'book_call_click',
+                  event: GA_EVENTS.BOOK_CALL_ON_STICKY_BAR,
                   value: 'Book a Free Call',
-                  button_location: 'sticky',
                   event_category: 'conversion',
-                  event_label: 'sticky_cta',
                 });
                 setIsCalendlyOpen(true);
               }}

@@ -6,6 +6,7 @@ import { sendGAEvent } from '@next/third-parties/google';
 import { Calendar, ChevronUp } from 'lucide-react';
 import { m, useInView } from 'motion/react';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import {
   BOOK_A_CALL,
   EMAIL,
@@ -95,11 +96,9 @@ export default function Footer() {
         <m.button
           onClick={() => {
             sendGAEvent({
-              event: 'book_call_click',
+              event: GA_EVENTS.BOOK_CALL_ON_FOOTER,
               value: 'Book a Free Call',
-              button_location: 'footer',
               event_category: 'conversion',
-              event_label: 'cta_button',
             });
             setIsCalendlyOpen(true);
           }}
@@ -202,11 +201,9 @@ export default function Footer() {
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 sendGAEvent({
-                  event: 'email_click',
+                  event: GA_EVENTS.EMAIL_ON_FOOTER,
                   value: EMAIL,
-                  click_location: 'footer',
                   event_category: 'engagement',
-                  event_label: 'contact_email',
                 });
               }}
             >
@@ -245,12 +242,11 @@ export default function Footer() {
                   className="group relative inline-block pb-1 text-lg md:text-xl"
                   onClick={() => {
                     sendGAEvent({
-                      event: 'social_click',
+                      event: GA_EVENTS.SOCIAL_LINK_ON_FOOTER,
                       value: link.name,
                       social_platform: link.name,
                       social_url: link.url,
                       event_category: 'engagement',
-                      event_label: 'footer_social_links',
                     });
                   }}
                 >

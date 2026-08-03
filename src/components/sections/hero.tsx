@@ -15,6 +15,7 @@ import {
 
 import { CalendlyModal } from '@/components/calendly-modal';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { BOOK_A_CALL, UPWORK_PROFILE_URL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 
@@ -237,11 +238,9 @@ export default function Hero() {
               rel="noopener noreferrer"
               onClick={() => {
                 sendGAEvent({
-                  event: 'upwork_click',
+                  event: GA_EVENTS.UPWORK_STATS_ON_HERO,
                   value: 'Hero trust strip',
-                  click_location: 'hero',
                   event_category: 'engagement',
-                  event_label: 'hero_trust_strip',
                 });
               }}
               className="font-family-inter text-paper/70 hover:text-paper flex w-fit flex-wrap items-center gap-x-3 gap-y-1 text-sm transition-colors md:text-base"
@@ -274,11 +273,9 @@ export default function Hero() {
               <m.button
                 onClick={() => {
                   sendGAEvent({
-                    event: 'book_call_click',
+                    event: GA_EVENTS.BOOK_CALL_ON_HERO,
                     value: 'Book a Free Call',
-                    button_location: 'hero',
                     event_category: 'conversion',
-                    event_label: 'cta_button',
                   });
                   setIsCalendlyOpen(true);
                 }}
@@ -314,11 +311,9 @@ export default function Hero() {
                 rel="noopener noreferrer"
                 onClick={() => {
                   sendGAEvent({
-                    event: 'upwork_click',
+                    event: GA_EVENTS.UPWORK_BADGE_ON_HERO,
                     value: 'Hire me on Upwork',
-                    click_location: 'hero',
                     event_category: 'engagement',
-                    event_label: 'hero_upwork_badge',
                   });
                 }}
                 className="inline-flex items-center gap-2.5 rounded-full border border-[#1DB954]/40 bg-[#14A800]/15 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#3ddc74] transition-all duration-300 hover:border-[#1DB954]/60 hover:bg-[#14A800]/25 md:text-base"

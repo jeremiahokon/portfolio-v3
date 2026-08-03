@@ -9,6 +9,7 @@ import { m } from 'motion/react';
 
 import { Reveal } from '@/ui/reveal';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { useCountUp, useReducedMotion } from '@/lib/hooks';
 
 interface FeaturedCase {
@@ -141,12 +142,11 @@ function FeaturedCaseCard({
         rel="noopener noreferrer"
         onClick={() => {
           sendGAEvent({
-            event: 'project_click',
+            event: GA_EVENTS.CASE_CARD_ON_RECENT_WORKS,
             value: project.name,
             project_name: project.name,
             project_url: project.link,
             event_category: 'engagement',
-            event_label: 'featured_case',
           });
         }}
         className={`group relative block overflow-hidden rounded-2xl shadow-xl md:col-span-3 ${
@@ -205,12 +205,11 @@ function FeaturedCaseCard({
           className="text-link w-fit text-xl"
           onClick={() => {
             sendGAEvent({
-              event: 'project_click',
+              event: GA_EVENTS.CASE_LINK_ON_RECENT_WORKS,
               value: project.name,
               project_name: project.name,
               project_url: project.link,
               event_category: 'engagement',
-              event_label: 'featured_case_link',
             });
           }}
         >
@@ -244,12 +243,11 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
             setIsExpanded(!isExpanded);
           }
           sendGAEvent({
-            event: 'project_click',
+            event: GA_EVENTS.PROJECT_ON_RECENT_WORKS,
             value: project.name,
             project_name: project.name,
             project_url: project.link,
             event_category: 'engagement',
-            event_label: 'recent_works_section',
           });
         }}
       >

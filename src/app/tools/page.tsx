@@ -3,8 +3,11 @@ import { Link as TransitionLink } from 'next-view-transitions';
 import { Check } from 'lucide-react';
 import type { Metadata } from 'next';
 
+import { TrackedTransitionLink } from '@/ui/tracked-transition-link';
+
 import { BookCallCta } from '@/components/book-call-cta';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { tools } from '@/lib/tools';
 
 export const metadata: Metadata = {
@@ -45,9 +48,15 @@ export default function ToolsPage() {
           const Icon = tool.icon;
 
           return (
-            <TransitionLink
+            <TrackedTransitionLink
               key={tool.slug}
               href={tool.href}
+              gaEvent={{
+                event: GA_EVENTS.TOOL_CARD_ON_TOOLS_PAGE,
+                value: tool.name,
+                tool_name: tool.name,
+                event_category: 'engagement',
+              }}
               className="border-ink/10 bg-ink/[0.03] group hover:border-sky/40 flex w-full max-w-md flex-col gap-5 rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="flex items-center justify-between">
@@ -82,7 +91,7 @@ export default function ToolsPage() {
                   </li>
                 ))}
               </ul>
-            </TransitionLink>
+            </TrackedTransitionLink>
           );
         })}
       </div>

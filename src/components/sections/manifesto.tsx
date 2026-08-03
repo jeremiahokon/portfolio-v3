@@ -17,17 +17,15 @@ interface Segment {
 // house headline pattern.
 const segments: Segment[] = [
   { text: "I'm Jeremiah — a " },
-  { text: 'frontend developer', accent: true },
-  { text: ' who also builds the backend. For 4+ years I’ve shipped ' },
+  { text: 'frontend engineer gone full-stack', accent: true },
+  { text: ". For 4+ years I've shipped " },
   { text: 'React and Next.js', accent: true },
-  { text: ' products for startups, with ' },
-  { text: 'Node.js', accent: true },
-  { text: ' APIs behind them. I obsess over the ' },
-  { text: 'first three seconds:', accent: true },
+  { text: ' products that clients actually profit from. I think in ' },
+  { text: 'systems — and in revenue', accent: true },
   {
-    text: 'load speed, motion, and the details that make visitors trust you — ',
+    text: ' — owning every detail from first pixel to deployment. I build in public and sharpen sales and marketing daily, ',
   },
-  { text: 'and then buy from you.', accent: true },
+  { text: "so you know exactly who you're hiring.", accent: true },
 ];
 
 interface Word {

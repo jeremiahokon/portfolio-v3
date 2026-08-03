@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
+
 interface CalendlyModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -92,11 +94,9 @@ export const CalendlyModal = ({
     if (isOpen) {
       // Track modal open event
       sendGAEvent({
-        event: 'calendly_modal_open',
+        event: GA_EVENTS.CALENDLY_MODAL_OPENED,
         value: title,
-        modal_action: 'open',
         event_category: 'engagement',
-        event_label: 'calendly_booking',
       });
 
       setIsLoading(true);
@@ -112,11 +112,9 @@ export const CalendlyModal = ({
   const handleClose = () => {
     // Track modal close event
     sendGAEvent({
-      event: 'calendly_modal_close',
+      event: GA_EVENTS.CALENDLY_MODAL_CLOSED,
       value: title,
-      modal_action: 'close',
       event_category: 'engagement',
-      event_label: 'calendly_booking',
     });
     onClose();
   };

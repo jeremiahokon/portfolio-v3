@@ -7,6 +7,7 @@ import { sendGAEvent } from '@next/third-parties/google';
 import { Play } from 'lucide-react';
 import { m } from 'motion/react';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { TIKTOK_URL, YOUTUBE_CHANNEL_URL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 import shortsFallback from '@/lib/shorts-fallback.json';
@@ -15,15 +16,17 @@ import type { ShortVideoData } from '@/lib/youtube';
 
 const VIEW_COUNT_DISPLAY_THRESHOLD = 1000;
 
-// Thumbnail fallback chain: API-provided url → maxresdefault → hqdefault
-// (some videos never get a maxres thumbnail rendered).
+// Thumbnail fallback chain: oar2 (1080×1920 portrait, matches the 9:16 frame
+// but 404s for some Shorts) → API-provided url → maxresdefault → hqdefault.
+// The <Image onError> handler walks this chain on 404.
 function thumbnailCandidates(video: ShortVideoData): string[] {
   const candidates = [
+    `https://i.ytimg.com/vi/${video.id}/oar2.jpg`,
     `https://i.ytimg.com/vi/${video.id}/maxresdefault.jpg`,
     `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`,
   ];
   if (video.thumbnailUrl && !candidates.includes(video.thumbnailUrl)) {
-    candidates.unshift(video.thumbnailUrl);
+    candidates.splice(1, 0, video.thumbnailUrl);
   }
 
   return candidates;
@@ -73,11 +76,11 @@ function VideoCard({ video }: { video: ShortVideoData }) {
             onClick={() => {
               setActive(true);
               sendGAEvent({
-                event: 'short_play',
+                event: GA_EVENTS.SHORT_PLAYED_ON_CONTENT,
                 value: video.id,
+                video_id: video.id,
                 video_title: video.title,
                 event_category: 'engagement',
-                event_label: 'content_creation_section',
               });
             }}
             className="group absolute inset-0 h-full w-full overflow-hidden rounded-[1.8rem]"
@@ -87,9 +90,9 @@ function VideoCard({ video }: { video: ShortVideoData }) {
               src={thumbnailSrc}
               alt={video.title}
               fill
-              sizes="(max-width: 640px) 100vw, 360px"
+              sizes="(max-width: 640px) 92vw, 360px"
               onError={() => setThumbIndex((i) => i + 1)}
-              className="scale-150 object-cover transition-transform duration-500 group-hover:scale-[1.6]"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
@@ -183,12 +186,10 @@ export default function ContentCreation({
           rel="noopener noreferrer"
           onClick={() => {
             sendGAEvent({
-              event: 'social_click',
+              event: GA_EVENTS.YOUTUBE_ON_CONTENT_SECTION,
               value: 'YouTube',
-              social_platform: 'YouTube',
               social_url: YOUTUBE_CHANNEL_URL,
               event_category: 'engagement',
-              event_label: 'content_creation_section',
             });
           }}
           className="group flex items-center gap-2 rounded-full border border-[#2C3333]/15 px-6 py-3 transition-colors duration-300 hover:border-[#7BB6DD]/50 hover:bg-[#2C3333]/[0.04]"
@@ -203,12 +204,10 @@ export default function ContentCreation({
           rel="noopener noreferrer"
           onClick={() => {
             sendGAEvent({
-              event: 'social_click',
+              event: GA_EVENTS.TIKTOK_ON_CONTENT_SECTION,
               value: 'TikTok',
-              social_platform: 'TikTok',
               social_url: TIKTOK_URL,
               event_category: 'engagement',
-              event_label: 'content_creation_section',
             });
           }}
           className="group flex items-center gap-2 rounded-full border border-[#2C3333]/15 px-6 py-3 transition-colors duration-300 hover:border-[#7BB6DD]/50 hover:bg-[#2C3333]/[0.04]"

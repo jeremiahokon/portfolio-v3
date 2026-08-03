@@ -5,6 +5,7 @@ import { sendGAEvent } from '@next/third-parties/google';
 import { ArrowUpRight } from 'lucide-react';
 import { m } from 'motion/react';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { UPWORK_PROFILE_URL } from '@/lib/constant';
 import { useCountUp, useReducedMotion } from '@/lib/hooks';
 
@@ -106,11 +107,10 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
           aria-label={`${label} — view on Upwork`}
           onClick={() => {
             sendGAEvent({
-              event: 'upwork_click',
+              event: GA_EVENTS.UPWORK_STAT_ON_STATS,
               value: label,
-              click_location: 'stats_section',
+              stat_label: label,
               event_category: 'engagement',
-              event_label: 'verifiable_stat',
             });
           }}
         >

@@ -2,8 +2,11 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { sendGAEvent } from '@next/third-parties/google';
 
 import { Play } from 'lucide-react';
+
+import { GA_EVENTS } from '@/lib/analytics-events';
 
 export function YouTubeFacade({
   videoId,
@@ -31,7 +34,16 @@ export function YouTubeFacade({
   return (
     <button
       type="button"
-      onClick={() => setActive(true)}
+      onClick={() => {
+        setActive(true);
+        sendGAEvent({
+          event: GA_EVENTS.FEATURED_VIDEO_PLAYED,
+          value: videoId,
+          video_id: videoId,
+          video_title: title,
+          event_category: 'engagement',
+        });
+      }}
       className="group absolute inset-0 h-full w-full"
       aria-label={`Play ${title}`}
     >

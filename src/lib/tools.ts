@@ -15,7 +15,7 @@ export interface Tool {
 export const tools: Tool[] = [
   {
     slug: 'extract-audio',
-    name: 'Video → MP3 Extractor',
+    name: 'Video to Audio Extractor',
     tagline: 'Pull crisp audio from any video.',
     description:
       'Drop in a clip and get a high-quality MP3 back in seconds. Runs entirely in your browser — nothing is uploaded, no account needed.',

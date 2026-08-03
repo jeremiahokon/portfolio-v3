@@ -1,9 +1,13 @@
 'use client';
 
+import { sendGAEvent } from '@next/third-parties/google';
+
 import { AudioLines, RotateCcw } from 'lucide-react';
 import { m } from 'motion/react';
 
 import { Button } from '@/ui/button';
+
+import { GA_EVENTS } from '@/lib/analytics-events';
 
 import { SuccessCheck } from './animated-icons';
 import { panelMotion } from './panel-motion';
@@ -40,6 +44,13 @@ export function ResultPanel({ reduced, result, onReset }: ResultPanelProps) {
         <a
           href={result.url}
           download={result.name}
+          onClick={() => {
+            sendGAEvent({
+              event: GA_EVENTS.EXTRACTOR_MP3_DOWNLOADED,
+              value: result.name,
+              event_category: 'tool_usage',
+            });
+          }}
           className="group from-sky to-sky-deep inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
         >
           Download MP3

@@ -1,6 +1,8 @@
-import { Link as TransitionLink } from 'next-view-transitions';
-
 import { AudioLines } from 'lucide-react';
+
+import { TrackedTransitionLink } from '@/ui/tracked-transition-link';
+
+import { GA_EVENTS } from '@/lib/analytics-events';
 
 export default function Tools() {
   return (
@@ -35,22 +37,39 @@ export default function Tools() {
             </h2>
 
             <p className="font-family-inter text-ink/70 text-base leading-relaxed">
-              Like a video → MP3 extractor that runs entirely in your browser.
-              Nothing uploaded, no account — the same privacy-first engineering
-              I bring to client work.
+              Like a Video{' '}
+              <em className="font-family-instrument text-sky-deep text-[1.2em] font-normal italic">
+                to
+              </em>{' '}
+              Audio extractor that runs entirely in your browser. Nothing
+              uploaded, no account — the same privacy-first engineering I bring
+              to client work.
             </p>
           </div>
 
           <div className="relative z-10 flex shrink-0 flex-col items-start gap-4 md:items-end">
-            <TransitionLink
+            <TrackedTransitionLink
               href="/extract-audio"
+              gaEvent={{
+                event: GA_EVENTS.OPEN_EXTRACTOR_ON_BANNER,
+                value: 'Open the audio extractor',
+                event_category: 'engagement',
+              }}
               className="from-sky to-sky-deep inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r px-7 py-3.5 text-sm font-black tracking-wide text-white uppercase shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_50px_rgba(123,182,221,0.4)]"
             >
               Open the audio extractor
-            </TransitionLink>
-            <TransitionLink href="/tools" className="text-link text-xl">
+            </TrackedTransitionLink>
+            <TrackedTransitionLink
+              href="/tools"
+              gaEvent={{
+                event: GA_EVENTS.BROWSE_TOOLS_ON_BANNER,
+                value: 'browse all tools',
+                event_category: 'engagement',
+              }}
+              className="text-link text-xl"
+            >
               browse all tools
-            </TransitionLink>
+            </TrackedTransitionLink>
           </div>
         </div>
       </div>

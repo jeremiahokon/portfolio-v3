@@ -6,6 +6,7 @@ export interface ShortVideoData {
   viewCount: number | null;
   thumbnailUrl: string | null;
   publishedAt?: string;
+  description?: string;
 }
 
 interface YouTubeThumbnail {
@@ -18,6 +19,7 @@ interface YouTubeVideoItem {
   id: string;
   snippet?: {
     title?: string;
+    description?: string;
     publishedAt?: string;
     thumbnails?: Record<string, YouTubeThumbnail | undefined>;
   };
@@ -103,6 +105,7 @@ export async function getShortsData(): Promise<ShortVideoData[] | null> {
             : null,
           thumbnailUrl: best?.url ?? null,
           publishedAt: item.snippet?.publishedAt,
+          description: item.snippet?.description?.trim() || undefined,
           durationSeconds: parseIsoDurationSeconds(
             item.contentDetails?.duration
           ),
@@ -121,6 +124,7 @@ export async function getShortsData(): Promise<ShortVideoData[] | null> {
         viewCount: video.viewCount,
         thumbnailUrl: video.thumbnailUrl,
         publishedAt: video.publishedAt,
+        description: video.description,
       }));
 
     return shorts.length > 0 ? shorts : null;

@@ -10,6 +10,7 @@ import { AnimatePresence, m } from 'motion/react';
 
 import { LocalTimeClock } from '@/ui/local-time-clock';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { EMAIL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 
@@ -54,11 +55,10 @@ export default function Header() {
   ) => {
     setIsMenuOpen(false);
     sendGAEvent({
-      event: 'nav_click',
+      event: GA_EVENTS.NAV_LINK_ON_HEADER,
       value: id,
-      click_location: 'header',
+      link_id: id,
       event_category: 'engagement',
-      event_label: 'nav_link',
     });
     if (!isHome) return; // let the anchor navigate to `/#id`
     e.preventDefault();
@@ -145,11 +145,9 @@ export default function Header() {
             className="hidden text-xl leading-[100%] font-medium -tracking-[1%] text-current md:inline-block"
             onClick={() => {
               sendGAEvent({
-                event: 'email_click',
+                event: GA_EVENTS.EMAIL_ON_HEADER,
                 value: EMAIL,
-                click_location: 'header',
                 event_category: 'engagement',
-                event_label: 'contact_email',
               });
             }}
           >
@@ -242,11 +240,10 @@ export default function Header() {
                         onClick={() => {
                           setIsMenuOpen(false);
                           sendGAEvent({
-                            event: 'nav_click',
+                            event: GA_EVENTS.NAV_LINK_ON_MOBILE_MENU,
                             value: link.id,
-                            click_location: 'header',
+                            link_id: link.id,
                             event_category: 'engagement',
-                            event_label: 'nav_link',
                           });
                         }}
                         className="cursor-pointer text-3xl font-bold tracking-tighter text-white transition-colors hover:text-gray-300 md:text-4xl"

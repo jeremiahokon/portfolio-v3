@@ -8,6 +8,7 @@ import { m } from 'motion/react';
 
 import { CalendlyModal } from '@/components/calendly-modal';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { BOOK_A_CALL, EMAIL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 
@@ -98,11 +99,9 @@ export default function Contact() {
         <m.button
           onClick={() => {
             sendGAEvent({
-              event: 'book_call_click',
+              event: GA_EVENTS.BOOK_CALL_ON_CONTACT,
               value: 'Book a Free Call',
-              button_location: 'contact',
               event_category: 'conversion',
-              event_label: 'cta_button',
             });
             setIsCalendlyOpen(true);
           }}
@@ -152,11 +151,9 @@ export default function Contact() {
           whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
           onClick={() => {
             sendGAEvent({
-              event: 'email_click',
+              event: GA_EVENTS.EMAIL_ON_CONTACT,
               value: 'Send an Email',
-              button_location: 'contact',
               event_category: 'conversion',
-              event_label: 'email_button',
             });
           }}
         >

@@ -2,6 +2,7 @@ import { Star } from 'lucide-react';
 
 import { TrackedLink } from '@/ui/tracked-link';
 
+import { GA_EVENTS } from '@/lib/analytics-events';
 import { UPWORK_PROFILE_URL } from '@/lib/constant';
 
 interface Testimonial {
@@ -152,12 +153,10 @@ export default function Testimonials() {
             href={UPWORK_PROFILE_URL}
             className="font-family-inter text-sm text-[#2C3333]/60 underline underline-offset-4 transition-colors hover:text-[#2C3333]"
             gaEvent={{
-              event: 'social_click',
+              event: GA_EVENTS.UPWORK_ON_TESTIMONIALS,
               value: 'Upwork',
-              social_platform: 'Upwork',
               social_url: UPWORK_PROFILE_URL,
               event_category: 'engagement',
-              event_label: 'testimonials_section',
             }}
           >
             All reviews from Upwork ↗

@@ -24,6 +24,9 @@ export default async function Home() {
             '@type': 'VideoObject',
             position: index + 1,
             name: video.title,
+            // Google Search Console flags VideoObjects without a description;
+            // Shorts often have empty ones, so fall back to the title.
+            description: (video.description ?? video.title).slice(0, 300),
             thumbnailUrl:
               video.thumbnailUrl ??
               `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`,
