@@ -28,10 +28,10 @@ export function LocalTimeClock() {
   if (!time) {
     return (
       <span className="flex flex-col items-center gap-1">
-        <span className="text-xs font-medium tracking-widest text-current uppercase opacity-70">
+        <span className="text-xs font-medium tracking-widest text-current uppercase opacity-80">
           Local Time
         </span>
-        <span className="text-xl leading-[100%] font-normal -tracking-[2%] text-current opacity-70">
+        <span className="text-xl leading-[100%] font-medium -tracking-[2%] text-current">
           --:-- GMT+1
         </span>
       </span>
@@ -52,10 +52,10 @@ export function LocalTimeClock() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
-      <span className="text-xs font-medium tracking-widest text-current uppercase opacity-70">
+      <span className="text-xs font-medium tracking-widest text-current uppercase opacity-80">
         Local Time
       </span>
-      <span className="inline-flex items-baseline text-xl leading-[100%] font-normal -tracking-[2%] text-current opacity-70">
+      <span className="inline-flex items-baseline text-xl leading-[100%] font-medium -tracking-[2%] text-current">
         <span>{hours}</span>
         <m.span
           animate={{ opacity: [1, 0.3, 1] }}
@@ -75,7 +75,7 @@ export function LocalTimeClock() {
           </m.span>
         </AnimatePresence>
         <span className="ml-1">{period}</span>
-        <span className="ml-1.5 text-sm text-current opacity-50">GMT+1</span>
+        <span className="ml-1.5 text-sm text-current opacity-80">GMT+1</span>
       </span>
     </m.span>
   );
