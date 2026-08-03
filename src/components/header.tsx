@@ -13,11 +13,12 @@ import { LocalTimeClock } from '@/ui/local-time-clock';
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { EMAIL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
+import { isHomePathname } from '@/lib/utils';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  const isHome = pathname === '/';
+  const isHome = isHomePathname(pathname);
   const reduced = useReducedMotion();
 
   // On the home page these are in-page anchors we scroll to smoothly. On any
