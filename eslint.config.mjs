@@ -56,6 +56,11 @@ const config = [
       '@typescript-eslint': tseslint,
     },
     rules: {
+      // The base rule misreads TypeScript-only constructs — it flags the
+      // parameter names in a function type alias (`type H = (msg: string) =>
+      // void`) as unused variables. typescript-eslint's documented guidance is
+      // to disable it and rely on the TS-aware version below.
+      'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },

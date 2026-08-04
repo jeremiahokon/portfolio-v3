@@ -22,7 +22,6 @@ interface CalendlyModalProps {
 declare global {
   interface Window {
     Calendly: {
-      // eslint-disable-next-line no-unused-vars
       initInlineWidget: (options: {
         url: string;
         parentElement: HTMLElement;
