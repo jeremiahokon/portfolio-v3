@@ -1,0 +1,6 @@
+# Tool-generated. pnpm rewrites this on every install, so formatting it just
+# makes `pnpm check` fail after any dependency change.
+pnpm-lock.yaml
+
+# Vendored FFmpeg wasm glue (already exempt from ESLint via eslint.config.mjs).
+public/ffmpeg/
