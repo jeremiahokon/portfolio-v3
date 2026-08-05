@@ -106,15 +106,24 @@ function describe(
         value: ratio ?? 0,
       };
     case 'transcribing':
+      // Two very different stages share this status. Saying "Transcribing"
+      // during voice detection would be a lie, and a visibly wrong label makes
+      // a long job feel stuck.
+      if (snapshot.stage === 'vad') {
+        return {
+          headline: 'Finding the speech',
+          detail: 'Locating pauses, so no subtitle gets cut off mid-word.',
+          value: snapshot.stageProgress,
+        };
+      }
+
       return {
         headline: 'Transcribing',
         detail:
           snapshot.duration !== null
             ? `Working through ${formatDuration(snapshot.duration)} of audio, entirely on your device.`
             : 'Running the model on your device.',
-        // The model reports no intra-inference progress, so an honest
-        // indeterminate bar beats a fake percentage that stalls at 90%.
-        value: 1,
+        value: snapshot.stageProgress,
       };
     case 'building':
       return {

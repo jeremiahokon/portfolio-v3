@@ -61,6 +61,11 @@ const config = [
       // void`) as unused variables. typescript-eslint's documented guidance is
       // to disable it and rely on the TS-aware version below.
       'no-unused-vars': 'off',
+      // Likewise: `no-undef` has no view of TypeScript's lib types, so it
+      // reports built-ins like `Transferable` as undefined globals. tsc already
+      // catches genuinely undefined identifiers, and typescript-eslint
+      // recommends turning this off in TypeScript files for that reason.
+      'no-undef': 'off',
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_' },
