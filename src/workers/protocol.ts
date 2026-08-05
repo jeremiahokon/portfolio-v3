@@ -32,7 +32,18 @@ export interface ModelInit {
   revision: string;
   /** Per-file-name dtype map, or a single dtype for all files. */
   dtype: string | Record<string, string>;
-  device: Backend;
+  /**
+   * Force a backend. **Normally omitted**, and that matters: the worker resolves
+   * it by actually asking for a WebGPU adapter, which is the only reliable test.
+   * Passing `'webgpu'` unconditionally — as this originally did — means a browser
+   * without WebGPU gets handed a device it cannot provide and errors instead of
+   * falling back to WASM.
+   *
+   * Set it only to pin a backend deliberately: the VAD always wants WASM, and a
+   * `?backend=` override exists so the slow path can be exercised on a machine
+   * that does have a GPU.
+   */
+  device?: Backend;
 }
 
 export type ToWorker =

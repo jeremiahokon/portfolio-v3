@@ -47,6 +47,15 @@ export interface JobSnapshot {
   /** Seconds of decoded audio, once known. */
   duration: number | null;
   backend: Backend | null;
+  /**
+   * Which analysis window is in flight, 1-based, and how many there are.
+   *
+   * Whisper reports nothing during inference, so a ~30 s window would otherwise
+   * look like a stall. Counting windows is honest movement; a synthetic
+   * percentage inside a window would not be.
+   */
+  chunkIndex: number;
+  chunkCount: number;
   download: DownloadState | null;
   words: Word[];
   cues: Cue[];
@@ -61,6 +70,8 @@ export const INITIAL_SNAPSHOT: JobSnapshot = {
   fileName: null,
   duration: null,
   backend: null,
+  chunkIndex: 0,
+  chunkCount: 0,
   download: null,
   words: [],
   cues: [],

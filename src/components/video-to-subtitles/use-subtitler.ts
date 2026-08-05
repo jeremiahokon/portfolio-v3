@@ -10,6 +10,7 @@ import {
 
 import { subscribeEngine } from '@/lib/ffmpeg/engine';
 import { decodeToPcm, NoAudioTrackError } from '@/lib/media/decode-pcm';
+import { currentBackendOverride } from '@/lib/models/backend-override';
 import {
   ASR,
   CACHE_KEY,
@@ -195,6 +196,10 @@ export function useSubtitler() {
         store.recordDownload(fileName, loaded, 0);
       };
 
+      // Read once per job rather than per stage, so a mid-job URL change cannot
+      // switch backends between chunks.
+      const override = currentBackendOverride();
+
       try {
         // ---- Decode -------------------------------------------------------
         let decoded;
@@ -289,7 +294,10 @@ export function useSubtitler() {
               id: ASR.id,
               revision: ASR.revision,
               dtype: ASR.dtype,
-              device: 'webgpu',
+              // Omitted unless explicitly overridden, so the worker resolves it
+              // by actually requesting a WebGPU adapter. Hardcoding 'webgpu'
+              // here would hand a device to browsers that cannot provide one.
+              ...(override ? { device: override } : {}),
             },
           },
           'ready'
@@ -301,6 +309,8 @@ export function useSubtitler() {
           stage: 'asr',
           stageProgress: 0,
           backend: ready.backend,
+          chunkCount: chunks.length,
+          chunkIndex: 0,
         });
 
         // Sequential, not parallel: one session on one device, so concurrent
@@ -321,6 +331,11 @@ export function useSubtitler() {
             // bookkeeping of its own.
             offset: chunk.start - chunk.overlapStart,
           };
+
+          // Announce the chunk *before* awaiting it, so the UI can say which
+          // one is in flight. Whisper reports nothing during inference, so a
+          // 30-second window would otherwise look like a stall.
+          store.set({ chunkIndex: results.length + 1 });
 
           const done = await asr.request(request, 'asr:done', [pcm]);
           if (isStale()) return;

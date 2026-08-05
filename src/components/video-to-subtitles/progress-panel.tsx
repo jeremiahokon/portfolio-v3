@@ -69,10 +69,14 @@ export function ProgressPanel({
 
       {snapshot.backend === 'wasm' && (
         // Disclosed rather than discovered: without WebGPU the runtime falls
-        // back to single-threaded WASM, which is several times slower.
+        // back to WASM, which is single-threaded here because the site ships
+        // without cross-origin isolation, so it is several times slower.
+        //
+        // Worded without blaming the browser, because this state is also
+        // reachable deliberately via ?backend=wasm.
         <span className="font-family-inter text-ink/50 max-w-sm text-xs">
-          Your browser doesn’t support GPU acceleration, so this will take
-          noticeably longer. It will still finish.
+          Running without GPU acceleration, so this will take noticeably longer.
+          It will still finish.
         </span>
       )}
 
@@ -119,10 +123,14 @@ function describe(
 
       return {
         headline: 'Transcribing',
+        // Naming the current window gives the user something that visibly moves
+        // during a stage where the model itself reports no progress at all.
         detail:
-          snapshot.duration !== null
-            ? `Working through ${formatDuration(snapshot.duration)} of audio, entirely on your device.`
-            : 'Running the model on your device.',
+          snapshot.chunkCount > 1
+            ? `Section ${snapshot.chunkIndex} of ${snapshot.chunkCount}, entirely on your device.`
+            : snapshot.duration !== null
+              ? `Working through ${formatDuration(snapshot.duration)} of audio, entirely on your device.`
+              : 'Running the model on your device.',
         value: snapshot.stageProgress,
       };
     case 'building':
