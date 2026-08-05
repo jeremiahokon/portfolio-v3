@@ -92,20 +92,29 @@ export async function decodeToPcm(
 
     // `-vn` drops video without decoding it. `-f s16le` forces raw output with
     // no container, so what comes back is exactly sampleCount * 2 bytes.
-    await ffmpeg.exec([
-      '-i',
-      inputPath,
-      '-vn',
-      '-ac',
-      '1',
-      '-ar',
-      String(TARGET_SAMPLE_RATE),
-      '-acodec',
-      'pcm_s16le',
-      '-f',
-      's16le',
-      outputName,
-    ]);
+    //
+    // The signal goes in the third argument; the second is a timeout, left at
+    // the library's unbounded default because a legitimate hour-long decode
+    // must not be killed by an arbitrary deadline. Cancellation is the user's
+    // to trigger, which is what the signal is for.
+    await ffmpeg.exec(
+      [
+        '-i',
+        inputPath,
+        '-vn',
+        '-ac',
+        '1',
+        '-ar',
+        String(TARGET_SAMPLE_RATE),
+        '-acodec',
+        'pcm_s16le',
+        '-f',
+        's16le',
+        outputName,
+      ],
+      -1,
+      signal ? { signal } : {}
+    );
 
     signal?.throwIfAborted();
 

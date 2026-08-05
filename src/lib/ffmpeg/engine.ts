@@ -88,14 +88,23 @@ export async function getEngine(signal?: AbortSignal): Promise<FFmpeg> {
       for (const handler of logHandlers) handler(message);
     });
 
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${BASE_URL}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(
-        `${BASE_URL}/ffmpeg-core.wasm`,
-        'application/wasm'
-      ),
-      ...(signal ? { signal } : {}),
-    });
+    // The signal is the SECOND argument, not part of the config. Everything in
+    // the config object is postMessage'd to the worker, and an AbortSignal is
+    // not structured-cloneable — putting it there fails with a DataCloneError
+    // before the core ever loads.
+    await ffmpeg.load(
+      {
+        coreURL: await toBlobURL(
+          `${BASE_URL}/ffmpeg-core.js`,
+          'text/javascript'
+        ),
+        wasmURL: await toBlobURL(
+          `${BASE_URL}/ffmpeg-core.wasm`,
+          'application/wasm'
+        ),
+      },
+      signal ? { signal } : {}
+    );
 
     engine = ffmpeg;
 

@@ -49,15 +49,39 @@ export interface ModelSpec {
  * back to the device default dtype, which would quietly download the wrong
  * (larger) weights. The loader asserts the resolved dtype for that reason.
  *
- * fp16 encoder (41.3 MB) is chosen over fp32 (82.5 MB): WebGPU is the primary
- * path and fp16 is native there. The merged decoder reuses the KV cache; the
- * unmerged pair would cost 123.4 MB + 121.3 MB instead of one 123.6 MB file.
+ * **The encoder dtype was chosen by measurement, and it overturns the plan's
+ * decision D4.** D4 picked fp16 (41.3 MB) over fp32 (82.5 MB) on the reasoning
+ * that WebGPU is the primary path and fp16 is native there, with a note to
+ * revisit if transcript quality suffered. It suffers completely: on Chrome 150 /
+ * macOS / WebGPU, the fp16 encoder transcribed a clear 9.7 s utterance as the
+ * single word `" I."`. Verified it is the encoder and not the audio — the
+ * samples reaching the model measured 154,553 samples, RMS 0.1460, peak 0.8183,
+ * byte-identical to an ffmpeg CLI decode of the same clip.
+ *
+ * Same clip, same everything, encoder dtype the only variable:
+ *
+ * | encoder dtype | size    | result                                  |
+ * |---------------|---------|-----------------------------------------|
+ * | fp16          | 41.3 MB | `" I."` — unusable                      |
+ * | fp32          | 82.5 MB | near-verbatim transcript                |
+ * | **int8**      | 23.2 MB | near-verbatim, indistinguishable from fp32 |
+ *
+ * So int8 is both correct *and* the smallest of the three — 18 MB less than the
+ * fp16 the plan assumed, which improves the download budget rather than costing
+ * it. Caveat worth keeping in view: this is one clip on one browser and GPU. It
+ * is strictly better evidence than fp16 ever had, but the honest evaluation is
+ * the scorer that the aligner milestone builds; re-run this comparison there,
+ * and re-check on Safari, where the fp16 path may fail differently.
+ *
+ * The merged decoder reuses the KV cache; the unmerged pair would cost
+ * 123.4 MB + 121.3 MB instead of one 123.6 MB file.
  */
 export const ASR = {
   id: 'onnx-community/whisper-base',
   revision: '1846881b6b3a3024392c1eea3ad983695bc23925',
-  dtype: { encoder_model: 'fp16', decoder_model_merged: 'q4' },
-  approxBytes: 169_000_000,
+  dtype: { encoder_model: 'int8', decoder_model_merged: 'q4' },
+  // int8 encoder 23.2 MB + q4 merged decoder 123.6 MB + tokenizer/configs ~4.3 MB.
+  approxBytes: 151_000_000,
 } as const;
 
 /**

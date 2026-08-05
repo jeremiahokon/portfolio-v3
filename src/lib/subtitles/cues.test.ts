@@ -112,6 +112,65 @@ describe('buildCues', () => {
     }
   });
 
+  // Regression. Uniform-length words always split evenly, so the test above
+  // passed while real prose produced a 43-character line in a shipped SRT: the
+  // cue measured 81 characters, inside the 84 budget, but no split of it left
+  // both lines under 42. Grouping now gates on wrapping, not on the total.
+  it('respects the per-line limit even when the total is inside the budget', () => {
+    const sentence =
+      'Hello, this is a test of the subtitle generator, it should produce three separate';
+    const words = sentence
+      .split(' ')
+      .map((t, i) => word(t, i * 0.34, i * 0.34 + 0.34));
+
+    // Precondition: the whole run is under the 2 x 42 budget, which is exactly
+    // what made the old check pass it through.
+    expect(sentence.length).toBeLessThanOrEqual(
+      R.maxCharsPerLine * R.maxLinesPerCue
+    );
+
+    for (const cue of buildCues(words)) {
+      for (const line of cueText(cue, words).split('\n')) {
+        expect(line.length).toBeLessThanOrEqual(R.maxCharsPerLine);
+      }
+    }
+  });
+
+  it('holds the per-line limit across varied real prose', () => {
+    const prose =
+      'The committee unanimously recommended postponing the extraordinarily ' +
+      'complicated restructuring proposal until stakeholders had sufficient ' +
+      'opportunity to review it. Afterwards, everyone agreed that the ' +
+      'documentation was insufficient, poorly organised, and occasionally ' +
+      'contradictory in ways nobody had anticipated beforehand.';
+    const words = prose
+      .split(' ')
+      .map((t, i) => word(t, i * 0.31, i * 0.31 + 0.31));
+
+    const cues = buildCues(words);
+    expect(cues.length).toBeGreaterThan(3);
+
+    for (const cue of cues) {
+      const lines = cueText(cue, words).split('\n');
+      expect(lines.length).toBeLessThanOrEqual(R.maxLinesPerCue);
+      for (const line of lines) {
+        expect(line.length).toBeLessThanOrEqual(R.maxCharsPerLine);
+      }
+    }
+  });
+
+  it('gives an unbreakably long word its own line rather than dropping it', () => {
+    const long = 'A'.repeat(60);
+    const words = [word('short', 0, 1), word(long, 1, 2), word('tail', 2, 3)];
+    const rendered = buildCues(words)
+      .map((cue) => cueText(cue, words))
+      .join('\n');
+
+    expect(rendered).toContain(long);
+    expect(rendered).toContain('short');
+    expect(rendered).toContain('tail');
+  });
+
   it('closes a cue that would outlast the maximum duration', () => {
     // Short text, long silences: only the duration rule can split this.
     const words = Array.from({ length: 6 }, (_, i) =>

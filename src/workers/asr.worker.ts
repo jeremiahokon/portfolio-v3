@@ -112,6 +112,22 @@ async function transcribe(
   // `pcm` arrived as a transferred ArrayBuffer, so this view costs no copy.
   const samples = new Float32Array(message.pcm);
 
+  if (process.env.NODE_ENV === 'development') {
+    // Kept deliberately: a silent or mis-scaled buffer and a broken model dtype
+    // both present as a nonsense transcript, and these three numbers separate
+    // the two in one glance. Diagnosing the fp16-encoder failure without them
+    // meant guessing.
+    let sum = 0;
+    let peak = 0;
+    for (const value of samples) {
+      sum += value * value;
+      peak = Math.max(peak, Math.abs(value));
+    }
+    console.warn(
+      `[asr] samples=${samples.length} seconds=${(samples.length / message.sampleRate).toFixed(2)} rms=${Math.sqrt(sum / samples.length).toFixed(4)} peak=${peak.toFixed(4)}`
+    );
+  }
+
   try {
     const output = await asr(samples, {
       // Word-level timestamps would need the aligner; chunk-level is all

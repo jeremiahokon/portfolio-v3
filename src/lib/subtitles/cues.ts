@@ -93,13 +93,68 @@ function cueLength(words: Word[], from: number, to: number): number {
 }
 
 /**
+ * Greedily wraps a word range into lines no longer than `maxChars`.
+ *
+ * Returns the word indices at which each new line begins, excluding the first.
+ * A word longer than `maxChars` gets its own line and overflows it — there is
+ * nowhere else for it to go, and silently dropping it would be worse.
+ */
+function wrapLines(
+  words: Word[],
+  from: number,
+  to: number,
+  maxChars: number
+): number[] {
+  const breaks: number[] = [];
+  let lineLength = 0;
+
+  for (let i = from; i <= to; i += 1) {
+    const length = words[i]?.text.length ?? 0;
+    const withSpace = lineLength === 0 ? length : lineLength + 1 + length;
+
+    if (lineLength > 0 && withSpace > maxChars) {
+      breaks.push(i);
+      lineLength = length;
+    } else {
+      lineLength = withSpace;
+    }
+  }
+
+  return breaks;
+}
+
+/**
+ * Whether a word range can actually be laid out within the cue's line budget.
+ *
+ * This is the real constraint, and it is **not** the same as the total character
+ * count fitting `maxCharsPerLine * maxLinesPerCue`. A cue of 81 characters is
+ * inside an 84-character budget, yet if its word boundaries fall such that no
+ * split leaves both lines under 42, it cannot be rendered legally. Gating
+ * grouping on the total alone produced exactly that: a real 43-character line
+ * in an SRT whose cue measured 81. Wrapping decides it instead.
+ */
+function fitsInCue(
+  words: Word[],
+  from: number,
+  to: number,
+  rules: ReadabilityRules
+): boolean {
+  return (
+    wrapLines(words, from, to, rules.maxCharsPerLine).length + 1 <=
+    rules.maxLinesPerCue
+  );
+}
+
+/**
  * Groups words into cues.
  *
  * Three limits close a cue, and they are checked in order of how badly a viewer
  * notices the violation:
  *
- * 1. **Character budget** — `maxCharsPerLine * maxLinesPerCue`. Overflowing this
- *    means text that does not fit on screen, so it is hard.
+ * 1. **Layout** — the words must wrap into at most `maxLinesPerCue` lines of at
+ *    most `maxCharsPerLine`. Checked by actually wrapping them, not by comparing
+ *    against the product of the two: see `fitsInCue` for why that distinction is
+ *    load-bearing rather than pedantic.
  * 2. **Duration** — `maxCueDuration`. A cue lingering past this reads as a
  *    subtitle that failed to clear.
  * 3. **Sentence end** — a word ending in `.`, `!`, `?` or `…` closes the cue,
@@ -117,7 +172,6 @@ export function buildCues(
 ): Cue[] {
   if (words.length === 0) return [];
 
-  const budget = rules.maxCharsPerLine * rules.maxLinesPerCue;
   const cues: Cue[] = [];
 
   let start = 0;
@@ -128,12 +182,12 @@ export function buildCues(
 
     const startWord = words[start];
     const elapsed = (word.end ?? 0) - (startWord?.start ?? 0);
-    const overBudget = cueLength(words, start, i) > budget;
+    const overflows = !fitsInCue(words, start, i, rules);
     const overTime = elapsed > rules.maxCueDuration;
 
     // Break *before* the offending word when possible, so the cue that closes
     // is the one that still fits.
-    if ((overBudget || overTime) && i > start) {
+    if ((overflows || overTime) && i > start) {
       cues.push(makeCue(words, start, i - 1, rules));
       start = i;
     }
@@ -156,11 +210,18 @@ export function buildCues(
 }
 
 /**
- * Builds one cue and chooses its line break.
+ * Builds one cue and chooses its line breaks.
  *
- * Prefers the break that leaves the two lines closest in length — unbalanced
- * lines read worse than a slightly-off break point — while never letting either
- * line exceed the per-line budget.
+ * For the common two-line case, prefers the split leaving the lines closest in
+ * length — unbalanced lines read worse than a slightly-off break point — but
+ * only among splits where **both** lines fit `maxCharsPerLine`.
+ *
+ * When no such split exists, it falls back to greedy wrapping rather than to the
+ * most balanced illegal split. Greedy is guaranteed to respect the per-line
+ * limit wherever it is physically possible, and a balanced-but-overflowing line
+ * is the specific defect that shipped a 43-character line once already.
+ * `buildCues` should have closed the cue before it got here, so this path is now
+ * reachable only for a single word longer than a whole line.
  */
 function makeCue(
   words: Word[],
@@ -169,43 +230,31 @@ function makeCue(
   rules: ReadabilityRules
 ): Cue {
   const total = cueLength(words, from, to);
-  const lineBreaks: number[] = [];
 
-  if (total > rules.maxCharsPerLine && to > from) {
-    let bestIndex = -1;
-    let bestDelta = Number.POSITIVE_INFINITY;
-
-    for (let i = from + 1; i <= to; i += 1) {
-      const first = cueLength(words, from, i - 1);
-      const second = cueLength(words, i, to);
-      if (first > rules.maxCharsPerLine || second > rules.maxCharsPerLine) {
-        continue;
-      }
-      const delta = Math.abs(first - second);
-      if (delta < bestDelta) {
-        bestDelta = delta;
-        bestIndex = i;
-      }
-    }
-
-    // No split satisfies both lines (a single very long word, or text far over
-    // budget). Fall back to the most balanced split available so the cue still
-    // wraps onto two lines rather than overflowing one.
-    if (bestIndex === -1) {
-      let fallbackDelta = Number.POSITIVE_INFINITY;
-      for (let i = from + 1; i <= to; i += 1) {
-        const delta = Math.abs(
-          cueLength(words, from, i - 1) - cueLength(words, i, to)
-        );
-        if (delta < fallbackDelta) {
-          fallbackDelta = delta;
-          bestIndex = i;
-        }
-      }
-    }
-
-    if (bestIndex > from) lineBreaks.push(bestIndex);
+  if (total <= rules.maxCharsPerLine || to === from) {
+    return { id: nextId('c'), wordStart: from, wordEnd: to, lineBreaks: [] };
   }
+
+  let bestIndex = -1;
+  let bestDelta = Number.POSITIVE_INFINITY;
+
+  for (let i = from + 1; i <= to; i += 1) {
+    const first = cueLength(words, from, i - 1);
+    const second = cueLength(words, i, to);
+    if (first > rules.maxCharsPerLine || second > rules.maxCharsPerLine) {
+      continue;
+    }
+    const delta = Math.abs(first - second);
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      bestIndex = i;
+    }
+  }
+
+  const lineBreaks =
+    bestIndex > from
+      ? [bestIndex]
+      : wrapLines(words, from, to, rules.maxCharsPerLine);
 
   return { id: nextId('c'), wordStart: from, wordEnd: to, lineBreaks };
 }
