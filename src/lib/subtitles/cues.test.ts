@@ -249,6 +249,120 @@ describe('normalizeCues', () => {
   });
 });
 
+describe('normalizeCues against the section 2.4 timing rules', () => {
+  /** Cues built from evenly-timed words, then measured after normalisation. */
+  function measure(words: Word[]) {
+    const normalized = normalizeCues(words, buildCues(words));
+
+    return normalized.map((cue, i) => {
+      const { start, end } = cueBounds(cue, words);
+      const text = cueText(cue, words);
+
+      return {
+        i,
+        start,
+        end,
+        duration: end - start,
+        cps: cueCps(text, start, end),
+      };
+    });
+  }
+
+  // Regression: a real 6-minute transcript had 81 of 137 adjacencies at exactly
+  // zero gap. normalizeCues only applied minGap while extending a short cue, so
+  // two cues that merely touched were left touching.
+  it('separates every pair of touching cues by at least minGap', () => {
+    // Back-to-back words with no silence between sentences: every cue boundary
+    // lands exactly where the next begins.
+    const words = [
+      word('One.', 0, 2),
+      word('Two.', 2, 4),
+      word('Three.', 4, 6),
+      word('Four.', 6, 8),
+    ];
+    const measured = measure(words);
+
+    expect(measured.length).toBeGreaterThan(1);
+    for (let i = 1; i < measured.length; i += 1) {
+      const gap = measured[i]!.start - measured[i - 1]!.end;
+      expect(gap).toBeGreaterThanOrEqual(R.minGap - 1e-9);
+    }
+  });
+
+  it('takes the gap out of the earlier cue rather than delaying the later one', () => {
+    // Delaying a start would show a subtitle after its word was spoken, which is
+    // worse than clearing the previous cue a few frames early.
+    const words = [word('One.', 0, 2), word('Two.', 2, 4)];
+    const normalized = normalizeCues(words, buildCues(words));
+
+    expect(cueBounds(normalized[1]!, words).start).toBe(2);
+    expect(cueBounds(normalized[0]!, words).end).toBeCloseTo(2 - R.minGap, 6);
+  });
+
+  it('extends a cue that reads too fast, using the gap that follows', () => {
+    // 60 characters in 1s is 60 CPS. There is a long silence afterwards, so the
+    // cue can legitimately be given more time.
+    const text = 'a'.repeat(20);
+    const words = [
+      word(text, 0, 0.4),
+      word(text, 0.4, 0.7),
+      word(`${text}.`, 0.7, 1),
+    ];
+    const [cue] = normalizeCues(words, buildCues(words));
+    const { start, end } = cueBounds(cue!, words);
+
+    expect(cueCps(cueText(cue!, words), start, end)).toBeLessThanOrEqual(
+      R.maxCps
+    );
+  });
+
+  it('never breaks the gap to satisfy reading speed', () => {
+    // Dense text with the next cue arriving immediately: CPS cannot be fixed
+    // here, and the correct outcome is to leave it violating rather than overlap.
+    const dense = 'a'.repeat(40);
+    const words = [
+      word(`${dense}.`, 0, 0.5),
+      word(`${dense}.`, 0.5, 1),
+      word(`${dense}.`, 1, 1.5),
+    ];
+    const measured = measure(words);
+
+    for (let i = 1; i < measured.length; i += 1) {
+      expect(measured[i]!.start - measured[i - 1]!.end).toBeGreaterThanOrEqual(
+        R.minGap - 1e-9
+      );
+    }
+  });
+
+  it('gives a short cue its minimum duration when there is room', () => {
+    const words = [word('Hi.', 0, 0.2), word('Later.', 10, 11)];
+    const measured = measure(words);
+
+    expect(measured[0]!.duration).toBeCloseTo(R.minCueDuration, 6);
+  });
+
+  it('never inverts a cue, even when neighbours start closer than minGap', () => {
+    const words = [word('A.', 0, 0.01), word('B.', 0.02, 0.5)];
+    const measured = measure(words);
+
+    for (const cue of measured) {
+      expect(cue.end).toBeGreaterThanOrEqual(cue.start);
+    }
+  });
+
+  it('leaves word timing untouched', () => {
+    const words = [word('One.', 0, 2), word('Two.', 2, 4)];
+    const before = words.map((w) => ({ ...w }));
+    normalizeCues(words, buildCues(words));
+
+    expect(words).toEqual(before);
+  });
+
+  it('handles an empty cue list', () => {
+    expect(normalizeCues([], [])).toEqual([]);
+  });
+});
+
 describe('cueCps', () => {
   it('measures characters per second', () => {
     expect(cueCps('abcdefghij', 0, 1)).toBeCloseTo(10);

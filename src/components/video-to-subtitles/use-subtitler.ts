@@ -9,7 +9,11 @@ import {
 } from 'react';
 
 import { subscribeEngine } from '@/lib/ffmpeg/engine';
-import { decodeToPcm, NoAudioTrackError } from '@/lib/media/decode-pcm';
+import {
+  decodeToPcm,
+  isEffectivelySilent,
+  NoAudioTrackError,
+} from '@/lib/media/decode-pcm';
 import { currentBackendOverride } from '@/lib/models/backend-override';
 import {
   ASR,
@@ -274,6 +278,26 @@ export function useSubtitler() {
           (client) => client !== vad
         );
 
+        // Nothing to transcribe. Checked here, after the 2 MB VAD but before the
+        // ~151 MB ASR download, so a silent file costs almost nothing.
+        //
+        // Both conditions are required. No VAD regions alone is not enough — a
+        // false negative on real speech should fall through to transcribing
+        // blind rather than refusing. Silence *and* no regions is conclusive,
+        // and stopping here is what prevents Whisper hallucinating a word or two
+        // out of noise and the UI presenting that as a transcript.
+        if (
+          vadResult.regions.length === 0 &&
+          isEffectivelySilent(decoded.samples)
+        ) {
+          fail(
+            'no-speech',
+            'We couldn’t find any speech in this file — it sounds silent.'
+          );
+
+          return;
+        }
+
         const chunks = planChunks(vadResult.regions, decoded.duration);
 
         // ---- Speech recognition -------------------------------------------
@@ -360,6 +384,18 @@ export function useSubtitler() {
         const cues = normalizeCues(words, buildCues(words));
 
         if (isStale()) return;
+
+        // Reachable when the VAD found regions in something that turned out not
+        // to be speech — music, room tone, applause. Offering an empty download
+        // would be worse than saying so.
+        if (words.length === 0) {
+          fail(
+            'no-speech',
+            'We couldn’t make out any speech in this file. If it’s mostly music or background noise, that’s expected.'
+          );
+
+          return;
+        }
 
         store.set({
           status: 'done',

@@ -260,44 +260,91 @@ function makeCue(
 }
 
 /**
- * Repairs cue timing: enforces a minimum on-screen duration and a minimum gap
- * between consecutive cues.
+ * Repairs cue timing against the section 2.4 rules.
  *
- * Runs as a separate pass over `overrideStart`/`overrideEnd` and **never
- * touches `Word` timing**, which is what keeps words the single source of truth.
- * A cue that must be extended borrows from the following gap; if there is no
- * room, it is left short rather than overlapping its neighbour — an overlap is
- * a worse defect than a brief cue, and the QC panel will flag what remains.
+ * Runs as a separate pass writing only `overrideStart`/`overrideEnd`, and
+ * **never touches `Word` timing** — that is what keeps words the single source
+ * of truth and makes every repair here inspectable and reversible.
+ *
+ * Three passes, in this order because each depends on the previous:
+ *
+ * 1. **Separate touching cues.** The gap is taken out of the *earlier* cue's
+ *    tail rather than by delaying the later cue's start. Delaying the start
+ *    would make a subtitle appear after its word has been spoken, which is a
+ *    worse error than clearing the previous one a few frames early.
+ * 2. **Grow cues that are too short or read too fast**, into whatever gap
+ *    follows. A cue needs `chars / maxCps` seconds to be readable at the
+ *    ceiling, so reading speed and minimum duration are the same kind of
+ *    problem — both want more time — and are solved together.
+ * 3. Never shrink a cue below where it already ended, and never cross into the
+ *    next one.
+ *
+ * What this deliberately does **not** do is split a cue to fix reading speed:
+ * splitting divides characters and time in the same proportion, so the ratio
+ * survives untouched. Only more time, or better word timings from the aligner,
+ * actually fixes CPS. Whatever remains after this is a genuine violation for
+ * the QC panel to surface rather than something to paper over.
  */
 export function normalizeCues(
   words: Word[],
   cues: Cue[],
   rules: ReadabilityRules = DEFAULT_READABILITY
 ): Cue[] {
-  return cues.map((cue, index) => {
+  if (cues.length === 0) return cues;
+
+  const bounds = cues.map((cue) => {
     const first = words[cue.wordStart];
     const last = words[cue.wordEnd];
-    if (!first || !last) return cue;
+    const start = cue.overrideStart ?? first?.start ?? 0;
+    const end = cue.overrideEnd ?? last?.end ?? 0;
 
-    const start = cue.overrideStart ?? first.start;
-    let end = cue.overrideEnd ?? last.end;
+    return {
+      start,
+      end,
+      originalEnd: end,
+      // Spaces count toward reading load; a line break merely replaces one, so
+      // this matches the rendered character count.
+      chars: cueLength(words, cue.wordStart, cue.wordEnd),
+    };
+  });
 
-    if (end - start < rules.minCueDuration) {
-      const wanted = start + rules.minCueDuration;
-      const next = cues[index + 1];
-      const nextStart = next
-        ? (next.overrideStart ?? words[next.wordStart]?.start ?? Infinity)
-        : Infinity;
-      // Leave the required gap intact; never extend past it.
-      end = Math.min(wanted, nextStart - rules.minGap);
-      // If the neighbour is already closer than the gap allows, don't move at
-      // all rather than producing an end before the start.
-      end = Math.max(end, cue.overrideEnd ?? last.end);
+  // Pass 1 — enforce the minimum gap by trimming the earlier cue's tail.
+  for (let i = 1; i < bounds.length; i += 1) {
+    const previous = bounds[i - 1]!;
+    const current = bounds[i]!;
+    const latestAllowedEnd = current.start - rules.minGap;
+
+    if (previous.end > latestAllowedEnd) {
+      // Clamped at its own start so a cue can never invert, even when two cues
+      // begin closer together than the gap itself.
+      previous.end = Math.max(previous.start, latestAllowedEnd);
+    }
+  }
+
+  // Pass 2 — grow the too-short and the too-fast into the following gap.
+  for (let i = 0; i < bounds.length; i += 1) {
+    const current = bounds[i]!;
+    const next = bounds[i + 1];
+    const ceiling = next ? next.start - rules.minGap : Number.POSITIVE_INFINITY;
+
+    let wanted = current.end;
+    if (current.end - current.start < rules.minCueDuration) {
+      wanted = Math.max(wanted, current.start + rules.minCueDuration);
+    }
+    if (rules.maxCps > 0 && current.chars > 0) {
+      wanted = Math.max(wanted, current.start + current.chars / rules.maxCps);
     }
 
-    return end === (cue.overrideEnd ?? last.end)
-      ? cue
-      : { ...cue, overrideEnd: end };
+    // Grow only: `Math.max` against the current end means a ceiling that is
+    // already behind us leaves the cue alone instead of pulling it backwards.
+    current.end = Math.max(current.end, Math.min(wanted, ceiling));
+  }
+
+  return cues.map((cue, index) => {
+    const bound = bounds[index]!;
+    if (bound.end === bound.originalEnd) return cue;
+
+    return { ...cue, overrideEnd: bound.end };
   });
 }
 

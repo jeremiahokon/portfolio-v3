@@ -40,6 +40,45 @@ export class DecodeFailedError extends Error {
 }
 
 /**
+ * Root-mean-square amplitude of the samples, in the same [-1, 1] scale.
+ *
+ * One pass over the buffer, which is cheap next to everything else the pipeline
+ * does — a 30-minute file is ~29 M samples.
+ */
+export function rms(samples: Float32Array): number {
+  if (samples.length === 0) return 0;
+
+  let sum = 0;
+  for (const sample of samples) sum += sample * sample;
+
+  return Math.sqrt(sum / samples.length);
+}
+
+/**
+ * Amplitude below which audio is treated as containing nothing to transcribe.
+ *
+ * 0.002 is about −54 dBFS. For scale, the real speech measured here sits around
+ * 0.15 (−16 dBFS) and a screen recording with a muted microphone measured
+ * −91 dBFS. The gap between those is enormous, so this threshold does not need
+ * to be finely tuned — it only needs to separate "silence" from "quiet".
+ */
+export const SILENCE_RMS = 0.002;
+
+/**
+ * Whether a decoded track is effectively silent.
+ *
+ * Distinguishing this from "the VAD found nothing" matters, because the two want
+ * opposite handling. A VAD false negative on real speech should fall through to
+ * transcribing blind; genuine silence should stop and say so, rather than let
+ * Whisper hallucinate a word or two out of noise and present them as a
+ * transcript. Checked before the ASR weights are fetched, so a silent file never
+ * costs the user a ~151 MB download.
+ */
+export function isEffectivelySilent(samples: Float32Array): boolean {
+  return rms(samples) < SILENCE_RMS;
+}
+
+/**
  * Converts interleaved little-endian signed 16-bit PCM to normalised floats.
  *
  * Divides by 32768 rather than 32767 so the mapping is exact for the negative

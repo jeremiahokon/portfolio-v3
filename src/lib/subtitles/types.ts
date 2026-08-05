@@ -106,6 +106,8 @@ export type ErrorCode =
   | 'engine-load-failed'
   | 'decode-failed'
   | 'no-audio-track'
+  /** An audio track exists but holds no speech — silence, or noise only. */
+  | 'no-speech'
   | 'model-download-failed'
   | 'quota-exceeded'
   | 'out-of-memory'
