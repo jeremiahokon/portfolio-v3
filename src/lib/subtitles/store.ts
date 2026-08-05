@@ -60,6 +60,8 @@ export interface JobSnapshot {
   words: Word[];
   cues: Cue[];
   timingSource: TimingSource;
+  /** How many words took a measured timing from the aligner. */
+  alignedWords: number;
   error: { code: ErrorCode; message: string } | null;
 }
 
@@ -76,6 +78,7 @@ export const INITIAL_SNAPSHOT: JobSnapshot = {
   words: [],
   cues: [],
   timingSource: 'estimated',
+  alignedWords: 0,
   error: null,
 };
 

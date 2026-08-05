@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
 
-import { Clock3, Download, RotateCcw } from 'lucide-react';
+import { Clock3, Download, RotateCcw, Wand2 } from 'lucide-react';
 import { m } from 'motion/react';
 
 import { SuccessCheck } from '@/components/extract-audio/animated-icons';
@@ -11,6 +11,7 @@ import { panelMotion } from '@/components/extract-audio/panel-motion';
 import { Button } from '@/components/ui/button';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
+import { ALIGNER } from '@/lib/models/config';
 import {
   EXPORT_EXTENSION,
   EXPORT_MIME,
@@ -18,12 +19,13 @@ import {
   serialize,
 } from '@/lib/subtitles/export';
 import type { JobSnapshot } from '@/lib/subtitles/store';
-import { baseName, cn } from '@/lib/utils';
+import { baseName, cn, formatBytes } from '@/lib/utils';
 
 interface ExportPanelProps {
   reduced: boolean;
   snapshot: JobSnapshot;
   onReset: () => void;
+  onRefineTiming: () => void;
 }
 
 const FORMATS: Array<{ id: ExportFormat; label: string; hint: string }> = [
@@ -32,7 +34,12 @@ const FORMATS: Array<{ id: ExportFormat; label: string; hint: string }> = [
   { id: 'json', label: 'JSON', hint: 'Raw word data' },
 ];
 
-export function ExportPanel({ reduced, snapshot, onReset }: ExportPanelProps) {
+export function ExportPanel({
+  reduced,
+  snapshot,
+  onReset,
+  onRefineTiming,
+}: ExportPanelProps) {
   const [format, setFormat] = useState<ExportFormat>('srt');
 
   const wordCount = snapshot.words.length;
@@ -84,12 +91,34 @@ export function ExportPanel({ reduced, snapshot, onReset }: ExportPanelProps) {
         </span>
       </span>
 
-      {snapshot.timingSource === 'estimated' && (
+      {snapshot.timingSource === 'estimated' ? (
         // Said plainly rather than buried: these timings come from the speech
         // recogniser's ~1s-granular segment bounds, not from a forced aligner.
-        <span className="border-ink/10 bg-ink/[0.03] text-ink/70 font-family-inter inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs">
-          <Clock3 className="text-sky-deep h-4 w-4" />
-          Timings are estimated to about a second
+        // The offer to fix it sits right next to the admission, with its cost
+        // stated, so the trade is the user's to make rather than a surprise.
+        <div className="border-ink/10 bg-ink/[0.03] flex w-full max-w-md flex-col items-center gap-3 rounded-2xl border px-5 py-4">
+          <span className="font-family-inter text-ink/70 inline-flex items-center gap-2 text-xs">
+            <Clock3 className="text-sky-deep h-4 w-4" />
+            Timings are estimated to about a second
+          </span>
+          <button
+            type="button"
+            onClick={onRefineTiming}
+            className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all"
+          >
+            <Wand2 className="h-4 w-4" />
+            Improve timing accuracy
+            <span className="text-ink/40">
+              +{formatBytes(ALIGNER.approxBytes)} download
+            </span>
+          </button>
+        </div>
+      ) : (
+        <span className="font-family-inter inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
+          <Clock3 className="h-4 w-4" />
+          Word-level timing measured for{' '}
+          {snapshot.alignedWords.toLocaleString()} of{' '}
+          {wordCount.toLocaleString()} words
         </span>
       )}
 

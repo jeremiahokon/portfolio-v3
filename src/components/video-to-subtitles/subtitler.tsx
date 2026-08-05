@@ -23,7 +23,7 @@ import { useSubtitler } from './use-subtitler';
  */
 export function Subtitler() {
   const reduced = useReducedMotion();
-  const { snapshot, busy, start, reset } = useSubtitler();
+  const { snapshot, busy, start, reset, refineTiming } = useSubtitler();
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -85,6 +85,7 @@ export function Subtitler() {
               reduced={reduced}
               snapshot={snapshot}
               onReset={reset}
+              onRefineTiming={() => void refineTiming()}
             />
           )}
         </AnimatePresence>

@@ -10,18 +10,26 @@ import {
 
 import { subscribeEngine } from '@/lib/ffmpeg/engine';
 import {
+  type DecodedAudio,
   decodeToPcm,
   isEffectivelySilent,
   NoAudioTrackError,
 } from '@/lib/media/decode-pcm';
 import { currentBackendOverride } from '@/lib/models/backend-override';
 import {
+  ALIGNER,
   ASR,
   CACHE_KEY,
   MODEL_HOST,
   STAGE_ONE_BYTES,
   VAD,
 } from '@/lib/models/config';
+import {
+  applyAlignment,
+  enforceWordOrder,
+  indexAlignments,
+  planAlignmentWindows,
+} from '@/lib/subtitles/apply-alignment';
 import { planChunks, sliceChunk } from '@/lib/subtitles/chunk-plan';
 import {
   buildCues,
@@ -31,7 +39,7 @@ import {
 } from '@/lib/subtitles/cues';
 import { type ChunkResult, stitch } from '@/lib/subtitles/stitch';
 import { createJobStore } from '@/lib/subtitles/store';
-import type { ErrorCode } from '@/lib/subtitles/types';
+import type { AlignedWord, ErrorCode } from '@/lib/subtitles/types';
 
 import type { ToWorker } from '@/workers/protocol';
 
@@ -90,6 +98,8 @@ export function useSubtitler() {
   const clientsRef = useRef<WorkerClient[]>([]);
   const abortRef = useRef<AbortController | null>(null);
   const jobIdRef = useRef<string | null>(null);
+  // Held after a job finishes so the opt-in aligner needs no second decode.
+  const decodedRef = useRef<DecodedAudio | null>(null);
 
   // Decode progress comes from the shared engine. Subscribing here rather than
   // inside decodeToPcm leaves the extractor's own handlers untouched.
@@ -397,6 +407,11 @@ export function useSubtitler() {
           return;
         }
 
+        // Retained so the opt-in aligner can run without decoding again. This is
+        // the one place the pipeline deliberately holds onto the full PCM after
+        // its stage is over; `reset` drops it.
+        decodedRef.current = decoded;
+
         store.set({
           status: 'done',
           stage: 'done',
@@ -419,6 +434,155 @@ export function useSubtitler() {
     [track, store, teardown]
   );
 
+  /**
+   * The opt-in second stage: replace estimated timings with measured ones.
+   *
+   * A separate user action rather than part of the job, because it costs another
+   * ~189 MB download. Everything before this point produced a usable transcript;
+   * this is the upgrade, and it is only worth offering once the user has seen
+   * that the words are right.
+   */
+  const refineTiming = useCallback(async () => {
+    const decoded = decodedRef.current;
+    const snapshot0 = store.getSnapshot();
+    if (!decoded || snapshot0.words.length === 0) return;
+
+    const jobId = `align-${Date.now()}`;
+    jobIdRef.current = jobId;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const isStale = () =>
+      controller.signal.aborted || jobIdRef.current !== jobId;
+
+    store.set({
+      status: 'loading-model',
+      stage: 'align',
+      stageProgress: 0,
+      error: null,
+      download: { loaded: 0, total: ALIGNER.approxBytes, files: {} },
+    });
+
+    const align = track(
+      new Worker(new URL('../../workers/align.worker.ts', import.meta.url)),
+      (fileName, loaded) => store.recordDownload(fileName, loaded, 0)
+    );
+
+    try {
+      const ready = await align.request(
+        {
+          t: 'init',
+          jobId,
+          host: MODEL_HOST,
+          cacheKey: CACHE_KEY,
+          model: {
+            id: ALIGNER.id,
+            revision: ALIGNER.revision,
+            dtype: ALIGNER.dtype,
+            ...(currentBackendOverride()
+              ? { device: currentBackendOverride()! }
+              : {}),
+          },
+        },
+        'ready'
+      );
+      if (isStale()) return;
+
+      store.set({
+        status: 'transcribing',
+        stage: 'align',
+        backend: ready.backend,
+      });
+
+      // Align over the same windows the transcript was built from, so each
+      // request carries a bounded number of words and a bounded amount of audio.
+      const words = store.getSnapshot().words;
+      const plan = planAlignmentWindows(words, decoded.duration);
+      const results: Array<{ from: number; words: AlignedWord[] }> = [];
+
+      for (const [index, window] of plan.entries()) {
+        if (isStale()) return;
+
+        const slice = decoded.samples.slice(
+          Math.max(0, Math.floor(window.start * decoded.sampleRate)),
+          Math.min(
+            decoded.samples.length,
+            Math.ceil(window.end * decoded.sampleRate)
+          )
+        );
+        const pcm = slice.buffer as ArrayBuffer;
+
+        const done = await align.request(
+          {
+            t: 'align',
+            jobId,
+            chunkId: index,
+            pcm,
+            sampleRate: decoded.sampleRate,
+            offset: window.start,
+            tokens: words.slice(window.from, window.to).map((w) => w.text),
+          },
+          'align:done',
+          [pcm]
+        );
+        if (isStale()) return;
+
+        results.push({ from: window.from, words: done.words });
+        store.set({
+          stage: 'align',
+          stageProgress: (index + 1) / plan.length,
+          chunkIndex: index + 1,
+          chunkCount: plan.length,
+        });
+      }
+
+      align.terminate();
+      clientsRef.current = clientsRef.current.filter((c) => c !== align);
+
+      const applied = applyAlignment(words, indexAlignments(results));
+      const ordered = enforceWordOrder(applied.words);
+      const rebuilt = normalizeCues(ordered, buildCues(ordered));
+
+      if (isStale()) return;
+
+      store.set({
+        status: 'done',
+        stage: 'done',
+        stageProgress: 1,
+        words: ordered,
+        cues: rebuilt,
+        // Only claim the upgrade if something actually took a measured timing.
+        timingSource: applied.aligned > 0 ? 'aligned' : 'estimated',
+        alignedWords: applied.aligned,
+      });
+    } catch (err) {
+      if (isStale()) return;
+      if (err instanceof WorkerError) {
+        // A failed refinement must not destroy a good transcript: keep the words
+        // and say the upgrade failed.
+        store.set({
+          status: 'done',
+          stage: 'done',
+          error: {
+            code: err.code as ErrorCode,
+            message: `Couldn’t improve the timings — ${err.message}. Your transcript is unchanged.`,
+          },
+        });
+
+        return;
+      }
+      console.error('[subtitler] alignment failed', err);
+      store.set({
+        status: 'done',
+        stage: 'done',
+        error: {
+          code: 'unknown',
+          message:
+            'Couldn’t improve the timings. Your transcript is unchanged.',
+        },
+      });
+    }
+  }, [store, track]);
+
   const cancel = useCallback(() => {
     const jobId = jobIdRef.current;
     if (jobId) {
@@ -438,5 +602,5 @@ export function useSubtitler() {
     snapshot.status === 'transcribing' ||
     snapshot.status === 'building';
 
-  return { snapshot, busy, start, cancel, reset: cancel };
+  return { snapshot, busy, start, cancel, refineTiming, reset: cancel };
 }

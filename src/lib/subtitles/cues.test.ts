@@ -410,3 +410,41 @@ describe('the core data-model invariant', () => {
     expect(words).toEqual(snapshot);
   });
 });
+
+describe('degenerate cue protection', () => {
+  // Regression: aligner timings put two cues within a frame of each other, and
+  // trimming the full gap out of the first collapsed it to zero duration — which
+  // reports infinite CPS and cannot be rendered at all.
+  it('never emits a zero-duration cue, even when neighbours nearly coincide', () => {
+    const words = [word('One.', 0, 0.5), word('Two.', 0.52, 2)];
+    const normalized = normalizeCues(words, buildCues(words));
+
+    for (const cue of normalized) {
+      const { start, end } = cueBounds(cue, words);
+      expect(end - start).toBeGreaterThan(0);
+      expect(cueCps(cueText(cue, words), start, end)).toBeLessThan(Infinity);
+    }
+  });
+
+  it('prefers a short gap over an unrenderable cue', () => {
+    const words = [word('A.', 0, 0.3), word('B.', 0.31, 1.5)];
+    const normalized = normalizeCues(words, buildCues(words));
+    const first = cueBounds(normalized[0]!, words);
+    const second = cueBounds(normalized[1]!, words);
+
+    // Overlap is still forbidden — that priority does not yield.
+    expect(first.end).toBeLessThanOrEqual(second.start);
+    expect(first.end - first.start).toBeGreaterThan(0);
+  });
+
+  it('still never overlaps when the floor cannot be met', () => {
+    const words = [word('A.', 0, 0.05), word('B.', 0.06, 1)];
+    const normalized = normalizeCues(words, buildCues(words));
+
+    for (let i = 1; i < normalized.length; i += 1) {
+      expect(cueBounds(normalized[i - 1]!, words).end).toBeLessThanOrEqual(
+        cueBounds(normalized[i]!, words).start
+      );
+    }
+  });
+});

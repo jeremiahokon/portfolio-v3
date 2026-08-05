@@ -81,6 +81,37 @@ function fail(jobId: string, code: ErrorCode, err: unknown): void {
   });
 }
 
+/**
+ * Reads the CTC label set from the model repo's own `vocab.json`.
+ *
+ * Fetched directly rather than pulled off the loaded tokenizer, and that is a
+ * deliberate reversal: reaching into `processor.tokenizer.model.vocab` was the
+ * first attempt and it failed at runtime, because that shape is an internal detail
+ * of a library at a prerelease pin. `vocab.json` is 358 bytes, is part of the
+ * model's public contract, and is fetched at the same pinned revision as the
+ * weights — so it cannot drift from them, and no library refactor can break it.
+ *
+ * The label set is not optional detail: it decides which characters this
+ * checkpoint can represent at all, and getting it wrong would index every token
+ * into the wrong logit column.
+ */
+async function fetchVocabulary(
+  host: string,
+  id: string,
+  revision: string
+): Promise<CtcVocabulary> {
+  const url = `${host}/${id}/resolve/${revision}/vocab.json`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not fetch the CTC vocabulary (${response.status}) from ${url}`
+    );
+  }
+
+  return makeVocabulary((await response.json()) as Record<string, number>);
+}
+
 async function init(message: Extract<ToWorker, { t: 'init' }>): Promise<void> {
   currentJob = message.jobId;
   cancelled = false;
@@ -109,23 +140,11 @@ async function init(message: Extract<ToWorker, { t: 'init' }>): Promise<void> {
       },
     };
 
-    [model, processor] = await Promise.all([
+    [model, processor, vocabulary] = await Promise.all([
       AutoModelForCTC.from_pretrained(message.model.id, options),
       AutoProcessor.from_pretrained(message.model.id, options),
+      fetchVocabulary(message.host, message.model.id, message.model.revision),
     ]);
-
-    // The tokenizer's vocabulary is the CTC label set — 32 symbols, and the only
-    // source of truth for which characters this checkpoint can even represent.
-    const ids = (
-      processor as unknown as {
-        tokenizer?: { model?: { vocab?: Record<string, number> } };
-      }
-    ).tokenizer?.model?.vocab;
-
-    if (!ids) {
-      throw new Error('Could not read the CTC vocabulary from the processor');
-    }
-    vocabulary = makeVocabulary(ids);
   } catch (err) {
     fail(message.jobId, 'model-download-failed', err);
 

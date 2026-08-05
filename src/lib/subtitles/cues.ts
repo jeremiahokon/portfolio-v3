@@ -82,6 +82,16 @@ export function wordsFromSegments(segments: AsrSegment[]): Word[] {
   return words;
 }
 
+/**
+ * Shortest cue this will ever emit, in seconds.
+ *
+ * Well under the readability minimum on purpose: this is not a quality target but
+ * a floor that keeps a cue *renderable*. A zero-duration cue reports infinite
+ * reading speed and no player can display it, so it is a different kind of wrong
+ * from merely brief.
+ */
+const MIN_RENDERABLE = 0.2;
+
 /** Characters a cue would occupy, including the spaces between its words. */
 function cueLength(words: Word[], from: number, to: number): number {
   let chars = 0;
@@ -315,9 +325,16 @@ export function normalizeCues(
     const latestAllowedEnd = current.start - rules.minGap;
 
     if (previous.end > latestAllowedEnd) {
-      // Clamped at its own start so a cue can never invert, even when two cues
-      // begin closer together than the gap itself.
-      previous.end = Math.max(previous.start, latestAllowedEnd);
+      // Trimming to the full gap can collapse a cue to zero length, which is not
+      // a short cue but an unrenderable one — it reports infinite reading speed
+      // and no player can show it. Observed for real once aligner timings put two
+      // cues within a frame of each other.
+      //
+      // So the priorities are ordered: never overlap, then stay renderable, then
+      // honour the gap. A slightly short gap is a far smaller defect than a cue
+      // of zero duration, and the QC panel can surface what remains.
+      const floor = Math.min(previous.start + MIN_RENDERABLE, current.start);
+      previous.end = Math.max(latestAllowedEnd, floor);
     }
   }
 
