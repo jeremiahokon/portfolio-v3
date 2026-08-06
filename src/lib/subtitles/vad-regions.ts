@@ -1,3 +1,5 @@
+import { rms, SILENCE_RMS } from '@/lib/media/decode-pcm';
+
 import type { SpeechRegion } from './types';
 
 /**
@@ -102,4 +104,45 @@ export function regionsFromProbabilities(
       start: Math.max(0, region.start - thresholds.pad),
       end: Math.min(duration, region.end + thresholds.pad),
     }));
+}
+
+/**
+ * Drops regions whose audio carries no meaningful energy.
+ *
+ * The VAD is a speech *classifier*, not an energy gate, so it produces occasional
+ * false positives on near-silence — room tone, a Zoom join chime, line noise. The
+ * 39-minute fixture shows the consequence exactly: the detector correctly skipped
+ * 5.5 minutes of waiting-room silence but admitted about 2 seconds at the very
+ * start, and Whisper hallucinated the word "you" out of it. That reached the user
+ * as cue #1 of their transcript.
+ *
+ * The existing whole-file check (`isEffectivelySilent`) cannot catch this, because
+ * the file as a whole is not silent — only this region is. Screening per region is
+ * the same test applied at the right granularity, and it is strictly better than
+ * filtering the resulting text: it prevents the hallucination rather than trying to
+ * recognise one afterwards, so it can never delete a genuine quiet word.
+ *
+ * Deliberately uses the same `SILENCE_RMS` threshold as the whole-file check. One
+ * definition of silence, in one place; a region-specific constant would drift.
+ */
+export function dropSilentRegions(
+  regions: SpeechRegion[],
+  samples: Float32Array,
+  sampleRate: number,
+  threshold: number = SILENCE_RMS
+): SpeechRegion[] {
+  if (regions.length === 0 || sampleRate <= 0) return regions;
+
+  const kept = regions.filter((region) => {
+    const from = Math.max(0, Math.floor(region.start * sampleRate));
+    const to = Math.min(samples.length, Math.ceil(region.end * sampleRate));
+    // An empty slice would make `rms` return NaN, and NaN < threshold is false,
+    // which would keep exactly the region with no audio in it.
+    if (to <= from) return false;
+
+    return rms(samples.subarray(from, to)) >= threshold;
+  });
+
+  // Identity when nothing was dropped, so the common case allocates nothing.
+  return kept.length === regions.length ? regions : kept;
 }

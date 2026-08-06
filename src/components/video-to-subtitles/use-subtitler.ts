@@ -24,6 +24,7 @@ import {
   STAGE_ONE_BYTES,
   VAD,
 } from '@/lib/models/config';
+import { currentDecoderOverride } from '@/lib/models/decoder-override';
 import {
   applyAlignment,
   enforceWordOrder,
@@ -37,9 +38,11 @@ import {
   resetIds,
   wordsFromSegments,
 } from '@/lib/subtitles/cues';
+import { collapseDegenerateRuns } from '@/lib/subtitles/degenerate';
 import { type ChunkResult, stitch } from '@/lib/subtitles/stitch';
 import { createJobStore } from '@/lib/subtitles/store';
 import type { AlignedWord, ErrorCode } from '@/lib/subtitles/types';
+import { dropSilentRegions } from '@/lib/subtitles/vad-regions';
 
 import type { ToWorker } from '@/workers/protocol';
 
@@ -213,6 +216,12 @@ export function useSubtitler() {
       // Read once per job rather than per stage, so a mid-job URL change cannot
       // switch backends between chunks.
       const override = currentBackendOverride();
+      // `?decoder=int8` etc., for the D17 measurement. Same read-once discipline:
+      // two dtypes inside one transcript would make the result meaningless.
+      const decoder = currentDecoderOverride();
+      const asrDtype = decoder
+        ? { ...ASR.dtype, decoder_model_merged: decoder }
+        : ASR.dtype;
 
       try {
         // ---- Decode -------------------------------------------------------
@@ -288,18 +297,32 @@ export function useSubtitler() {
           (client) => client !== vad
         );
 
+        // The VAD classifies speech, it does not measure energy, so it admits the
+        // occasional region of room tone or a join chime — and Whisper hallucinates
+        // a word out of it. On the 39-minute fixture that produced cue #1, "you",
+        // over 2 seconds of a silent Zoom waiting room. Screened before chunking,
+        // so that audio is never transcribed at all.
+        //
+        // Must run *before* the no-speech check below, and that check must read
+        // these regions rather than the raw ones. Otherwise a file whose only
+        // regions are silence passes the check on region count, gets emptied here,
+        // and `planChunks` falls back to fixed windows — transcribing the whole
+        // silent file blind, which is worse than what this fixes.
+        const regions = dropSilentRegions(
+          vadResult.regions,
+          decoded.samples,
+          decoded.sampleRate
+        );
+
         // Nothing to transcribe. Checked here, after the 2 MB VAD but before the
         // ~151 MB ASR download, so a silent file costs almost nothing.
         //
-        // Both conditions are required. No VAD regions alone is not enough — a
-        // false negative on real speech should fall through to transcribing
-        // blind rather than refusing. Silence *and* no regions is conclusive,
-        // and stopping here is what prevents Whisper hallucinating a word or two
-        // out of noise and the UI presenting that as a transcript.
-        if (
-          vadResult.regions.length === 0 &&
-          isEffectivelySilent(decoded.samples)
-        ) {
+        // Both conditions are required. No regions alone is not enough — a false
+        // negative on real speech should fall through to transcribing blind rather
+        // than refusing. Silence *and* no regions is conclusive, and stopping here
+        // is what prevents Whisper hallucinating a word or two out of noise and
+        // the UI presenting that as a transcript.
+        if (regions.length === 0 && isEffectivelySilent(decoded.samples)) {
           fail(
             'no-speech',
             'We couldn’t find any speech in this file — it sounds silent.'
@@ -308,7 +331,7 @@ export function useSubtitler() {
           return;
         }
 
-        const chunks = planChunks(vadResult.regions, decoded.duration);
+        const chunks = planChunks(regions, decoded.duration);
 
         // ---- Speech recognition -------------------------------------------
         store.set({ status: 'loading-model', stage: 'asr', stageProgress: 0 });
@@ -327,7 +350,7 @@ export function useSubtitler() {
             model: {
               id: ASR.id,
               revision: ASR.revision,
-              dtype: ASR.dtype,
+              dtype: asrDtype,
               // Omitted unless explicitly overridden, so the worker resolves it
               // by actually requesting a WebGPU adapter. Hardcoding 'webgpu'
               // here would hand a device to browsers that cannot provide one.
@@ -389,7 +412,22 @@ export function useSubtitler() {
         // ---- Stitch and build cues -----------------------------------------
         store.set({ status: 'building', stage: 'cues', stageProgress: 0.5 });
 
-        const segments = stitch(results);
+        // A failed decode can emit the same phrase dozens of times over a couple
+        // of seconds — 86 consecutive "Thank you." cues on the 39-minute fixture.
+        // Collapsed after stitching, where the run is still contiguous, and
+        // before words exist, so nothing downstream ever sees the junk.
+        const stitched = stitch(results);
+        const segments = collapseDegenerateRuns(stitched);
+
+        if (
+          process.env.NODE_ENV === 'development' &&
+          segments.length !== stitched.length
+        ) {
+          console.warn(
+            `[subtitles] collapsed ${stitched.length - segments.length} degenerate repeat segments`
+          );
+        }
+
         const words = wordsFromSegments(segments);
         const cues = normalizeCues(words, buildCues(words));
 
