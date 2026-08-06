@@ -5,6 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { buildCues, normalizeCues } from '@/lib/subtitles/cues';
 import { cueContaining, mergeCues, splitCue, wordAt } from '@/lib/subtitles/edit';
 import {
+  findMatches,
+  type FindOptions,
+  replaceAll,
+} from '@/lib/subtitles/find-replace';
+import {
   canRedo,
   canUndo,
   commit,
@@ -112,6 +117,26 @@ export function useTranscriptEditor(options: EditorOptions) {
       const next = mergeCues(cues, cueIndex);
       if (next === cues) return;
       apply({ words, cues: normalizeCues(words, next) });
+    },
+    [words, cues, apply]
+  );
+
+  /**
+   * Replaces every occurrence of `query` in one action.
+   *
+   * Returns how many were replaced so the UI can say so — "replaced 11
+   * occurrences" is the feedback that makes a bulk operation trustworthy, and
+   * silence after clicking is what makes people click twice.
+   */
+  const replace = useCallback(
+    (query: string, replacement: string, options: FindOptions) => {
+      const matches = findMatches(words, cues, query, options);
+      const next = replaceAll(words, cues, matches, replacement);
+      if (next.replaced === 0) return 0;
+
+      apply({ words: next.words, cues: normalizeCues(next.words, next.cues) });
+
+      return next.replaced;
     },
     [words, cues, apply]
   );
@@ -274,6 +299,7 @@ export function useTranscriptEditor(options: EditorOptions) {
     beginEditing,
     endEditing,
     retext,
+    replace,
     split,
     merge,
     removeCues,

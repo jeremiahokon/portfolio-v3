@@ -10,11 +10,12 @@ import {
   useState,
 } from 'react';
 
-import { AlertTriangle, Pause, Play, Redo2, Undo2 } from 'lucide-react';
+import { AlertTriangle, Pause, Play, Redo2, Replace, Undo2 } from 'lucide-react';
 
 import type { QcIssue } from '@/lib/subtitles/qc';
 import type { Cue, Word } from '@/lib/subtitles/types';
 
+import { FindReplacePanel } from './find-replace-panel';
 import { useTranscriptEditor } from './use-transcript-editor';
 
 /**
@@ -238,6 +239,7 @@ export function TranscriptEditor(props: Props) {
   });
 
   const [showTimes, setShowTimes] = useState(true);
+  const [findOpen, setFindOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -250,6 +252,8 @@ export function TranscriptEditor(props: Props) {
     setSelectedCue,
     editingCue,
     playingWord,
+    replace,
+    removeCues,
     audioRef,
     currentTime,
     setCurrentTime,
@@ -305,6 +309,13 @@ export function TranscriptEditor(props: Props) {
     (event: React.KeyboardEvent) => {
       if (editingCue !== null) return;
       const meta = event.metaKey || event.ctrlKey;
+
+      if (meta && event.key.toLowerCase() === 'f') {
+        event.preventDefault();
+        setFindOpen(true);
+
+        return;
+      }
 
       if (meta && event.key.toLowerCase() === 'z') {
         event.preventDefault();
@@ -419,6 +430,17 @@ export function TranscriptEditor(props: Props) {
             </button>
             <button
               type="button"
+              onClick={() => setFindOpen((v) => !v)}
+              aria-label="Find and replace"
+              className={[
+                'rounded-lg p-2 hover:bg-black/5',
+                findOpen ? 'text-ink bg-black/5' : 'text-ink/60',
+              ].join(' ')}
+            >
+              <Replace className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => setShowTimes((v) => !v)}
               className="font-family-inter text-ink/60 rounded-lg px-2 py-1 text-xs hover:bg-black/5"
             >
@@ -426,6 +448,17 @@ export function TranscriptEditor(props: Props) {
             </button>
           </div>
         </div>
+
+        {findOpen && (
+          <FindReplacePanel
+            words={words}
+            cues={cues}
+            flaggedCount={flagged.length}
+            onReplace={replace}
+            onDeleteFlagged={() => removeCues(flagged)}
+            onClose={() => setFindOpen(false)}
+          />
+        )}
 
         {/* Transcript */}
         <div
@@ -465,8 +498,8 @@ export function TranscriptEditor(props: Props) {
         {/* Footer */}
         <div className="flex flex-wrap items-center gap-3 border-t border-black/5 px-4 py-3">
           <p className="font-family-inter text-ink/40 text-[11px]">
-            Double-click or press Enter to edit · Space plays · Tab jumps to the
-            next issue
+            Double-click or Enter to edit · Space plays · Tab jumps to the next
+            issue · ⌘F to replace everywhere
           </p>
           <div className="ml-auto flex gap-2">
             <button
