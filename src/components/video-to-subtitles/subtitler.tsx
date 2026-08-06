@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
 
 import { AlertCircle } from 'lucide-react';
@@ -8,10 +8,13 @@ import { AnimatePresence } from 'motion/react';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { useReducedMotion } from '@/lib/hooks';
+import { ASR } from '@/lib/models/config';
+import { draftKey } from '@/lib/subtitles/persist';
 
 import { Dropzone } from './dropzone';
 import { ExportPanel } from './export-panel';
 import { ProgressPanel } from './progress-panel';
+import { TranscriptEditor } from './transcript-editor';
 import { useSubtitler } from './use-subtitler';
 
 /**
@@ -25,7 +28,24 @@ export function Subtitler() {
   const reduced = useReducedMotion();
   const { snapshot, busy, start, reset, refineTiming } = useSubtitler();
   const [isDragging, setIsDragging] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // The editor needs the original media to play against. Held here rather than
+  // in the job store because the store carries the decoded PCM's *derivatives*,
+  // not the file, and an object URL has a lifetime the store should not own.
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setMediaUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+      setMediaUrl(null);
+    };
+  }, [file]);
 
   const begin = (file: File | undefined) => {
     if (!file) return;
@@ -34,6 +54,8 @@ export function Subtitler() {
       value: file.name,
       event_category: 'tool_usage',
     });
+    setFile(file);
+    setEditing(false);
     void start(file);
   };
 
@@ -50,6 +72,22 @@ export function Subtitler() {
   };
 
   const showDropzone = !busy && snapshot.status !== 'done';
+
+  if (editing && snapshot.status === 'done') {
+    return (
+      <TranscriptEditor
+        words={snapshot.words}
+        cues={snapshot.cues}
+        timingSource={snapshot.timingSource}
+        fileName={snapshot.fileName ?? 'transcript'}
+        duration={snapshot.duration ?? 0}
+        mediaUrl={mediaUrl}
+        draftKey={file ? draftKey(file, ASR.revision) : null}
+        onBack={() => setEditing(false)}
+        onExport={() => setEditing(false)}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-2xl">
@@ -86,6 +124,7 @@ export function Subtitler() {
               snapshot={snapshot}
               onReset={reset}
               onRefineTiming={() => void refineTiming()}
+              onEdit={() => setEditing(true)}
             />
           )}
         </AnimatePresence>

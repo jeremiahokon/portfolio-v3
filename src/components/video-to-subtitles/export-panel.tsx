@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
 
-import { Clock3, Download, RotateCcw, Wand2 } from 'lucide-react';
+import { Clock3, Download, Pencil, RotateCcw, Wand2 } from 'lucide-react';
 import { m } from 'motion/react';
 
 import { SuccessCheck } from '@/components/extract-audio/animated-icons';
@@ -26,6 +26,7 @@ interface ExportPanelProps {
   snapshot: JobSnapshot;
   onReset: () => void;
   onRefineTiming: () => void;
+  onEdit: () => void;
 }
 
 const FORMATS: Array<{ id: ExportFormat; label: string; hint: string }> = [
@@ -39,6 +40,7 @@ export function ExportPanel({
   snapshot,
   onReset,
   onRefineTiming,
+  onEdit,
 }: ExportPanelProps) {
   const [format, setFormat] = useState<ExportFormat>('srt');
 
@@ -160,6 +162,15 @@ export function ExportPanel({
           <RotateCcw className="mr-2 h-4 w-4" />
           Transcribe another
         </Button>
+
+        <button
+          type="button"
+          onClick={onEdit}
+          className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all"
+        >
+          <Pencil className="h-4 w-4" />
+          Edit transcript
+        </button>
       </div>
     </m.div>
   );
