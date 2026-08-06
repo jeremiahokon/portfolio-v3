@@ -1,3 +1,5 @@
+import { lcsIndexPairs } from './lcs';
+
 /**
  * The M2 acceptance gate: how accurate are the aligner's word boundaries?
  *
@@ -171,41 +173,13 @@ export function pairWordsByText(
   reference: TimedWord[],
   hypothesis: TimedWord[]
 ): Array<[TimedWord, TimedWord]> {
-  const a = reference.map((w) => normalize(w.text));
-  const b = hypothesis.map((w) => normalize(w.text));
-
-  // Standard LCS table. The reference clip is ~120 words, so the quadratic cost
-  // is irrelevant and clarity wins.
-  const table: number[][] = Array.from({ length: a.length + 1 }, () =>
-    new Array<number>(b.length + 1).fill(0)
-  );
-
-  for (let i = a.length - 1; i >= 0; i -= 1) {
-    for (let j = b.length - 1; j >= 0; j -= 1) {
-      table[i]![j]! =
-        a[i] === b[j]
-          ? table[i + 1]![j + 1]! + 1
-          : Math.max(table[i + 1]![j]!, table[i]![j + 1]!);
-    }
-  }
-
-  const pairs: Array<[TimedWord, TimedWord]> = [];
-  let i = 0;
-  let j = 0;
-
-  while (i < a.length && j < b.length) {
-    if (a[i] === b[j]) {
-      pairs.push([reference[i]!, hypothesis[j]!]);
-      i += 1;
-      j += 1;
-    } else if (table[i + 1]![j]! >= table[i]![j + 1]!) {
-      i += 1;
-    } else {
-      j += 1;
-    }
-  }
-
-  return pairs;
+  // The LCS itself lives in `lcs.ts` because the editor needs the same pairing to
+  // decide what an edit inserted and deleted. Same algorithm, same normalisation,
+  // no behaviour change here.
+  return lcsIndexPairs(
+    reference.map((w) => normalize(w.text)),
+    hypothesis.map((w) => normalize(w.text))
+  ).map(([i, j]) => [reference[i]!, hypothesis[j]!]);
 }
 
 export interface WordScore extends BoundaryScore {

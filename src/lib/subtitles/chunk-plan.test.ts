@@ -115,9 +115,44 @@ describe('planChunks', () => {
 
     for (const chunk of chunks) {
       const window = chunkWindow(chunk);
-      expect(window.end - window.start).toBeLessThanOrEqual(
-        P.max + 2 * P.overlap
-      );
+      // Was `max + 2 * overlap`, which was the wrong invariant: it permitted a
+      // 32 s window against Whisper's 30 s field. That was survivable only while
+      // the pipeline re-chunked internally. It no longer does, so anything past
+      // 30 s is now silently truncated audio — `max` means the window, not the
+      // content.
+      expect(window.end - window.start).toBeLessThanOrEqual(P.max);
+    }
+  });
+
+  it('never emits a window longer than the receptive field, on any shape', () => {
+    // The bug this guards was found on a real 39-minute file, where windows of
+    // 30.8 s and 33.8 s reached the model. Several region shapes, because the
+    // planner has several branches and the failing one was not the obvious one.
+    const shapes: Array<[SpeechRegion[], number]> = [
+      [burstyRegions(30, 3, 1), 120],
+      [burstyRegions(5, 40, 0.2), 300],
+      [[{ start: 0, end: 240 }], 250],
+      [[{ start: 200, end: 205 }], 400],
+      [[{ start: 0, end: 29 }, { start: 29.5, end: 61 }], 90],
+      [[], 200],
+      [[{ start: 10, end: 12 }], 2400],
+    ];
+
+    for (const [regions, duration] of shapes) {
+      const chunks = planChunks(regions, duration);
+      for (const chunk of chunks) {
+        const window = chunkWindow(chunk);
+        expect(window.end - window.start).toBeLessThanOrEqual(P.max + 1e-9);
+      }
+      // And the plan must still cover the whole file — trimming a window must
+      // never be achieved by dropping audio.
+      if (chunks.length > 0) {
+        expect(chunks[0]!.start).toBe(0);
+        expect(chunks.at(-1)!.end).toBeCloseTo(duration, 6);
+        for (let i = 1; i < chunks.length; i += 1) {
+          expect(chunks[i]!.start).toBeCloseTo(chunks[i - 1]!.end, 6);
+        }
+      }
     }
   });
 
