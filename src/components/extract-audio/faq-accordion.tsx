@@ -26,7 +26,7 @@ export function FaqAccordion({ faqs }: { faqs: Faq[] }) {
         return (
           <div
             key={faq.question}
-            className="border-ink/10 bg-ink/[0.02] overflow-hidden rounded border"
+            className="border-ink/10 bg-ink/[0.02] overflow-hidden rounded-sm border"
           >
             <h3>
               <button

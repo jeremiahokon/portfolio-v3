@@ -78,9 +78,9 @@ export default function VideoToSubtitlesPage() {
       {/* Cohesive full-viewport backdrop — sits behind the transparent global
           header too, so header and body share one seamless background. */}
       <div className="bg-background pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="bg-sky/20 absolute -top-1/4 -left-1/4 h-[600px] w-[600px] rounded-full blur-[120px]" />
-        <div className="bg-sky-deep/15 absolute top-1/3 -right-1/4 h-[500px] w-[500px] rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-1/3 h-[550px] w-[550px] rounded-full bg-[#a855f7]/10 blur-[110px]" />
+        <div className="bg-sky/20 absolute -top-1/4 -left-1/4 h-[600px] w-[600px] rounded-sm blur-[120px]" />
+        <div className="bg-sky-deep/15 absolute top-1/3 -right-1/4 h-[500px] w-[500px] rounded-sm blur-[100px]" />
+        <div className="absolute bottom-0 left-1/3 h-[550px] w-[550px] rounded-sm bg-[#a855f7]/10 blur-[110px]" />
       </div>
 
       <section className="relative flex w-full flex-col items-center px-4 py-20 md:px-10 md:py-28">
@@ -115,11 +115,11 @@ export default function VideoToSubtitlesPage() {
             delay={0.2}
             className="mt-2 flex flex-wrap items-center justify-center gap-3"
           >
-            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/70 flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium">
+            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/70 flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium">
               <ShieldCheck className="text-sky-deep h-4 w-4" />
               100% private
             </span>
-            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/70 flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium">
+            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/70 flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium">
               <Zap className="text-sky-deep h-4 w-4" />
               No sign up · No watermark
             </span>

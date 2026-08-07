@@ -73,11 +73,11 @@ export function StickyCta() {
                 });
                 setIsCalendlyOpen(true);
               }}
-              className="bg-footer-background font-family-inter flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-full px-6 py-3.5 text-sm font-semibold text-white shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)] md:w-auto"
+              className="bg-footer-background font-family-inter flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-sm px-6 py-3.5 text-sm font-semibold text-white shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)] md:w-auto"
             >
               <span className="relative flex h-2 w-2" aria-hidden="true">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#28c840] opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#28c840]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-sm bg-[#28c840] opacity-60" />
+                <span className="relative inline-flex h-2 w-2 rounded-sm bg-[#28c840]" />
               </span>
               Available now — Book a free call
             </button>

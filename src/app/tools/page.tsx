@@ -57,13 +57,13 @@ export default function ToolsPage() {
                 tool_name: tool.name,
                 event_category: 'engagement',
               }}
-              className="border-ink/10 bg-ink/[0.03] group hover:border-sky/40 flex w-full max-w-md flex-col gap-5 rounded-2xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              className="border-ink/10 bg-ink/[0.03] group hover:border-sky/40 flex w-full max-w-md flex-col gap-5 rounded-sm border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="flex items-center justify-between">
-                <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-xl">
+                <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-sm">
                   <Icon className="text-sky-deep h-5 w-5" strokeWidth={1.5} />
                 </span>
-                <span className="font-family-inter bg-sky/15 text-sky-deep rounded-full px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
+                <span className="font-family-inter bg-sky/15 text-sky-deep rounded-sm px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
                   Free · Private
                 </span>
               </div>

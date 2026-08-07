@@ -22,16 +22,16 @@ export function BookCallCta({ location }: { location: BookCallCtaLocation }) {
 
   return (
     <div className="mx-auto mt-20 w-full max-w-6xl">
-      <div className="border-ink/10 bg-ink/[0.03] relative flex flex-col gap-8 overflow-hidden rounded-3xl border p-8 md:flex-row md:items-center md:justify-between md:p-10">
+      <div className="border-ink/10 bg-ink/[0.03] relative flex flex-col gap-8 overflow-hidden rounded-sm border p-8 md:flex-row md:items-center md:justify-between md:p-10">
         {/* Ambient glow */}
-        <div className="bg-sky/15 pointer-events-none absolute -top-1/3 -right-1/4 h-[300px] w-[300px] rounded-full blur-[110px]" />
+        <div className="bg-sky/15 pointer-events-none absolute -top-1/3 -right-1/4 h-[300px] w-[300px] rounded-sm blur-[110px]" />
 
         <div className="relative z-10 flex max-w-xl flex-col gap-4">
           <div className="flex items-center gap-3">
-            <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-xl">
+            <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-sm">
               <Calendar className="text-sky-deep h-5 w-5" strokeWidth={1.5} />
             </span>
-            <span className="font-family-inter bg-sky/15 text-sky-deep rounded-full px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
+            <span className="font-family-inter bg-sky/15 text-sky-deep rounded-sm px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
               Work with me
             </span>
           </div>
@@ -61,7 +61,7 @@ export function BookCallCta({ location }: { location: BookCallCtaLocation }) {
               });
               setIsCalendlyOpen(true);
             }}
-            className="from-sky to-sky-deep inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-gradient-to-r px-7 py-3.5 text-sm font-black tracking-wide text-white uppercase shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_50px_rgba(123,182,221,0.4)]"
+            className="from-sky to-sky-deep inline-flex cursor-pointer items-center justify-center gap-2 rounded-sm bg-gradient-to-r px-7 py-3.5 text-sm font-black tracking-wide text-white uppercase shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_50px_rgba(123,182,221,0.4)]"
           >
             <m.span
               className="inline-flex"

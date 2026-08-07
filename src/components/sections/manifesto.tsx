@@ -92,7 +92,7 @@ export default function Manifesto() {
         alt="Jeremiah Okon"
         width={40}
         height={40}
-        className="h-10 w-10 rounded-full object-cover"
+        className="h-10 w-10 rounded-sm object-cover"
       />
       <span>Jeremiah Okon</span>
       <span aria-hidden="true" className="text-ink/30">

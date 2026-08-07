@@ -49,7 +49,7 @@ export default function AudioExtractor() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-3 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md md:p-4">
+      <div className="relative overflow-hidden rounded-sm border border-white/60 bg-white/70 p-3 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md md:p-4">
         <AnimatePresence mode="wait">
           {status === 'done' && result ? (
             <ResultPanel
@@ -104,7 +104,7 @@ export default function AudioExtractor() {
             initial={reduced ? undefined : { opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={reduced ? undefined : { opacity: 0 }}
-            className="font-family-inter mt-4 flex items-center justify-center gap-2 rounded-full border border-red-500/20 bg-red-500/[0.06] px-4 py-2.5 text-center text-sm text-red-600"
+            className="font-family-inter mt-4 flex items-center justify-center gap-2 rounded-sm border border-red-500/20 bg-red-500/[0.06] px-4 py-2.5 text-center text-sm text-red-600"
           >
             {error}
           </m.p>

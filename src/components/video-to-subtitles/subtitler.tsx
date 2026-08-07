@@ -91,7 +91,7 @@ export function Subtitler() {
 
   return (
     <div className="mx-auto w-full max-w-2xl">
-      <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-3 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md md:p-4">
+      <div className="relative overflow-hidden rounded-sm border border-white/60 bg-white/70 p-3 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md md:p-4">
         <AnimatePresence mode="wait">
           {showDropzone && (
             <Dropzone
@@ -140,7 +140,7 @@ export function Subtitler() {
         {snapshot.error && (
           <div
             role="alert"
-            className="mt-3 flex items-start gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-3 text-left"
+            className="mt-3 flex items-start gap-2 rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-left"
           >
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
             <span className="font-family-inter text-sm text-red-700">

@@ -17,14 +17,14 @@ function Progress({
       aria-valuemax={100}
       aria-valuenow={Math.round(clamped)}
       className={cn(
-        'relative h-2 w-full overflow-hidden rounded-full bg-[#2C3333]/10',
+        'relative h-2 w-full overflow-hidden rounded-sm bg-[#2C3333]/10',
         className
       )}
       {...props}
     >
       <div
         data-slot="progress-indicator"
-        className="h-full rounded-full bg-gradient-to-r from-[#7BB6DD] to-[#5BA4D1] transition-[width] duration-300 ease-out"
+        className="h-full rounded-sm bg-gradient-to-r from-[#7BB6DD] to-[#5BA4D1] transition-[width] duration-300 ease-out"
         style={{ width: `${clamped}%` }}
       />
     </div>

@@ -13,7 +13,7 @@ const Subtitler = dynamic(
     ssr: false,
     loading: () => (
       <div className="mx-auto w-full max-w-2xl">
-        <div className="border-ink/10 flex min-h-[380px] items-center justify-center rounded-3xl border bg-white/60 p-3 shadow-xl backdrop-blur-sm md:min-h-[460px] md:p-4">
+        <div className="border-ink/10 flex min-h-[380px] items-center justify-center rounded-sm border bg-white/60 p-3 shadow-xl backdrop-blur-sm md:min-h-[460px] md:p-4">
           <Loader2 className="text-sky-deep h-6 w-6 animate-spin" />
         </div>
       </div>

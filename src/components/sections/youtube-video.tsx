@@ -22,10 +22,10 @@ export default function YouTubeVideo() {
       {/* Video Card */}
       <div className="relative w-full max-w-6xl">
         {/* Gradient halo */}
-        <div className="absolute inset-0 -z-10 scale-110 rounded-[20px] bg-[radial-gradient(circle,_#7BB6DD33_0%,_transparent_70%)] blur-[100px]" />
+        <div className="absolute inset-0 -z-10 scale-110 rounded-sm bg-[radial-gradient(circle,_#7BB6DD33_0%,_transparent_70%)] blur-[100px]" />
 
-        <div className="relative overflow-hidden rounded-[20px] border border-white/20 bg-white/10 p-2 shadow-2xl backdrop-blur-sm md:p-3">
-          <div className="relative aspect-video w-full overflow-hidden rounded-[14px]">
+        <div className="relative overflow-hidden rounded-sm border border-white/20 bg-white/10 p-2 shadow-2xl backdrop-blur-sm md:p-3">
+          <div className="relative aspect-video w-full overflow-hidden rounded-sm">
             <YouTubeFacade
               videoId={VIDEO_ID}
               title="Jeremiah Okon - How I Work"

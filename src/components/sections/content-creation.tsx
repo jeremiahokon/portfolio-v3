@@ -57,9 +57,9 @@ function VideoCard({ video }: { video: ShortVideoData }) {
       }
     >
       {/* Phone frame */}
-      <div className="relative aspect-[9/16] w-full max-w-[360px] overflow-hidden rounded-[2.5rem] border-[8px] border-[#2C3333] bg-[#2C3333] shadow-2xl transition-transform duration-300 hover:scale-[1.02]">
+      <div className="relative aspect-[9/16] w-full max-w-[360px] overflow-hidden rounded-sm border-[8px] border-[#2C3333] bg-[#2C3333] shadow-2xl transition-transform duration-300 hover:scale-[1.02]">
         {/* Notch */}
-        <div className="absolute top-2.5 left-1/2 z-20 h-2 w-20 -translate-x-1/2 rounded-full bg-white/20" />
+        <div className="absolute top-2.5 left-1/2 z-20 h-2 w-20 -translate-x-1/2 rounded-sm bg-white/20" />
 
         {active ? (
           <iframe
@@ -68,7 +68,7 @@ function VideoCard({ video }: { video: ShortVideoData }) {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             loading="lazy"
-            className="absolute inset-0 h-full w-full rounded-[1.8rem]"
+            className="absolute inset-0 h-full w-full rounded-sm"
           />
         ) : (
           <button
@@ -83,7 +83,7 @@ function VideoCard({ video }: { video: ShortVideoData }) {
                 event_category: 'engagement',
               });
             }}
-            className="group absolute inset-0 h-full w-full overflow-hidden rounded-[1.8rem]"
+            className="group absolute inset-0 h-full w-full overflow-hidden rounded-sm"
             aria-label={`Play ${video.title}`}
           >
             <Image
@@ -101,14 +101,14 @@ function VideoCard({ video }: { video: ShortVideoData }) {
                 numbers don't undercut credibility with potential clients */}
             {video.viewCount !== null &&
               video.viewCount >= VIEW_COUNT_DISPLAY_THRESHOLD && (
-                <span className="font-family-inter absolute top-8 right-4 z-10 flex items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
+                <span className="font-family-inter absolute top-8 right-4 z-10 flex items-center gap-1.5 rounded-sm bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm">
                   <Play className="h-3 w-3 fill-white text-white" />
                   {formatCompact(video.viewCount)} views
                 </span>
               )}
 
             {/* Play button */}
-            <span className="absolute top-1/2 left-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-lg backdrop-blur transition-transform duration-300 group-hover:scale-110">
+            <span className="absolute top-1/2 left-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-sm bg-white/90 shadow-lg backdrop-blur transition-transform duration-300 group-hover:scale-110">
               <Play className="ml-1 h-8 w-8 fill-[#2C3333] text-[#2C3333]" />
             </span>
 
@@ -192,7 +192,7 @@ export default function ContentCreation({
               event_category: 'engagement',
             });
           }}
-          className="group flex items-center gap-2 rounded-full border border-[#2C3333]/15 px-6 py-3 transition-colors duration-300 hover:border-[#7BB6DD]/50 hover:bg-[#2C3333]/[0.04]"
+          className="group flex items-center gap-2 rounded-sm border border-[#2C3333]/15 px-6 py-3 transition-colors duration-300 hover:border-[#7BB6DD]/50 hover:bg-[#2C3333]/[0.04]"
         >
           <span className="font-family-inter text-sm font-medium tracking-wide text-[#2C3333] uppercase">
             Subscribe on YouTube
@@ -210,7 +210,7 @@ export default function ContentCreation({
               event_category: 'engagement',
             });
           }}
-          className="group flex items-center gap-2 rounded-full border border-[#2C3333]/15 px-6 py-3 transition-colors duration-300 hover:border-[#7BB6DD]/50 hover:bg-[#2C3333]/[0.04]"
+          className="group flex items-center gap-2 rounded-sm border border-[#2C3333]/15 px-6 py-3 transition-colors duration-300 hover:border-[#7BB6DD]/50 hover:bg-[#2C3333]/[0.04]"
         >
           <span className="font-family-inter text-sm font-medium tracking-wide text-[#2C3333] uppercase">
             Follow on TikTok

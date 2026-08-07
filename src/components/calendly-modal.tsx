@@ -137,7 +137,7 @@ export const CalendlyModal = ({
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-white">
               <div className="flex flex-col items-center gap-2">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#7BB6DD]" />
+                <div className="h-8 w-8 animate-spin rounded-sm border-b-2 border-[#7BB6DD]" />
                 <p className="text-sm text-gray-600">Loading calendar...</p>
               </div>
             </div>
@@ -151,7 +151,7 @@ export const CalendlyModal = ({
                   href={url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#7BB6DD] to-[#5BA4D1] px-4 py-2 text-white transition-all duration-200 hover:shadow-lg hover:shadow-[#7BB6DD]/20"
+                  className="inline-flex items-center gap-2 rounded-sm bg-gradient-to-r from-[#7BB6DD] to-[#5BA4D1] px-4 py-2 text-white transition-all duration-200 hover:shadow-lg hover:shadow-[#7BB6DD]/20"
                 >
                   Open Calendly in new tab
                 </a>

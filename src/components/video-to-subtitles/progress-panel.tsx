@@ -42,7 +42,7 @@ export function ProgressPanel({
   return (
     <m.div
       {...panelMotion(reduced)}
-      className="border-ink/10 bg-ink/[0.02] flex w-full flex-col items-center gap-6 rounded-2xl border p-8 text-center md:p-14"
+      className="border-ink/10 bg-ink/[0.02] flex w-full flex-col items-center gap-6 rounded-sm border p-8 text-center md:p-14"
       role="status"
       aria-live="polite"
     >
@@ -83,7 +83,7 @@ export function ProgressPanel({
       <Button
         variant="ghost"
         onClick={onCancel}
-        className="text-ink/70 hover:bg-ink/[0.05] hover:text-ink rounded-full"
+        className="text-ink/70 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
       >
         Cancel
       </Button>

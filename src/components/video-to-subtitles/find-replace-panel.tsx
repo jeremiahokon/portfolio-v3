@@ -80,7 +80,7 @@ export function FindReplacePanel({
             }}
             placeholder="Find"
             aria-label="Find"
-            className="font-family-inter border-ink/10 focus:border-ink/30 w-full rounded-full border bg-white py-2 pr-3 pl-9 text-xs outline-none"
+            className="font-family-inter border-ink/10 focus:border-ink/30 w-full rounded-sm border bg-white py-2 pr-3 pl-9 text-xs outline-none"
           />
         </div>
 
@@ -92,14 +92,14 @@ export function FindReplacePanel({
           onKeyDown={(e) => {
             if (e.key === 'Enter' && matches.length > 0) run(query, replacement);
           }}
-          className="font-family-inter border-ink/10 focus:border-ink/30 min-w-[160px] flex-1 rounded-full border bg-white px-4 py-2 text-xs outline-none"
+          className="font-family-inter border-ink/10 focus:border-ink/30 min-w-[160px] flex-1 rounded-sm border bg-white px-4 py-2 text-xs outline-none"
         />
 
         <button
           type="button"
           disabled={matches.length === 0}
           onClick={() => run(query, replacement)}
-          className="bg-ink font-family-inter disabled:bg-ink/20 rounded-full px-4 py-2 text-xs text-white"
+          className="bg-ink font-family-inter disabled:bg-ink/20 rounded-sm px-4 py-2 text-xs text-white"
         >
           Replace {matches.length > 0 ? `all ${matches.length}` : 'all'}
         </button>
@@ -107,7 +107,7 @@ export function FindReplacePanel({
         <button
           type="button"
           onClick={onClose}
-          className="font-family-inter text-ink/50 rounded-full px-3 py-2 text-xs hover:bg-black/5"
+          className="font-family-inter text-ink/50 rounded-sm px-3 py-2 text-xs hover:bg-black/5"
         >
           Close
         </button>
@@ -139,7 +139,7 @@ export function FindReplacePanel({
           <button
             type="button"
             onClick={onDeleteFlagged}
-            className="font-family-inter ml-auto inline-flex items-center gap-1.5 rounded-full border border-red-200 px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
+            className="font-family-inter ml-auto inline-flex items-center gap-1.5 rounded-sm border border-red-200 px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
           >
             <Trash2 className="h-3 w-3" />
             Delete {flaggedCount} flagged cues
@@ -165,7 +165,7 @@ export function FindReplacePanel({
           onChange={(e) => setVocabulary(e.target.value)}
           rows={2}
           placeholder={'Amadeus\nIATA\nARC'}
-          className="font-family-inter border-ink/10 focus:border-ink/30 w-full resize-none rounded-xl border bg-white px-3 py-2 text-xs outline-none"
+          className="font-family-inter border-ink/10 focus:border-ink/30 w-full resize-none rounded-sm border bg-white px-3 py-2 text-xs outline-none"
         />
 
         {suggestions.length > 0 && (
@@ -184,7 +184,7 @@ export function FindReplacePanel({
                       ? `“${s.found}” sounds like “${s.term}”`
                       : `“${s.found}” is spelled close to “${s.term}”`
                   }
-                  className="font-family-inter border-sky-deep/30 text-sky-deep hover:bg-sky/10 rounded-full border px-2.5 py-1 text-[11px]"
+                  className="font-family-inter border-sky-deep/30 text-sky-deep hover:bg-sky/10 rounded-sm border px-2.5 py-1 text-[11px]"
                 >
                   {s.found} → {s.term}
                   <span className="text-ink/35 ml-1.5">×{s.count}</span>

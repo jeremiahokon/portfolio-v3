@@ -149,14 +149,14 @@ function FeaturedCaseCard({
             event_category: 'engagement',
           });
         }}
-        className={`group relative block overflow-hidden rounded-2xl shadow-xl md:col-span-3 ${
+        className={`group relative block overflow-hidden rounded-sm shadow-xl md:col-span-3 ${
           imageFirst ? '' : 'md:order-last'
         }`}
       >
         <div className="bg-ink flex items-center gap-1.5 px-4 py-2.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-[#28c840]" />
         </div>
         <div className="relative aspect-[16/10] overflow-hidden">
           <Image
@@ -314,7 +314,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
           }
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="relative h-[280px] w-[480px] overflow-hidden rounded-lg shadow-2xl lg:h-[320px] lg:w-[560px]">
+          <div className="relative h-[280px] w-[480px] overflow-hidden rounded-sm shadow-2xl lg:h-[320px] lg:w-[560px]">
             <Image
               src={project.image}
               alt={project.name}
@@ -338,7 +338,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
         transition={{ duration: 0.3 }}
       >
         <div className="pb-4">
-          <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-lg">
+          <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-sm">
             <Image
               src={project.image}
               alt={project.name}

@@ -102,10 +102,10 @@ function TestimonialCard({
   endorsements,
 }: Testimonial) {
   return (
-    <div className="flex w-[320px] flex-shrink-0 flex-col gap-5 rounded-2xl border border-[#2C3333]/8 bg-white/60 p-6 backdrop-blur-sm md:w-[400px] md:p-8">
+    <div className="flex w-[320px] flex-shrink-0 flex-col gap-5 rounded-sm border border-[#2C3333]/8 bg-white/60 p-6 backdrop-blur-sm md:w-[400px] md:p-8">
       <div className="flex items-center justify-between">
         <StarRating rating={rating} />
-        <span className="font-family-inter rounded-full bg-[#14a800]/10 px-3 py-1 text-[10px] font-semibold tracking-wide text-[#14a800] uppercase">
+        <span className="font-family-inter rounded-sm bg-[#14a800]/10 px-3 py-1 text-[10px] font-semibold tracking-wide text-[#14a800] uppercase">
           via Upwork
         </span>
       </div>
@@ -116,7 +116,7 @@ function TestimonialCard({
         {endorsements.map((endorsement) => (
           <span
             key={endorsement}
-            className="font-family-inter rounded-full bg-[#2C3333]/5 px-3 py-1 text-xs text-[#2C3333]/60"
+            className="font-family-inter rounded-sm bg-[#2C3333]/5 px-3 py-1 text-xs text-[#2C3333]/60"
           >
             {endorsement}
           </span>

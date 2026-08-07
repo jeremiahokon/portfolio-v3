@@ -77,7 +77,7 @@ export function ExportPanel({
   return (
     <m.div
       {...panelMotion(reduced)}
-      className="border-ink/10 bg-ink/[0.02] flex w-full flex-col items-center gap-6 rounded-2xl border p-8 text-center md:p-14"
+      className="border-ink/10 bg-ink/[0.02] flex w-full flex-col items-center gap-6 rounded-sm border p-8 text-center md:p-14"
     >
       <span className="relative flex h-20 w-20 items-center justify-center">
         <SuccessCheck />
@@ -98,7 +98,7 @@ export function ExportPanel({
         // recogniser's ~1s-granular segment bounds, not from a forced aligner.
         // The offer to fix it sits right next to the admission, with its cost
         // stated, so the trade is the user's to make rather than a surprise.
-        <div className="border-ink/10 bg-ink/[0.03] flex w-full max-w-md flex-col items-center gap-3 rounded-2xl border px-5 py-4">
+        <div className="border-ink/10 bg-ink/[0.03] flex w-full max-w-md flex-col items-center gap-3 rounded-sm border px-5 py-4">
           <span className="font-family-inter text-ink/70 inline-flex items-center gap-2 text-xs">
             <Clock3 className="text-sky-deep h-4 w-4" />
             Timings are estimated to about a second
@@ -106,7 +106,7 @@ export function ExportPanel({
           <button
             type="button"
             onClick={onRefineTiming}
-            className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all"
+            className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
           >
             <Wand2 className="h-4 w-4" />
             Improve timing accuracy
@@ -116,7 +116,7 @@ export function ExportPanel({
           </button>
         </div>
       ) : (
-        <span className="font-family-inter inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
+        <span className="font-family-inter inline-flex items-center gap-2 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
           <Clock3 className="h-4 w-4" />
           Word-level timing measured for{' '}
           {snapshot.alignedWords.toLocaleString()} of{' '}
@@ -132,7 +132,7 @@ export function ExportPanel({
             onClick={() => setFormat(option.id)}
             aria-pressed={format === option.id}
             className={cn(
-              'font-family-inter rounded-full border px-4 py-2 text-xs font-medium transition-all',
+              'font-family-inter rounded-sm border px-4 py-2 text-xs font-medium transition-all',
               format === option.id
                 ? 'border-sky-deep bg-sky/15 text-sky-deep'
                 : 'border-ink/10 text-ink/60 hover:border-sky/40 hover:text-ink'
@@ -148,7 +148,7 @@ export function ExportPanel({
         <button
           type="button"
           onClick={download}
-          className="from-sky to-sky-deep inline-flex items-center gap-2 rounded-full bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
+          className="from-sky to-sky-deep inline-flex items-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
         >
           <Download className="h-4 w-4" />
           Download {format.toUpperCase()}
@@ -157,7 +157,7 @@ export function ExportPanel({
         <Button
           variant="ghost"
           onClick={onReset}
-          className="text-ink/70 hover:bg-ink/[0.05] hover:text-ink rounded-full"
+          className="text-ink/70 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
         >
           <RotateCcw className="mr-2 h-4 w-4" />
           Transcribe another
@@ -166,7 +166,7 @@ export function ExportPanel({
         <button
           type="button"
           onClick={onEdit}
-          className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all"
+          className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
         >
           <Pencil className="h-4 w-4" />
           Edit transcript

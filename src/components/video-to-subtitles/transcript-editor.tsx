@@ -86,7 +86,7 @@ const WordSpan = memo(function WordSpan({
         // still extends past the glyphs while the gap between words stays exactly
         // one space wide. Padding alone made the prose visibly loose once a real
         // space was added between spans.
-        'rounded -mx-0.5 px-0.5 transition-colors',
+        'rounded-sm -mx-0.5 px-0.5 transition-colors',
         playing ? 'bg-amber-200/80 text-ink' : '',
         !playing && word.edited ? 'text-emerald-700' : '',
         !playing && !word.edited && lowConfidence
@@ -149,7 +149,7 @@ const CueBlock = memo(function CueBlock({
       // without the scrollbar jumping as they render.
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 64px' }}
       className={[
-        'group relative rounded-xl border px-3 py-2 transition-colors',
+        'group relative rounded-sm border px-3 py-2 transition-colors',
         selected
           ? 'border-amber-300/80 bg-amber-50/50'
           : 'border-transparent hover:bg-black/[0.02]',
@@ -189,7 +189,7 @@ const CueBlock = memo(function CueBlock({
               e.stopPropagation();
             }}
             rows={2}
-            className="font-family-inter text-ink w-full resize-none rounded-lg border border-amber-300 bg-white px-2 py-1 text-[15px] leading-relaxed outline-none"
+            className="font-family-inter text-ink w-full resize-none rounded-sm border border-amber-300 bg-white px-2 py-1 text-[15px] leading-relaxed outline-none"
           />
         ) : (
           <p
@@ -217,7 +217,7 @@ const CueBlock = memo(function CueBlock({
           <span
             title={issues.map((i) => i.message).join('\n')}
             className={[
-              'mt-0.5 flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px]',
+              'mt-0.5 flex shrink-0 items-center gap-1 rounded-sm px-2 py-0.5 text-[10px]',
               hasError
                 ? 'bg-red-100 text-red-700'
                 : 'bg-amber-100 text-amber-800',
@@ -377,14 +377,14 @@ export function TranscriptEditor(props: Props) {
 
   return (
     <div className="mx-auto w-full max-w-4xl">
-      <div className="rounded-3xl border border-white/60 bg-white/70 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md">
+      <div className="rounded-sm border border-white/60 bg-white/70 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md">
         {/* Transport */}
         <div className="flex flex-wrap items-center gap-3 border-b border-black/5 px-4 py-3">
           <button
             type="button"
             onClick={togglePlay}
             aria-label={playing ? 'Pause' : 'Play'}
-            className="bg-ink flex h-9 w-9 items-center justify-center rounded-full text-white"
+            className="bg-ink flex h-9 w-9 items-center justify-center rounded-sm text-white"
           >
             {playing ? (
               <Pause className="h-4 w-4" />
@@ -400,14 +400,14 @@ export function TranscriptEditor(props: Props) {
           <span className="font-family-inter text-ink/40 text-xs">{stats}</span>
 
           {qc.clean ? (
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
+            <span className="rounded-sm bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
               no issues
             </span>
           ) : (
             <button
               type="button"
               onClick={() => stepFlagged(1)}
-              className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
+              className="rounded-sm bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
             >
               {qc.errors} errors · {qc.warnings} warnings — press Tab
             </button>
@@ -419,7 +419,7 @@ export function TranscriptEditor(props: Props) {
               onClick={undoEdit}
               disabled={!canUndo}
               aria-label="Undo"
-              className="text-ink/60 disabled:text-ink/20 rounded-lg p-2 hover:bg-black/5"
+              className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
             >
               <Undo2 className="h-4 w-4" />
             </button>
@@ -428,7 +428,7 @@ export function TranscriptEditor(props: Props) {
               onClick={redoEdit}
               disabled={!canRedo}
               aria-label="Redo"
-              className="text-ink/60 disabled:text-ink/20 rounded-lg p-2 hover:bg-black/5"
+              className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
             >
               <Redo2 className="h-4 w-4" />
             </button>
@@ -437,7 +437,7 @@ export function TranscriptEditor(props: Props) {
               onClick={() => setFindOpen((v) => !v)}
               aria-label="Find and replace"
               className={[
-                'rounded-lg p-2 hover:bg-black/5',
+                'rounded-sm p-2 hover:bg-black/5',
                 findOpen ? 'text-ink bg-black/5' : 'text-ink/60',
               ].join(' ')}
             >
@@ -446,7 +446,7 @@ export function TranscriptEditor(props: Props) {
             <button
               type="button"
               onClick={() => setShowTimes((v) => !v)}
-              className="font-family-inter text-ink/60 rounded-lg px-2 py-1 text-xs hover:bg-black/5"
+              className="font-family-inter text-ink/60 rounded-sm px-2 py-1 text-xs hover:bg-black/5"
             >
               {showTimes ? 'Read' : 'Cues'}
             </button>
@@ -509,14 +509,14 @@ export function TranscriptEditor(props: Props) {
             <button
               type="button"
               onClick={props.onBack}
-              className="font-family-inter text-ink/60 rounded-full px-4 py-2 text-xs hover:bg-black/5"
+              className="font-family-inter text-ink/60 rounded-sm px-4 py-2 text-xs hover:bg-black/5"
             >
               Back
             </button>
             <button
               type="button"
               onClick={() => props.onExport(words, cues)}
-              className="bg-ink font-family-inter rounded-full px-5 py-2 text-xs text-white"
+              className="bg-ink font-family-inter rounded-sm px-5 py-2 text-xs text-white"
             >
               Done — export
             </button>

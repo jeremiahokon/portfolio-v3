@@ -24,17 +24,17 @@ export default function Contact() {
       {/* Background gradient mesh */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div
-          className={`absolute -top-1/4 -left-1/4 h-[600px] w-[600px] rounded-full bg-[#7BB6DD]/15 blur-[120px] ${
+          className={`absolute -top-1/4 -left-1/4 h-[600px] w-[600px] rounded-sm bg-[#7BB6DD]/15 blur-[120px] ${
             prefersReducedMotion ? '' : 'animate-gradient-mesh-1'
           }`}
         />
         <div
-          className={`absolute top-1/4 -right-1/4 h-[500px] w-[500px] rounded-full bg-[#5BA4D1]/10 blur-[100px] ${
+          className={`absolute top-1/4 -right-1/4 h-[500px] w-[500px] rounded-sm bg-[#5BA4D1]/10 blur-[100px] ${
             prefersReducedMotion ? '' : 'animate-gradient-mesh-2'
           }`}
         />
         <div
-          className={`absolute -bottom-1/4 left-1/3 h-[550px] w-[550px] rounded-full bg-[#a855f7]/8 blur-[110px] ${
+          className={`absolute -bottom-1/4 left-1/3 h-[550px] w-[550px] rounded-sm bg-[#a855f7]/8 blur-[110px] ${
             prefersReducedMotion ? '' : 'animate-gradient-mesh-3'
           }`}
         />
@@ -105,7 +105,7 @@ export default function Contact() {
             });
             setIsCalendlyOpen(true);
           }}
-          className="group relative overflow-hidden rounded-full px-10 py-5 text-white shadow-2xl transition-all duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.4)] md:px-12 md:py-6"
+          className="group relative overflow-hidden rounded-sm px-10 py-5 text-white shadow-2xl transition-all duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.4)] md:px-12 md:py-6"
           whileHover={prefersReducedMotion ? undefined : { scale: 1.05, y: -4 }}
           whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
         >
@@ -135,7 +135,7 @@ export default function Contact() {
           </span>
           {/* Ripple effect on hover */}
           <m.div
-            className="absolute inset-0 rounded-full bg-white/50"
+            className="absolute inset-0 rounded-sm bg-white/50"
             initial={{ scale: 0, opacity: 0.5 }}
             whileHover={{ scale: 2, opacity: 0, transition: { duration: 0.6 } }}
           />
@@ -146,7 +146,7 @@ export default function Contact() {
           href={`https://mail.google.com/mail/?view=cm&to=${EMAIL}&su=Project%20Inquiry`}
           target="_blank"
           rel="noopener noreferrer"
-          className="group relative overflow-hidden rounded-full px-10 py-5 shadow-2xl transition-all duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.25)] md:px-12 md:py-6"
+          className="group relative overflow-hidden rounded-sm px-10 py-5 shadow-2xl transition-all duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.25)] md:px-12 md:py-6"
           whileHover={prefersReducedMotion ? undefined : { scale: 1.05, y: -4 }}
           whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
           onClick={() => {
@@ -158,8 +158,8 @@ export default function Contact() {
           }}
         >
           {/* Animated border-style gradient background */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#7BB6DD]/20 via-[#5BA4D1]/30 to-[#7BB6DD]/20 backdrop-blur-sm" />
-          <div className="absolute inset-[2px] rounded-full bg-white/90" />
+          <div className="absolute inset-0 rounded-sm bg-gradient-to-r from-[#7BB6DD]/20 via-[#5BA4D1]/30 to-[#7BB6DD]/20 backdrop-blur-sm" />
+          <div className="absolute inset-[2px] rounded-sm bg-white/90" />
           <span className="relative z-10 flex items-center gap-3 text-lg font-black tracking-wide text-[#2C3333] uppercase md:text-xl">
             <m.div
               animate={prefersReducedMotion ? undefined : { y: [0, -3, 0] }}

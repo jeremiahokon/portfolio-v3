@@ -106,7 +106,7 @@ function ProofStack({ disabled }: { disabled: boolean }) {
         {proofShots.map((shot) => (
           <m.div
             key={shot.src}
-            className={`absolute overflow-hidden rounded-xl bg-white ring-1 ring-black/5 ${shot.className}`}
+            className={`absolute overflow-hidden rounded-sm bg-white ring-1 ring-black/5 ${shot.className}`}
             style={{
               zIndex: shot.depth,
               boxShadow:
@@ -117,9 +117,9 @@ function ProofStack({ disabled }: { disabled: boolean }) {
             transition={{ type: 'spring', stiffness: 260, damping: 22 }}
           >
             <div className="border-ink/10 flex items-center gap-1.5 border-b bg-white px-3 py-2">
-              <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
-              <span className="h-2 w-2 rounded-full bg-[#febc2e]" />
-              <span className="h-2 w-2 rounded-full bg-[#28c840]" />
+              <span className="h-2 w-2 rounded-sm bg-[#ff5f57]" />
+              <span className="h-2 w-2 rounded-sm bg-[#febc2e]" />
+              <span className="h-2 w-2 rounded-sm bg-[#28c840]" />
             </div>
             <Image
               src={shot.src}
@@ -136,7 +136,7 @@ function ProofStack({ disabled }: { disabled: boolean }) {
 
         {/* Floating label */}
         <span
-          className="bg-paper text-ink font-family-inter absolute -top-3 right-[4%] z-10 rotate-3 rounded-full px-3.5 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase shadow-lg"
+          className="bg-paper text-ink font-family-inter absolute -top-3 right-[4%] z-10 rotate-3 rounded-sm px-3.5 py-1.5 text-[10px] font-semibold tracking-[0.18em] uppercase shadow-lg"
           style={{ transform: 'translateZ(40px) rotate(3deg)' }}
         >
           Shipped for real clients
@@ -258,8 +258,8 @@ export default function Hero() {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#14A800] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-[#14A800]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-sm bg-[#14A800] opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-sm bg-[#14A800]" />
                 </span>
                 Available now
               </span>
@@ -279,7 +279,7 @@ export default function Hero() {
                   });
                   setIsCalendlyOpen(true);
                 }}
-                className="bg-paper text-ink group relative overflow-hidden rounded-full px-8 py-4 shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.45)] md:px-10 md:py-5"
+                className="bg-paper text-ink group relative overflow-hidden rounded-sm px-8 py-4 shadow-2xl transition-shadow duration-300 hover:shadow-[0_0_60px_rgba(123,182,221,0.45)] md:px-10 md:py-5"
                 whileHover={
                   prefersReducedMotion ? undefined : { scale: 1.04, y: -2 }
                 }
@@ -316,7 +316,7 @@ export default function Hero() {
                     event_category: 'engagement',
                   });
                 }}
-                className="inline-flex items-center gap-2.5 rounded-full border border-[#1DB954]/40 bg-[#14A800]/15 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#3ddc74] transition-all duration-300 hover:border-[#1DB954]/60 hover:bg-[#14A800]/25 md:text-base"
+                className="inline-flex items-center gap-2.5 rounded-sm border border-[#1DB954]/40 bg-[#14A800]/15 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#3ddc74] transition-all duration-300 hover:border-[#1DB954]/60 hover:bg-[#14A800]/25 md:text-base"
                 aria-label="View my Upwork profile"
               >
                 <UpworkIcon className="h-5 w-5" />

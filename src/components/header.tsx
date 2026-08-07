@@ -129,7 +129,7 @@ export default function Header() {
             JO
           </span>
           <m.div
-            className={`absolute -inset-2 rounded-full border-2 border-current opacity-0 group-hover:opacity-100 ${tone}`}
+            className={`absolute -inset-2 rounded-sm border-2 border-current opacity-0 group-hover:opacity-100 ${tone}`}
             initial={{ scale: 0.8, opacity: 0 }}
             whileHover={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.3 }}
@@ -167,8 +167,8 @@ export default function Header() {
         >
           <span className="sr-only">Menu</span>
           <span className="relative block h-[14px] w-7" aria-hidden="true">
-            <span className="absolute top-0 left-0 h-0.5 w-full origin-center rounded-full bg-current transition-all duration-300 group-hover:w-5" />
-            <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-full bg-current transition-all duration-300 group-hover:w-full" />
+            <span className="absolute top-0 left-0 h-0.5 w-full origin-center rounded-sm bg-current transition-all duration-300 group-hover:w-5" />
+            <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-sm bg-current transition-all duration-300 group-hover:w-full" />
           </span>
         </button>
       </header>
@@ -188,11 +188,11 @@ export default function Header() {
               type="button"
               aria-label="Close menu"
               onClick={() => setIsMenuOpen(false)}
-              className="group absolute top-4 right-4 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full text-white transition-colors hover:bg-white/10 md:top-9 md:right-9"
+              className="group absolute top-4 right-4 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 md:top-9 md:right-9"
             >
               <span className="relative block h-5 w-5" aria-hidden="true">
-                <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 rotate-45 rounded-full bg-current transition-transform duration-300 group-hover:rotate-[135deg]" />
-                <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 -rotate-45 rounded-full bg-current transition-transform duration-300 group-hover:rotate-[-135deg]" />
+                <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 rotate-45 rounded-sm bg-current transition-transform duration-300 group-hover:rotate-[135deg]" />
+                <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 -rotate-45 rounded-sm bg-current transition-transform duration-300 group-hover:rotate-[-135deg]" />
               </span>
             </button>
 

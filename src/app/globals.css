@@ -7,7 +7,8 @@
   --sky: #7bb6dd;
   --sky-deep: #5ba4d1;
   --paper: #d9d9d9;
-  --radius: 0.625rem;
+  /* The single corner radius for the whole design language. */
+  --radius: 4px;
   --background: #d9d9d9;
   --foreground: oklch(0.13 0.028 261.692);
   --card: oklch(1 0 0);
@@ -78,10 +79,24 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
+  /*
+   * One radius, 4px, everywhere.
+   *
+   * Every step of the scale is deliberately the same value rather than a
+   * progression. Tailwind ships eight radius tokens and only four were overridden
+   * here, so `rounded-sm` and `rounded-sm` were still resolving to the framework
+   * defaults — which is how a codebase ends up with 1rem and 1.5rem corners nobody
+   * chose. Pinning all eight means any `rounded-*` a component reaches for gives
+   * the same corner, and a future change to the design language is one value here.
+   */
+  --radius-xs: var(--radius);
+  --radius-sm: var(--radius);
+  --radius-md: var(--radius);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
   --font-family-sans: var(--font-neue-montreal);
   --font-family-inter: var(--font-geist-sans);
   --font-family-instrument: var(--font-instrument-serif);
@@ -133,7 +148,7 @@ body {
   );
   background-clip: padding-box;
   border: 3px solid transparent;
-  border-radius: 9999px;
+  border-radius: var(--radius);
   transition: background-color 0.25s ease;
 }
 
