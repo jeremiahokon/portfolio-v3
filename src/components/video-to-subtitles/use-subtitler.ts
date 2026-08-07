@@ -44,7 +44,12 @@ import {
 } from '@/lib/subtitles/degenerate';
 import { type ChunkResult, stitch } from '@/lib/subtitles/stitch';
 import { createJobStore } from '@/lib/subtitles/store';
-import type { AlignedWord, ErrorCode } from '@/lib/subtitles/types';
+import type {
+  AlignedWord,
+  Cue,
+  ErrorCode,
+  Word,
+} from '@/lib/subtitles/types';
 import { dropSilentRegions } from '@/lib/subtitles/vad-regions';
 
 import type { ToWorker } from '@/workers/protocol';
@@ -646,5 +651,32 @@ export function useSubtitler() {
     snapshot.status === 'transcribing' ||
     snapshot.status === 'building';
 
-  return { snapshot, busy, start, cancel, refineTiming, reset: cancel };
+  /**
+   * Commits the editor's transcript back into the job.
+   *
+   * The editor owns its own history while it is open, so the job store has to be
+   * told the result or the export panel keeps serialising the transcript as it was
+   * *before* editing — which silently hands the user back the file they just spent
+   * an hour correcting.
+   *
+   * `timingSource` is left alone deliberately: an edit does not turn estimated
+   * timings into measured ones, and words inserted by `retextCue` carry `conf: 0`
+   * so the QC panel already reports them as unmeasured.
+   */
+  const applyEdits = useCallback(
+    (words: Word[], cues: Cue[]) => {
+      store.set({ words, cues });
+    },
+    [store]
+  );
+
+  return {
+    snapshot,
+    busy,
+    start,
+    cancel,
+    refineTiming,
+    applyEdits,
+    reset: cancel,
+  };
 }

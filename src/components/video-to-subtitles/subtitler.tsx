@@ -26,7 +26,8 @@ import { useSubtitler } from './use-subtitler';
  */
 export function Subtitler() {
   const reduced = useReducedMotion();
-  const { snapshot, busy, start, reset, refineTiming } = useSubtitler();
+  const { snapshot, busy, start, reset, refineTiming, applyEdits } =
+    useSubtitler();
   const [isDragging, setIsDragging] = useState(false);
   const [editing, setEditing] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -83,8 +84,17 @@ export function Subtitler() {
         duration={snapshot.duration ?? 0}
         mediaUrl={mediaUrl}
         draftKey={file ? draftKey(file, ASR.revision) : null}
-        onBack={() => setEditing(false)}
-        onExport={() => setEditing(false)}
+        // Both paths commit. "Back" means "return to the export view", not
+        // "discard an hour of corrections", and there is no other way out of the
+        // editor — so a discarding path here would be a trap rather than a choice.
+        onBack={(words, cues) => {
+          applyEdits(words, cues);
+          setEditing(false);
+        }}
+        onExport={(words, cues) => {
+          applyEdits(words, cues);
+          setEditing(false);
+        }}
       />
     );
   }

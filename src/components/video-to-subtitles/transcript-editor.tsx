@@ -44,7 +44,7 @@ interface Props {
   duration: number;
   mediaUrl: string | null;
   draftKey: string | null;
-  onBack: () => void;
+  onBack: (words: Word[], cues: Cue[]) => void;
   onExport: (words: Word[], cues: Cue[]) => void;
 }
 
@@ -508,7 +508,7 @@ export function TranscriptEditor(props: Props) {
           <div className="ml-auto flex gap-2">
             <button
               type="button"
-              onClick={props.onBack}
+              onClick={() => props.onBack(words, cues)}
               className="font-family-inter text-ink/60 rounded-sm px-4 py-2 text-xs hover:bg-black/5"
             >
               Back
