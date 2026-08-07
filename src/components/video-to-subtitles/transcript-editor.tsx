@@ -82,7 +82,11 @@ const WordSpan = memo(function WordSpan({
   return (
     <span
       className={[
-        'rounded px-0.5 transition-colors',
+        // Negative margin cancels the padding for layout, so the highlight box
+        // still extends past the glyphs while the gap between words stays exactly
+        // one space wide. Padding alone made the prose visibly loose once a real
+        // space was added between spans.
+        'rounded -mx-0.5 px-0.5 transition-colors',
         playing ? 'bg-amber-200/80 text-ink' : '',
         !playing && word.edited ? 'text-emerald-700' : '',
         !playing && !word.edited && lowConfidence
