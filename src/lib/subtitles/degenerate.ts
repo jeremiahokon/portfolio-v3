@@ -106,6 +106,54 @@ export function collapseDegenerateRuns(segments: AsrSegment[]): AsrSegment[] {
 }
 
 /**
+ * Extends segments whose span is too short for the words in them.
+ *
+ * The run collapse above handles a *repeated* phrase crammed into no time. This
+ * handles a **single** segment with the same problem: on the repaired 39-minute
+ * run, "after a sub-up period." arrived with a span of 0.029 s, implying 655
+ * characters per second. That was the file's worst remaining cue and the last
+ * quantified defect in it.
+ *
+ * The two need different treatment, and the difference matters. A run of 86
+ * identical segments is a decode failure and the repeats are not real, so they are
+ * discarded. A lone segment is ordinary speech that Whisper timestamped badly —
+ * "after a sub-up period" is a real phrase somebody said — so **the text is kept
+ * and the timing is repaired.** Deleting it would lose real words to fix a
+ * cosmetic problem.
+ *
+ * Only the end moves. Pulling the start earlier would reach back into the previous
+ * segment's time, and a subtitle appearing before its words were spoken is a worse
+ * defect than a short one — the same priority `normalizeCues` already applies.
+ * Expansion stops at the next segment's start, so a repair can never create an
+ * overlap; a segment boxed in on both sides is left as it is and reaches the QC
+ * panel, which is the honest outcome when there is genuinely no room.
+ */
+export function repairImpossibleSpans(segments: AsrSegment[]): AsrSegment[] {
+  let changed = false;
+
+  const out = segments.map((segment, index) => {
+    const span = segment.end - segment.start;
+    const chars = density(segment.text);
+    // Nothing pronounceable — a stray "..." — so there is no articulation rate to
+    // be impossible. `density` counts punctuation, which is right for measuring
+    // subtitle reading speed and wrong for deciding whether anything was said.
+    if (chars === 0 || normalize(segment.text) === '') return segment;
+    if (span > 0 && chars / span <= MAX_ARTICULATION_CPS) return segment;
+
+    const needed = chars / MAX_ARTICULATION_CPS;
+    const ceiling = segments[index + 1]?.start ?? segment.start + needed;
+    const end = Math.min(segment.start + needed, Math.max(ceiling, segment.end));
+
+    if (end === segment.end) return segment;
+    changed = true;
+
+    return { ...segment, end };
+  });
+
+  return changed ? out : segments;
+}
+
+/**
  * How many segments `collapseDegenerateRuns` would remove.
  *
  * Reported to the user rather than silently discarded. A transcript that lost 128

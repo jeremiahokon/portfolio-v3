@@ -4,6 +4,7 @@ import {
   collapseDegenerateRuns,
   countDegenerateSegments,
   MAX_ARTICULATION_CPS,
+  repairImpossibleSpans,
 } from './degenerate';
 import type { AsrSegment } from './types';
 
@@ -154,5 +155,78 @@ describe('countDegenerateSegments', () => {
     expect(
       countDegenerateSegments([{ text: 'Hello.', start: 0, end: 1 }])
     ).toBe(0);
+  });
+});
+
+describe('repairImpossibleSpans', () => {
+  it('repairs the 655 CPS cue measured on the 39-minute run', () => {
+    // "after a sub-up period." in 0.029s. Real speech, badly timestamped.
+    const segments: AsrSegment[] = [
+      { text: 'you know.', start: 2099.0, end: 2099.9 },
+      { text: 'after a sub-up period.', start: 2099.9, end: 2099.929 },
+      { text: 'The project is the fee', start: 2102, end: 2104 },
+    ];
+
+    const out = repairImpossibleSpans(segments);
+
+    expect(out[1]!.text).toBe('after a sub-up period.');
+    // 19 non-whitespace characters need 19/25 = 0.76s to be articulable.
+    expect(out[1]!.end - out[1]!.start).toBeCloseTo(19 / MAX_ARTICULATION_CPS, 5);
+  });
+
+  it('keeps the text — a badly timed segment is not a fake one', () => {
+    const segments: AsrSegment[] = [
+      { text: 'a real sentence somebody said', start: 10, end: 10.01 },
+      { text: 'and the next one', start: 20, end: 21 },
+    ];
+
+    expect(repairImpossibleSpans(segments)).toHaveLength(2);
+  });
+
+  it('never moves the start, which would precede the words', () => {
+    const segments: AsrSegment[] = [
+      { text: 'first', start: 0, end: 5 },
+      { text: 'a long crammed sentence here', start: 5, end: 5.02 },
+    ];
+
+    expect(repairImpossibleSpans(segments)[1]!.start).toBe(5);
+  });
+
+  it('never expands past the next segment, so it cannot create an overlap', () => {
+    const segments: AsrSegment[] = [
+      { text: 'a long crammed sentence here', start: 0, end: 0.02 },
+      { text: 'next', start: 0.3, end: 1 },
+    ];
+
+    const out = repairImpossibleSpans(segments);
+
+    expect(out[0]!.end).toBeLessThanOrEqual(0.3);
+    expect(out[0]!.end).toBeGreaterThan(0.02);
+  });
+
+  it('leaves a segment boxed in on both sides alone', () => {
+    // No room to grow: this reaches the QC panel rather than being faked.
+    const segments: AsrSegment[] = [
+      { text: 'a', start: 0, end: 0.5 },
+      { text: 'a long crammed sentence here', start: 0.5, end: 0.51 },
+      { text: 'b', start: 0.51, end: 1 },
+    ];
+
+    expect(repairImpossibleSpans(segments)[1]!.end).toBe(0.51);
+  });
+
+  it('leaves plausible segments identical', () => {
+    const segments: AsrSegment[] = [
+      { text: 'this is spoken at a normal rate', start: 0, end: 2.5 },
+      { text: 'and so is this', start: 2.6, end: 4 },
+    ];
+
+    expect(repairImpossibleSpans(segments)).toBe(segments);
+  });
+
+  it('ignores a segment with no letters or digits', () => {
+    const segments: AsrSegment[] = [{ text: '...', start: 0, end: 0.001 }];
+
+    expect(repairImpossibleSpans(segments)).toBe(segments);
   });
 });

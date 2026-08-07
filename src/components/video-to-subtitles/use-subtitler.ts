@@ -38,7 +38,10 @@ import {
   resetIds,
   wordsFromSegments,
 } from '@/lib/subtitles/cues';
-import { collapseDegenerateRuns } from '@/lib/subtitles/degenerate';
+import {
+  collapseDegenerateRuns,
+  repairImpossibleSpans,
+} from '@/lib/subtitles/degenerate';
 import { type ChunkResult, stitch } from '@/lib/subtitles/stitch';
 import { createJobStore } from '@/lib/subtitles/store';
 import type { AlignedWord, ErrorCode } from '@/lib/subtitles/types';
@@ -417,14 +420,17 @@ export function useSubtitler() {
         // Collapsed after stitching, where the run is still contiguous, and
         // before words exist, so nothing downstream ever sees the junk.
         const stitched = stitch(results);
-        const segments = collapseDegenerateRuns(stitched);
+        // Collapse first, then repair: a repeated phrase is junk to discard, and
+        // only what survives is real speech whose timing is worth fixing.
+        const collapsed = collapseDegenerateRuns(stitched);
+        const segments = repairImpossibleSpans(collapsed);
 
         if (
           process.env.NODE_ENV === 'development' &&
-          segments.length !== stitched.length
+          collapsed.length !== stitched.length
         ) {
           console.warn(
-            `[subtitles] collapsed ${stitched.length - segments.length} degenerate repeat segments`
+            `[subtitles] collapsed ${stitched.length - collapsed.length} degenerate repeat segments`
           );
         }
 
