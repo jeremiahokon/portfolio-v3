@@ -116,7 +116,7 @@ export function FindReplacePanel({
         <button
           type="button"
           onClick={onClose}
-          className="font-family-inter text-ink/50 rounded-sm px-3 py-2 text-xs hover:bg-black/5"
+          className="font-family-inter text-ink/50 rounded-sm px-3 py-2 text-xs hover:bg-black/5 whitespace-nowrap"
         >
           Close
         </button>
@@ -153,7 +153,7 @@ export function FindReplacePanel({
             <button
               type="button"
               onClick={onDeleteFlagged}
-              className="font-family-inter ml-auto inline-flex items-center gap-1.5 rounded-sm border border-red-200 px-3 py-1 text-[11px] text-red-700 hover:bg-red-50"
+              className="font-family-inter ml-auto inline-flex items-center gap-1.5 rounded-sm border border-red-200 px-3 py-1 text-[11px] text-red-700 hover:bg-red-50 whitespace-nowrap"
             >
               <Trash2 className="h-3 w-3" />
               Delete {flaggedCount} flagged cues

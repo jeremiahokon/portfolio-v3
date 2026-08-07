@@ -57,6 +57,19 @@ export function Subtitler() {
     };
   }, [file]);
 
+  // Opened automatically the first time a job finishes, because the transcript is
+  // the thing the user came for — landing on a row of download buttons hides it
+  // behind a click. Tracked with a ref rather than keyed on `status` alone: the
+  // aligner and the M4 re-time both return to 'done', and being thrown back into the
+  // editor after deliberately choosing an action from the export panel would fight
+  // the user rather than help them.
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (snapshot.status !== 'done' || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    setEditing(true);
+  }, [snapshot.status]);
+
   const begin = (file: File | undefined) => {
     if (!file) return;
     sendGAEvent({
@@ -66,6 +79,7 @@ export function Subtitler() {
     });
     setFile(file);
     setEditing(false);
+    autoOpenedRef.current = false;
     void start(file);
   };
 

@@ -130,6 +130,7 @@ const CueBlock = memo(function CueBlock({
   showTimes,
   canMerge,
   onSelect,
+  onPlay,
   onBeginEdit,
   onCommit,
   onCancel,
@@ -147,6 +148,7 @@ const CueBlock = memo(function CueBlock({
   showTimes: boolean;
   canMerge: boolean;
   onSelect: (index: number) => void;
+  onPlay: (index: number) => void;
   onBeginEdit: (index: number) => void;
   onCommit: (index: number, text: string) => void;
   onCancel: () => void;
@@ -190,7 +192,7 @@ const CueBlock = memo(function CueBlock({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onSelect(cueIndex);
+                onPlay(cueIndex);
               }}
               className="font-family-inter text-ink/35 hover:text-ink/70 mt-0.5 shrink-0 text-[11px] tabular-nums"
             >
@@ -222,8 +224,25 @@ const CueBlock = memo(function CueBlock({
           />
         ) : (
           <p
-            onDoubleClick={() => onBeginEdit(cueIndex)}
-            className="font-family-inter text-ink/85 flex-1 text-[15px] leading-relaxed"
+            // A single click, not a double. The whole point of this view is that the
+            // text is editable, and hiding that behind a double-click meant people
+            // clicked once, heard the audio start, and concluded it was read-only.
+            // Playback moved to the timestamp button beside it, which is a clearer
+            // home for it anyway.
+            onClick={(e) => {
+              e.stopPropagation();
+              onBeginEdit(cueIndex);
+            }}
+            role="button"
+            aria-label="Edit this line"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onBeginEdit(cueIndex);
+              }
+            }}
+            className="font-family-inter text-ink/85 hover:bg-ink/[0.03] focus-visible:ring-sky-deep/40 flex-1 cursor-text rounded-sm text-[15px] leading-relaxed focus-visible:ring-2 focus-visible:outline-none"
           >
             {words.slice(cue.wordStart, cue.wordEnd + 1).map((word, i) => (
               // The separator is a real text node, not padding. Styling the gap
@@ -629,7 +648,7 @@ export function TranscriptEditor(props: Props) {
                 onClick={undoEdit}
                 disabled={!canUndo}
                 aria-label="Undo"
-                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
+                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 whitespace-nowrap hover:bg-black/5"
               >
                 <Undo2 className="h-4 w-4" />
               </button>
@@ -640,7 +659,7 @@ export function TranscriptEditor(props: Props) {
                 onClick={redoEdit}
                 disabled={!canRedo}
                 aria-label="Redo"
-                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
+                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 whitespace-nowrap hover:bg-black/5"
               >
                 <Redo2 className="h-4 w-4" />
               </button>
@@ -707,7 +726,8 @@ export function TranscriptEditor(props: Props) {
                 playingWord={playingWord}
                 issues={issuesByCue.get(index)}
                 showTimes={showTimes}
-                onSelect={(i) => {
+                onSelect={setSelectedCue}
+                onPlay={(i) => {
                   setSelectedCue(i);
                   playCue(i);
                 }}
@@ -729,7 +749,7 @@ export function TranscriptEditor(props: Props) {
         {/* Footer */}
         <div className="flex flex-wrap items-center gap-3 border-t border-black/5 px-4 py-3">
           <p className="font-family-inter text-ink/40 text-[11px]">
-            Double-click or Enter to edit · Space plays · Tab jumps to the next
+            Click any line to edit it · Space plays · Tab jumps to the next
             issue · ⌘F to replace everywhere · K splits, J merges, , / . shift
           </p>
           <div className="ml-auto flex gap-2">

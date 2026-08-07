@@ -119,7 +119,7 @@ export function ExportPanel({
             <button
               type="button"
               onClick={onRefineTiming}
-              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
+              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all whitespace-nowrap"
             >
               <Wand2 className="h-4 w-4" />
               Improve timing accuracy
@@ -149,7 +149,7 @@ export function ExportPanel({
             <button
               type="button"
               onClick={onRealignEdits}
-              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
+              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all whitespace-nowrap"
             >
               <Wand2 className="h-4 w-4" />
               Re-time your edits
@@ -182,7 +182,7 @@ export function ExportPanel({
         <button
           type="button"
           onClick={download}
-          className="from-sky to-sky-deep inline-flex items-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
+          className="from-sky to-sky-deep inline-flex items-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)] whitespace-nowrap"
         >
           <Download className="h-4 w-4" />
           Download {format.toUpperCase()}
@@ -201,7 +201,7 @@ export function ExportPanel({
           <button
             type="button"
             onClick={onEdit}
-            className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
+            className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all whitespace-nowrap"
           >
             <Pencil className="h-4 w-4" />
             Edit transcript
