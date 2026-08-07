@@ -220,12 +220,37 @@ export function useTranscriptEditor(options: EditorOptions) {
     [words, currentTime, playing]
   );
 
-  const seekTo = useCallback((seconds: number) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    audio.currentTime = seconds;
-    setCurrentTime(seconds);
-  }, []);
+  /**
+   * Moves the playhead, without changing whether it is playing.
+   *
+   * Clamped here rather than at each call site: an audio element silently ignores
+   * a negative or past-the-end `currentTime`, so an unclamped seek would leave the
+   * displayed time and the actual playhead disagreeing.
+   */
+  const duration = options.duration;
+  const seekTo = useCallback(
+    (seconds: number) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+
+      const target = Math.min(Math.max(seconds, 0), duration || audio.duration);
+      if (!Number.isFinite(target)) return;
+
+      audio.currentTime = target;
+      setCurrentTime(target);
+    },
+    [duration]
+  );
+
+  /** Jumps relative to where the audio is now — what the skip buttons do. */
+  const seekBy = useCallback(
+    (delta: number) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      seekTo(audio.currentTime + delta);
+    },
+    [seekTo]
+  );
 
   const playCue = useCallback(
     (cueIndex: number) => {
@@ -349,6 +374,7 @@ export function useTranscriptEditor(options: EditorOptions) {
     merge,
     removeCues,
     seekTo,
+    seekBy,
     playCue,
     togglePlay,
     undo: () => setHistory(undo),

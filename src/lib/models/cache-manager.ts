@@ -130,6 +130,40 @@ export async function readCache(): Promise<CacheReport> {
   };
 }
 
+/**
+ * Whether a model's weights are already on this device.
+ *
+ * Deliberately not `readCache()`. That one sums real bytes, which means reading
+ * every cached response and — for anything without a `content-length` — buffering
+ * a 189 MB body. This question only needs the key list, so it costs one
+ * `cache.keys()` and no reads. It is asked on render, by UI deciding whether to
+ * quote a download size; `readCache` is asked once, by a panel the user opened.
+ *
+ * Same threshold as `complete` in `readCache`: weights plus a tokenizer and
+ * configs, so an interrupted download does not read as present.
+ */
+export async function isModelCached(
+  id: string,
+  revision: string
+): Promise<boolean> {
+  if (typeof caches === 'undefined') return false;
+
+  try {
+    const cache = await caches.open(CACHE_KEY);
+    const keys = await cache.keys();
+
+    return (
+      keys.filter(
+        (request) => request.url.includes(id) && request.url.includes(revision)
+      ).length >= 3
+    );
+  } catch {
+    // A browser that will not open the cache is one we cannot prove anything
+    // about; quoting the download size is the safe answer.
+    return false;
+  }
+}
+
 /** Removes one model's cached files. Returns how many were deleted. */
 export async function purgeModel(id: string): Promise<number> {
   if (typeof caches === 'undefined') return 0;

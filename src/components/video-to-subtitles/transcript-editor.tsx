@@ -14,11 +14,14 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
+  FastForward,
   Merge,
   Pause,
   Play,
   Redo2,
   Replace,
+  Rewind,
+  RotateCcw,
   Scissors,
   Undo2,
 } from 'lucide-react';
@@ -405,6 +408,59 @@ function EdgeNudge({
   );
 }
 
+/**
+ * The scrub bar.
+ *
+ * A native range input, made invisible and laid over a drawn track. The drawn
+ * track is what the eye needs — a 1px line with a filled portion — and the range
+ * input is what everything else needs: drag, click-to-position, arrow keys, and a
+ * control a screen reader already knows how to announce. Restyling the native
+ * thumb gets neither, and a bare div gets only the first.
+ *
+ * Five seconds is the skip step: long enough to clear a sentence, short enough
+ * that overshooting costs one more click rather than a re-hunt.
+ */
+const SKIP_SECONDS = 5;
+
+function SeekBar({
+  current,
+  duration,
+  onSeek,
+}: {
+  current: number;
+  duration: number;
+  onSeek: (seconds: number) => void;
+}) {
+  const pct = duration > 0 ? Math.min(100, (current / duration) * 100) : 0;
+
+  return (
+    <div className="group/seek relative flex h-4 w-full items-center">
+      <div className="bg-ink/10 h-[3px] w-full overflow-hidden rounded-full">
+        <div
+          className="bg-ink/55 h-full rounded-full"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span
+        aria-hidden
+        className="bg-ink pointer-events-none absolute h-2.5 w-2.5 rounded-full opacity-70 shadow-sm transition-opacity group-hover/seek:opacity-100"
+        style={{ left: `calc(${pct}% - 5px)` }}
+      />
+      <input
+        type="range"
+        min={0}
+        max={duration > 0 ? duration : 1}
+        step={0.05}
+        value={Math.min(current, duration)}
+        onChange={(e) => onSeek(Number(e.target.value))}
+        aria-label="Playback position"
+        aria-valuetext={`${stamp(current)} of ${stamp(duration)}`}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+      />
+    </div>
+  );
+}
+
 export function TranscriptEditor(props: Props) {
   const editor = useTranscriptEditor({
     words: props.words,
@@ -437,6 +493,8 @@ export function TranscriptEditor(props: Props) {
     audioRef,
     currentTime,
     setCurrentTime,
+    seekTo,
+    seekBy,
     playing,
     setPlaying,
     beginEditing,
@@ -533,6 +591,21 @@ export function TranscriptEditor(props: Props) {
           event.preventDefault();
           togglePlay();
           break;
+        // Left and right scrub, up and down move the selection. Both are
+        // "go back a bit", and which one you want depends on whether you are
+        // re-listening or re-reading.
+        case 'ArrowLeft':
+          event.preventDefault();
+          seekBy(-SKIP_SECONDS);
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          seekBy(SKIP_SECONDS);
+          break;
+        case 'r':
+          event.preventDefault();
+          playCue(selectedCue);
+          break;
         case 'ArrowDown':
           event.preventDefault();
           step(1);
@@ -583,6 +656,8 @@ export function TranscriptEditor(props: Props) {
       slideCue,
       undoEdit,
       redoEdit,
+      seekBy,
+      playCue,
     ]
   );
 
@@ -608,6 +683,39 @@ export function TranscriptEditor(props: Props) {
               ) : (
                 <Play className="ml-0.5 h-4 w-4" />
               )}
+            </button>
+          </Tooltip>
+
+          <Tooltip label={`Jump back ${SKIP_SECONDS} seconds (←).`}>
+            <button
+              type="button"
+              onClick={() => seekBy(-SKIP_SECONDS)}
+              aria-label={`Back ${SKIP_SECONDS} seconds`}
+              className="text-ink/75 hover:text-ink rounded-sm p-1.5 hover:bg-black/5"
+            >
+              <Rewind className="h-4 w-4" />
+            </button>
+          </Tooltip>
+
+          <Tooltip label={`Jump forward ${SKIP_SECONDS} seconds (→).`}>
+            <button
+              type="button"
+              onClick={() => seekBy(SKIP_SECONDS)}
+              aria-label={`Forward ${SKIP_SECONDS} seconds`}
+              className="text-ink/75 hover:text-ink rounded-sm p-1.5 hover:bg-black/5"
+            >
+              <FastForward className="h-4 w-4" />
+            </button>
+          </Tooltip>
+
+          <Tooltip label="Replay the selected line from its start (R). The line you are editing, not wherever the audio drifted to.">
+            <button
+              type="button"
+              onClick={() => playCue(selectedCue)}
+              aria-label="Replay this line"
+              className="text-ink/75 hover:text-ink rounded-sm p-1.5 hover:bg-black/5"
+            >
+              <RotateCcw className="h-4 w-4" />
             </button>
           </Tooltip>
 
@@ -695,6 +803,17 @@ export function TranscriptEditor(props: Props) {
           </div>
         </div>
 
+        {/* Scrub bar. Its own full-width row rather than squeezed into the
+            transport: on a 39-minute file a short track makes every drag a
+            ten-second overshoot. */}
+        <div className="border-b border-black/5 px-4 py-2">
+          <SeekBar
+            current={currentTime}
+            duration={props.duration}
+            onSeek={seekTo}
+          />
+        </div>
+
         {findOpen && (
           <FindReplacePanel
             words={words}
@@ -749,8 +868,9 @@ export function TranscriptEditor(props: Props) {
         {/* Footer */}
         <div className="flex flex-wrap items-center gap-3 border-t border-black/5 px-4 py-3">
           <p className="font-family-inter text-ink/75 text-[11px]">
-            Click any line to edit it · Space plays · Tab jumps to the next
-            issue · ⌘F to replace everywhere · K splits, J merges, , / . shift
+            Click any line to edit it · Space plays · ← / → scrub 5s · R replays
+            the line · Tab jumps to the next issue · ⌘F to replace everywhere ·
+            K splits, J merges, , / . shift
           </p>
           <div className="ml-auto flex gap-2">
             <Tooltip label="Return to the download options. Your edits are kept.">

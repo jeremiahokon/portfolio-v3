@@ -2,10 +2,12 @@
 
 import { sendGAEvent } from '@next/third-parties/google';
 
-import { AudioLines, RotateCcw } from 'lucide-react';
+import { AudioLines } from 'lucide-react';
 import { m } from 'motion/react';
 
 import { Button } from '@/ui/button';
+
+import { DownloadGlyph, RestartGlyph } from '@/components/ui/glyphs';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
 
@@ -51,16 +53,17 @@ export function ResultPanel({ reduced, result, onReset }: ResultPanelProps) {
               event_category: 'tool_usage',
             });
           }}
-          className="group from-sky to-sky-deep inline-flex items-center justify-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)] whitespace-nowrap"
+          className="group from-sky to-sky-deep inline-flex items-center justify-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide whitespace-nowrap text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
         >
+          <DownloadGlyph className="h-[18px] w-[18px]" />
           Download MP3
         </a>
         <Button
           variant="ghost"
           onClick={onReset}
-          className="text-ink/85 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
+          className="group text-ink/85 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
         >
-          <RotateCcw className="h-4 w-4" />
+          <RestartGlyph />
           Extract another
         </Button>
       </div>

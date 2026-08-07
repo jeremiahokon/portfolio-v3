@@ -1,24 +1,25 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
 
-import {
-  Clock3,
-  Download,
-  Music,
-  Pencil,
-  RotateCcw,
-  Wand2,
-} from 'lucide-react';
+import { Clock3 } from 'lucide-react';
 import { m } from 'motion/react';
 
 import { SuccessCheck } from '@/components/extract-audio/animated-icons';
 import { panelMotion } from '@/components/extract-audio/panel-motion';
 import { Button } from '@/components/ui/button';
+import {
+  AudioGlyph,
+  DownloadGlyph,
+  EditGlyph,
+  RestartGlyph,
+  WandGlyph,
+} from '@/components/ui/glyphs';
 import { Tooltip } from '@/components/ui/tooltip';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
+import { isModelCached } from '@/lib/models/cache-manager';
 import { ALIGNER } from '@/lib/models/config';
 import {
   EXPORT_EXTENSION,
@@ -63,6 +64,27 @@ export function ExportPanel({
 }: ExportPanelProps) {
   const [format, setFormat] = useState<ExportFormat>('srt');
   const [mp3, setMp3] = useState<'idle' | 'working' | 'failed'>('idle');
+
+  /**
+   * Whether the aligner is already on this device.
+   *
+   * Quoting "+180 MB download" to someone who downloaded it last week is simply
+   * false, and it is false in the direction that costs the most: it talks them
+   * out of the one action on this panel that makes their timings accurate. Starts
+   * `null` — unknown — so the size is neither promised nor denied for the tick
+   * before the cache answers.
+   */
+  const [alignerCached, setAlignerCached] = useState<boolean | null>(null);
+  useEffect(() => {
+    let live = true;
+    void isModelCached(ALIGNER.id, ALIGNER.revision).then((cached) => {
+      if (live) setAlignerCached(cached);
+    });
+
+    return () => {
+      live = false;
+    };
+  }, []);
 
   /**
    * Encodes the MP3 and hands it straight to the browser.
@@ -150,17 +172,30 @@ export function ExportPanel({
               Timings are estimated to about a second
             </span>
           </Tooltip>
-          <Tooltip label="Downloads a second model that measures where each word actually starts and ends, instead of estimating. It runs on your device like the first one. Your transcript is kept exactly as it is if the upgrade fails.">
+          <Tooltip
+            label={
+              alignerCached
+                ? 'Measures where each word actually starts and ends, instead of estimating. The model is already stored on this device, so nothing is downloaded. Your transcript is kept exactly as it is if the upgrade fails.'
+                : 'Downloads a second model that measures where each word actually starts and ends, instead of estimating. It runs on your device like the first one. Your transcript is kept exactly as it is if the upgrade fails.'
+            }
+          >
             <button
               type="button"
               onClick={onRefineTiming}
-              className="border-sky-deep/40 text-sky-text hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+              className="group border-sky-deep/40 text-sky-text hover:bg-sky/10 font-family-inter inline-flex max-w-full flex-wrap items-center justify-center gap-x-2 gap-y-1 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
             >
-              <Wand2 className="h-4 w-4" />
+              <WandGlyph className="shrink-0" />
               Improve timing accuracy
-              <span className="text-ink/75">
-                +{formatBytes(ALIGNER.approxBytes)} download
-              </span>
+              {alignerCached === false && (
+                <span className="text-ink/75 whitespace-nowrap">
+                  +{formatBytes(ALIGNER.approxBytes)} download
+                </span>
+              )}
+              {alignerCached === true && (
+                <span className="whitespace-nowrap text-emerald-700">
+                  already downloaded
+                </span>
+              )}
             </button>
           </Tooltip>
         </div>
@@ -184,9 +219,9 @@ export function ExportPanel({
             <button
               type="button"
               onClick={onRealignEdits}
-              className="border-sky-deep/40 text-sky-text hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+              className="group border-sky-deep/40 text-sky-text hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
             >
-              <Wand2 className="h-4 w-4" />
+              <WandGlyph />
               Re-time your edits
             </button>
           </Tooltip>
@@ -213,22 +248,22 @@ export function ExportPanel({
         ))}
       </div>
 
-      <div className="flex flex-col items-center gap-4 sm:flex-row">
+      <div className="flex w-full max-w-full flex-wrap items-center justify-center gap-3">
         <button
           type="button"
           onClick={download}
-          className="from-sky to-sky-deep inline-flex items-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide whitespace-nowrap text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
+          className="group from-sky to-sky-deep inline-flex items-center gap-2 rounded-sm bg-gradient-to-r px-6 py-3 text-xs font-bold tracking-wide whitespace-nowrap text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
         >
-          <Download className="h-4 w-4" />
+          <DownloadGlyph />
           Download {format.toUpperCase()}
         </button>
 
         <Button
           variant="ghost"
           onClick={onReset}
-          className="text-ink/85 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
+          className="group text-ink/85 hover:bg-ink/[0.05] hover:text-ink font-family-inter h-auto rounded-sm px-4 py-2 text-xs font-medium"
         >
-          <RotateCcw className="mr-2 h-4 w-4" />
+          <RestartGlyph className="mr-2" />
           Transcribe another
         </Button>
 
@@ -237,9 +272,9 @@ export function ExportPanel({
             type="button"
             onClick={() => void downloadMp3()}
             disabled={mp3 === 'working'}
-            className="border-ink/15 text-ink hover:bg-ink/[0.04] disabled:text-ink/75 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+            className="group border-ink/15 text-ink hover:bg-ink/[0.04] disabled:text-ink/75 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
           >
-            <Music className="h-4 w-4" />
+            <AudioGlyph />
             {mp3 === 'working'
               ? 'Encoding MP3…'
               : mp3 === 'failed'
@@ -252,9 +287,9 @@ export function ExportPanel({
           <button
             type="button"
             onClick={onEdit}
-            className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+            className="group border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
           >
-            <Pencil className="h-4 w-4" />
+            <EditGlyph />
             Edit transcript
           </button>
         </Tooltip>
