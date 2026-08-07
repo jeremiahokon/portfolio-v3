@@ -3,7 +3,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { buildCues, normalizeCues } from '@/lib/subtitles/cues';
-import { cueContaining, mergeCues, splitCue, wordAt } from '@/lib/subtitles/edit';
+import {
+  cueContaining,
+  mergeCues,
+  moveWordBoundary,
+  shiftCue,
+  splitCue,
+  wordAt,
+} from '@/lib/subtitles/edit';
 import {
   findMatches,
   type FindOptions,
@@ -137,6 +144,45 @@ export function useTranscriptEditor(options: EditorOptions) {
       apply({ words: next.words, cues: normalizeCues(next.words, next.cues) });
 
       return next.replaced;
+    },
+    [words, cues, apply]
+  );
+
+  /**
+   * Moves one edge of a cue by moving the underlying word's boundary.
+   *
+   * Writes to the *word*, not to the cue, because words own timing — so the change
+   * survives re-segmenting, and `moveWordBoundary` marks it `timeLocked` so a later
+   * alignment pass cannot quietly undo the human.
+   */
+  const nudgeEdge = useCallback(
+    (cueIndex: number, edge: 'start' | 'end', delta: number) => {
+      const cue = cues[cueIndex];
+      if (!cue) return;
+
+      const index = edge === 'start' ? cue.wordStart : cue.wordEnd;
+      const word = words[index];
+      if (!word) return;
+
+      const next = moveWordBoundary(words, index, edge, word[edge] + delta);
+      if (next === words) return;
+      apply({ words: next, cues: normalizeCues(next, cues) });
+    },
+    [words, cues, apply]
+  );
+
+  /**
+   * Shifts a cue's displayed timing without touching its words.
+   *
+   * Distinct from `nudgeEdge` on purpose: this is for when the subtitle should
+   * appear earlier or later than the speech — compensating for a hard cut — and the
+   * words should keep describing when the audio actually happened.
+   */
+  const slideCue = useCallback(
+    (cueIndex: number, seconds: number) => {
+      const next = shiftCue(words, cues, cueIndex, seconds);
+      if (next === cues) return;
+      apply({ words, cues: next });
     },
     [words, cues, apply]
   );
@@ -300,6 +346,8 @@ export function useTranscriptEditor(options: EditorOptions) {
     endEditing,
     retext,
     replace,
+    nudgeEdge,
+    slideCue,
     split,
     merge,
     removeCues,

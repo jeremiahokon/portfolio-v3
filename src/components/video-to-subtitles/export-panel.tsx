@@ -28,6 +28,7 @@ interface ExportPanelProps {
   onReset: () => void;
   onRefineTiming: () => void;
   onEdit: () => void;
+  onRealignEdits: () => void;
 }
 
 /** One line on what each format is actually for. */
@@ -49,6 +50,7 @@ export function ExportPanel({
   onReset,
   onRefineTiming,
   onEdit,
+  onRealignEdits,
 }: ExportPanelProps) {
   const [format, setFormat] = useState<ExportFormat>('srt');
 
@@ -137,6 +139,23 @@ export function ExportPanel({
           </span>
         </Tooltip>
       )}
+
+      {snapshot.timingSource === 'aligned' &&
+        snapshot.words.some((word) => word.edited) && (
+          // M4. Only offered once the aligner has run, because that is the only
+          // state where "your edits have estimated timing while everything else is
+          // measured" is true — and it is a real inconsistency worth fixing.
+          <Tooltip label="Re-measures word timing for the parts you edited, and only those. The aligner is already downloaded, so this takes seconds rather than another full pass. Boundaries you dragged yourself are left alone.">
+            <button
+              type="button"
+              onClick={onRealignEdits}
+              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
+            >
+              <Wand2 className="h-4 w-4" />
+              Re-time your edits
+            </button>
+          </Tooltip>
+        )}
 
       <div className="flex flex-wrap items-center justify-center gap-2">
         {FORMATS.map((option) => (

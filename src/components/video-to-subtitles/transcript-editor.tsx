@@ -12,10 +12,14 @@ import {
 
 import {
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Merge,
   Pause,
   Play,
   Redo2,
   Replace,
+  Scissors,
   Undo2,
 } from 'lucide-react';
 
@@ -88,6 +92,11 @@ const WordSpan = memo(function WordSpan({
   playing: boolean;
   lowConfidence: boolean;
 }) {
+  // Derived from origText rather than read from `edited`. `edited` is the
+  // re-alignment marker and M4 clears it once a word has been measured; what the
+  // user changed is permanent, whether it still needs re-timing is not.
+  const changed = word.text !== word.origText;
+
   return (
     <span
       className={[
@@ -97,8 +106,8 @@ const WordSpan = memo(function WordSpan({
         // space was added between spans.
         '-mx-0.5 rounded-sm px-0.5 transition-colors',
         playing ? 'text-ink bg-amber-200/80' : '',
-        !playing && word.edited ? 'text-emerald-700' : '',
-        !playing && !word.edited && lowConfidence
+        !playing && changed ? 'text-emerald-700' : '',
+        !playing && !changed && lowConfidence
           ? 'underline decoration-amber-400/70 decoration-wavy underline-offset-4'
           : '',
       ]
@@ -119,10 +128,14 @@ const CueBlock = memo(function CueBlock({
   playingWord,
   issues,
   showTimes,
+  canMerge,
   onSelect,
   onBeginEdit,
   onCommit,
   onCancel,
+  onSplit,
+  onMerge,
+  onNudge,
 }: {
   cue: Cue;
   cueIndex: number;
@@ -132,10 +145,14 @@ const CueBlock = memo(function CueBlock({
   playingWord: number;
   issues: QcIssue[] | undefined;
   showTimes: boolean;
+  canMerge: boolean;
   onSelect: (index: number) => void;
   onBeginEdit: (index: number) => void;
   onCommit: (index: number, text: string) => void;
   onCancel: () => void;
+  onSplit: (index: number) => void;
+  onMerge: (index: number) => void;
+  onNudge: (index: number, edge: 'start' | 'end', delta: number) => void;
 }) {
   const text = cueText(words, cue);
   const [draft, setDraft] = useState(text);
@@ -150,6 +167,7 @@ const CueBlock = memo(function CueBlock({
   }, [editing, text]);
 
   const start = cue.overrideStart ?? words[cue.wordStart]?.start ?? 0;
+  const end = cue.overrideEnd ?? words[cue.wordEnd]?.end ?? 0;
   const hasError = issues?.some((i) => i.severity === 'error');
 
   return (
@@ -224,6 +242,14 @@ const CueBlock = memo(function CueBlock({
           </p>
         )}
 
+        {showTimes && !editing && (
+          <Tooltip label="When this cue ends.">
+            <span className="font-family-inter text-ink/25 mt-0.5 shrink-0 cursor-help text-[11px] tabular-nums">
+              {stamp(end)}
+            </span>
+          </Tooltip>
+        )}
+
         {issues && issues.length > 0 && !editing && (
           <Tooltip
             label={
@@ -248,9 +274,117 @@ const CueBlock = memo(function CueBlock({
           </Tooltip>
         )}
       </div>
+
+      {/* Timing controls. Only in Cue mode, and only for the selected cue —
+          showing six buttons on every one of 441 rows would bury the text this
+          view exists to display. */}
+      {showTimes && selected && !editing && (
+        <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-black/5 pt-2">
+          <span className="font-family-inter text-ink/30 mr-1 text-[10px] uppercase">
+            in
+          </span>
+          <EdgeNudge
+            onNudge={(delta) => onNudge(cueIndex, 'start', delta)}
+            label="the moment this cue appears"
+          />
+          <span className="font-family-inter text-ink/30 mr-1 ml-2 text-[10px] uppercase">
+            out
+          </span>
+          <EdgeNudge
+            onNudge={(delta) => onNudge(cueIndex, 'end', delta)}
+            label="the moment this cue disappears"
+          />
+
+          <span className="ml-auto flex items-center gap-1">
+            <Tooltip label="Split this cue in two at the playhead, or at its midpoint if the audio is elsewhere. Only the grouping changes — no word is re-timed.">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSplit(cueIndex);
+                }}
+                className="text-ink/50 hover:text-ink rounded-sm p-1.5 hover:bg-black/5"
+                aria-label="Split cue"
+              >
+                <Scissors className="h-3.5 w-3.5" />
+              </button>
+            </Tooltip>
+            <Tooltip
+              label={
+                canMerge
+                  ? 'Join this cue with the one after it. Lossless — it only rewrites the grouping.'
+                  : 'Nothing to merge with: this is the last cue.'
+              }
+            >
+              <button
+                type="button"
+                disabled={!canMerge}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMerge(cueIndex);
+                }}
+                className="text-ink/50 hover:text-ink disabled:text-ink/15 rounded-sm p-1.5 hover:bg-black/5"
+                aria-label="Merge with next cue"
+              >
+                <Merge className="h-3.5 w-3.5" />
+              </button>
+            </Tooltip>
+          </span>
+        </div>
+      )}
     </div>
   );
 });
+
+/**
+ * A pair of nudge buttons for one cue edge.
+ *
+ * 100 ms a click, because subtitle timing is judged by eye against speech and that
+ * is roughly the smallest step a viewer notices. Dragging was the original plan;
+ * buttons are better here — they work on touch, they work from the keyboard, and
+ * they are precise, whereas dragging a handle across a row that has no time axis
+ * drawn on it would be guesswork.
+ */
+const NUDGE_SECONDS = 0.1;
+
+function EdgeNudge({
+  onNudge,
+  label,
+}: {
+  onNudge: (delta: number) => void;
+  label: string;
+}) {
+  return (
+    <span className="inline-flex items-center">
+      <Tooltip label={`Move ${label} 100 ms earlier.`}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNudge(-NUDGE_SECONDS);
+          }}
+          className="text-ink/50 hover:text-ink rounded-sm p-1 hover:bg-black/5"
+          aria-label={`Move ${label} earlier`}
+        >
+          <ChevronLeft className="h-3.5 w-3.5" />
+        </button>
+      </Tooltip>
+      <Tooltip label={`Move ${label} 100 ms later.`}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onNudge(NUDGE_SECONDS);
+          }}
+          className="text-ink/50 hover:text-ink rounded-sm p-1 hover:bg-black/5"
+          aria-label={`Move ${label} later`}
+        >
+          <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </Tooltip>
+    </span>
+  );
+}
 
 export function TranscriptEditor(props: Props) {
   const editor = useTranscriptEditor({
@@ -278,6 +412,9 @@ export function TranscriptEditor(props: Props) {
     playingWord,
     replace,
     removeCues,
+    nudgeEdge,
+    slideCue,
+    split,
     audioRef,
     currentTime,
     setCurrentTime,
@@ -329,6 +466,29 @@ export function TranscriptEditor(props: Props) {
     [flagged, selectedCue, setSelectedCue, playCue]
   );
 
+  /**
+   * Splits the cue where the user is listening.
+   *
+   * `splitCue` needs a word index, and the honest answer to "which word?" is the one
+   * the playhead is on — that is where the user's attention is when they decide a cue
+   * is too long. With the audio elsewhere it falls back to the midpoint, which at
+   * least halves the cue rather than shaving a word off one end.
+   */
+  const splitAtPlayhead = useCallback(
+    (cueIndex: number) => {
+      const cue = cues[cueIndex];
+      if (!cue) return;
+
+      const inside =
+        playingWord > cue.wordStart && playingWord <= cue.wordEnd
+          ? playingWord
+          : cue.wordStart + Math.ceil((cue.wordEnd - cue.wordStart) / 2);
+
+      split(cueIndex, inside);
+    },
+    [cues, playingWord, split]
+  );
+
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       if (editingCue !== null) return;
@@ -373,6 +533,21 @@ export function TranscriptEditor(props: Props) {
         case 'j':
           merge(selectedCue);
           break;
+        case 'k':
+          event.preventDefault();
+          splitAtPlayhead(selectedCue);
+          break;
+        // Shifts the whole cue rather than one edge: for when the subtitle should
+        // appear earlier or later than the speech, which is a different intent from
+        // trimming it, and writes an override instead of re-timing the words.
+        case ',':
+          event.preventDefault();
+          slideCue(selectedCue, -0.1);
+          break;
+        case '.':
+          event.preventDefault();
+          slideCue(selectedCue, 0.1);
+          break;
         default:
           break;
       }
@@ -385,6 +560,8 @@ export function TranscriptEditor(props: Props) {
       togglePlay,
       beginEditing,
       merge,
+      splitAtPlayhead,
+      slideCue,
       undoEdit,
       redoEdit,
     ]
@@ -534,12 +711,16 @@ export function TranscriptEditor(props: Props) {
                   setSelectedCue(i);
                   playCue(i);
                 }}
+                canMerge={index < cues.length - 1}
                 onBeginEdit={beginEditing}
                 onCommit={(i, text) => {
                   retext(i, text);
                   endEditing(false);
                 }}
                 onCancel={() => endEditing(false)}
+                onSplit={splitAtPlayhead}
+                onMerge={merge}
+                onNudge={nudgeEdge}
               />
             </div>
           ))}
@@ -549,7 +730,7 @@ export function TranscriptEditor(props: Props) {
         <div className="flex flex-wrap items-center gap-3 border-t border-black/5 px-4 py-3">
           <p className="font-family-inter text-ink/40 text-[11px]">
             Double-click or Enter to edit · Space plays · Tab jumps to the next
-            issue · ⌘F to replace everywhere
+            issue · ⌘F to replace everywhere · K splits, J merges, , / . shift
           </p>
           <div className="ml-auto flex gap-2">
             <Tooltip label="Return to the download options. Your edits are kept.">

@@ -28,8 +28,15 @@ import { useSubtitler } from './use-subtitler';
  */
 export function Subtitler() {
   const reduced = useReducedMotion();
-  const { snapshot, busy, start, reset, refineTiming, applyEdits } =
-    useSubtitler();
+  const {
+    snapshot,
+    busy,
+    start,
+    reset,
+    refineTiming,
+    realignEdits,
+    applyEdits,
+  } = useSubtitler();
   const [isDragging, setIsDragging] = useState(false);
   const [editing, setEditing] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -140,6 +147,7 @@ export function Subtitler() {
                 onReset={reset}
                 onRefineTiming={() => void refineTiming()}
                 onEdit={() => setEditing(true)}
+                onRealignEdits={() => void realignEdits()}
               />
             )}
           </AnimatePresence>

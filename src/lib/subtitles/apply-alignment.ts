@@ -226,3 +226,62 @@ export function indexAlignments(
 
   return map;
 }
+
+/**
+ * The windows an edit made stale — M4's whole point.
+ *
+ * Re-transcribing after a text edit would be absurd, and re-aligning the entire file
+ * is nearly as wasteful: on a 39-minute transcript that is 90-odd forward passes to
+ * fix the timing of one corrected phrase. The aligner is a single non-autoregressive
+ * pass per window, so re-running *only* the windows containing edited words is
+ * roughly free — which is the property the two-model architecture was chosen for in
+ * the first place.
+ *
+ * A window qualifies when it holds a word marked `edited` that is not `timeLocked`.
+ * The lock check matters: a word whose boundary a human dragged has the timing they
+ * asked for, and pulling its window back through the aligner to overwrite it would
+ * be the exact behaviour `timeLocked` exists to prevent. A window whose only edited
+ * words are locked has nothing left to measure, so it is skipped entirely rather than
+ * processed and discarded.
+ */
+export function windowsNeedingRealignment(
+  words: Word[],
+  duration: number,
+  options: WindowOptions = DEFAULT_WINDOWS
+): AlignmentWindow[] {
+  return planAlignmentWindows(words, duration, options).filter((window) =>
+    words
+      .slice(window.from, window.to)
+      .some((word) => word.edited && !word.timeLocked)
+  );
+}
+
+/**
+ * Clears the re-alignment marker on words a pass has now measured.
+ *
+ * `edited` is documented as "marks the region for re-alignment", so leaving it set
+ * after re-aligning would make every later pass redo the same windows forever. It is
+ * not the record of *what the user changed* — `origText` is, and `text !== origText`
+ * survives this untouched, which is what the editor highlights from.
+ */
+export function clearRealignmentMarks(
+  words: Word[],
+  windows: AlignmentWindow[]
+): Word[] {
+  if (windows.length === 0) return words;
+
+  const touched = new Set<number>();
+  for (const window of windows) {
+    for (let i = window.from; i < window.to; i += 1) touched.add(i);
+  }
+
+  let changed = false;
+  const next = words.map((word, index) => {
+    if (!touched.has(index) || !word.edited) return word;
+    changed = true;
+
+    return { ...word, edited: false };
+  });
+
+  return changed ? next : words;
+}

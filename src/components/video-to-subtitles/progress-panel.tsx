@@ -80,6 +80,15 @@ export function ProgressPanel({
         </span>
       )}
 
+      {snapshot.notice && (
+        // A capability warning, not an error. It sits next to a job that is still
+        // running, because the user may know their device better than a heuristic
+        // does — the alternative was refusing outright on a guess.
+        <span className="font-family-inter max-w-sm rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          {snapshot.notice}
+        </span>
+      )}
+
       <Button
         variant="ghost"
         onClick={onCancel}

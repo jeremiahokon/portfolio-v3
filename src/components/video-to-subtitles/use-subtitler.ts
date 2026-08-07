@@ -16,6 +16,7 @@ import {
   NoAudioTrackError,
 } from '@/lib/media/decode-pcm';
 import { currentBackendOverride } from '@/lib/models/backend-override';
+import { assess, probeDevice } from '@/lib/models/capability';
 import {
   ALIGNER,
   ASR,
@@ -27,9 +28,11 @@ import {
 import { currentDecoderOverride } from '@/lib/models/decoder-override';
 import {
   applyAlignment,
+  clearRealignmentMarks,
   enforceWordOrder,
   indexAlignments,
   planAlignmentWindows,
+  windowsNeedingRealignment,
 } from '@/lib/subtitles/apply-alignment';
 import { planChunks, sliceChunk } from '@/lib/subtitles/chunk-plan';
 import {
@@ -42,14 +45,10 @@ import {
   collapseDegenerateRuns,
   repairImpossibleSpans,
 } from '@/lib/subtitles/degenerate';
+import { dropHallucinations, rmsProbe } from '@/lib/subtitles/hallucination';
 import { type ChunkResult, stitch } from '@/lib/subtitles/stitch';
 import { createJobStore } from '@/lib/subtitles/store';
-import type {
-  AlignedWord,
-  Cue,
-  ErrorCode,
-  Word,
-} from '@/lib/subtitles/types';
+import type { AlignedWord, Cue, ErrorCode, Word } from '@/lib/subtitles/types';
 import { dropSilentRegions } from '@/lib/subtitles/vad-regions';
 
 import type { ToWorker } from '@/workers/protocol';
@@ -339,6 +338,20 @@ export function useSubtitler() {
           return;
         }
 
+        // Can this device actually finish? Checked here — after decode, so the
+        // duration is known, and before the ~151 MB download, so a device that
+        // cannot cope is told immediately rather than after several minutes and a
+        // tab crash. R4's failure mode is bad mostly because of when it happens.
+        const capability = assess(await probeDevice(decoded.duration));
+        if (capability.verdict === 'refuse') {
+          fail('unsupported-device', capability.message);
+
+          return;
+        }
+        store.set({
+          notice: capability.verdict === 'warn' ? capability.message : null,
+        });
+
         const chunks = planChunks(regions, decoded.duration);
 
         // ---- Speech recognition -------------------------------------------
@@ -428,7 +441,13 @@ export function useSubtitler() {
         // Collapse first, then repair: a repeated phrase is junk to discard, and
         // only what survives is real speech whose timing is worth fixing.
         const collapsed = collapseDegenerateRuns(stitched);
-        const segments = repairImpossibleSpans(collapsed);
+        // Then drop stock phrases invented from non-speech noise, before the spans
+        // are repaired — repairing the timing of a word nobody said would only make
+        // the invention more convincing.
+        const real = dropHallucinations(collapsed, {
+          rmsAt: rmsProbe(decoded.samples, decoded.sampleRate),
+        });
+        const segments = repairImpossibleSpans(real);
 
         if (
           process.env.NODE_ENV === 'development' &&
@@ -491,146 +510,197 @@ export function useSubtitler() {
    * this is the upgrade, and it is only worth offering once the user has seen
    * that the words are right.
    */
-  const refineTiming = useCallback(async () => {
-    const decoded = decodedRef.current;
-    const snapshot0 = store.getSnapshot();
-    if (!decoded || snapshot0.words.length === 0) return;
+  /**
+   * Runs the aligner over a chosen set of windows.
+   *
+   * `refineTiming` (whole transcript) and `realignEdits` (M4, just the stale
+   * windows) differ only in which windows they ask for and what they say while
+   * running. Sharing the body keeps one implementation of the parts that are easy to
+   * get wrong — cancellation, worker teardown, and never destroying a good
+   * transcript when the upgrade fails.
+   */
+  const runAligner = useCallback(
+    async (mode: 'all' | 'edits') => {
+      const decoded = decodedRef.current;
+      const snapshot0 = store.getSnapshot();
+      if (!decoded || snapshot0.words.length === 0) return;
 
-    const jobId = `align-${Date.now()}`;
-    jobIdRef.current = jobId;
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const isStale = () =>
-      controller.signal.aborted || jobIdRef.current !== jobId;
-
-    store.set({
-      status: 'loading-model',
-      stage: 'align',
-      stageProgress: 0,
-      error: null,
-      download: { loaded: 0, total: ALIGNER.approxBytes, files: {} },
-    });
-
-    const align = track(
-      new Worker(new URL('../../workers/align.worker.ts', import.meta.url)),
-      (fileName, loaded) => store.recordDownload(fileName, loaded, 0)
-    );
-
-    try {
-      const ready = await align.request(
-        {
-          t: 'init',
-          jobId,
-          host: MODEL_HOST,
-          cacheKey: CACHE_KEY,
-          model: {
-            id: ALIGNER.id,
-            revision: ALIGNER.revision,
-            dtype: ALIGNER.dtype,
-            ...(currentBackendOverride()
-              ? { device: currentBackendOverride()! }
-              : {}),
-          },
-        },
-        'ready'
-      );
-      if (isStale()) return;
+      const jobId = `align-${Date.now()}`;
+      jobIdRef.current = jobId;
+      const controller = new AbortController();
+      abortRef.current = controller;
+      const isStale = () =>
+        controller.signal.aborted || jobIdRef.current !== jobId;
 
       store.set({
-        status: 'transcribing',
+        status: 'loading-model',
         stage: 'align',
-        backend: ready.backend,
+        stageProgress: 0,
+        error: null,
+        download: { loaded: 0, total: ALIGNER.approxBytes, files: {} },
       });
 
-      // Align over the same windows the transcript was built from, so each
-      // request carries a bounded number of words and a bounded amount of audio.
-      const words = store.getSnapshot().words;
-      const plan = planAlignmentWindows(words, decoded.duration);
-      const results: Array<{ from: number; words: AlignedWord[] }> = [];
+      const align = track(
+        new Worker(new URL('../../workers/align.worker.ts', import.meta.url)),
+        (fileName, loaded) => store.recordDownload(fileName, loaded, 0)
+      );
 
-      for (const [index, window] of plan.entries()) {
-        if (isStale()) return;
-
-        const slice = decoded.samples.slice(
-          Math.max(0, Math.floor(window.start * decoded.sampleRate)),
-          Math.min(
-            decoded.samples.length,
-            Math.ceil(window.end * decoded.sampleRate)
-          )
-        );
-        const pcm = slice.buffer as ArrayBuffer;
-
-        const done = await align.request(
+      try {
+        const ready = await align.request(
           {
-            t: 'align',
+            t: 'init',
             jobId,
-            chunkId: index,
-            pcm,
-            sampleRate: decoded.sampleRate,
-            offset: window.start,
-            tokens: words.slice(window.from, window.to).map((w) => w.text),
+            host: MODEL_HOST,
+            cacheKey: CACHE_KEY,
+            model: {
+              id: ALIGNER.id,
+              revision: ALIGNER.revision,
+              dtype: ALIGNER.dtype,
+              ...(currentBackendOverride()
+                ? { device: currentBackendOverride()! }
+                : {}),
+            },
           },
-          'align:done',
-          [pcm]
+          'ready'
         );
         if (isStale()) return;
 
-        results.push({ from: window.from, words: done.words });
         store.set({
+          status: 'transcribing',
           stage: 'align',
-          stageProgress: (index + 1) / plan.length,
-          chunkIndex: index + 1,
-          chunkCount: plan.length,
+          backend: ready.backend,
         });
-      }
 
-      align.terminate();
-      clientsRef.current = clientsRef.current.filter((c) => c !== align);
+        // Align over the same windows the transcript was built from, so each
+        // request carries a bounded number of words and a bounded amount of audio.
+        const words = store.getSnapshot().words;
+        const plan =
+          mode === 'all'
+            ? planAlignmentWindows(words, decoded.duration)
+            : windowsNeedingRealignment(words, decoded.duration);
 
-      const applied = applyAlignment(words, indexAlignments(results));
-      const ordered = enforceWordOrder(applied.words);
-      const rebuilt = normalizeCues(ordered, buildCues(ordered));
+        // Nothing stale: say so and stop rather than tearing the transcript down and
+        // rebuilding it identically, which would look like something went wrong.
+        if (plan.length === 0) {
+          align.terminate();
+          clientsRef.current = clientsRef.current.filter((c) => c !== align);
+          store.set({
+            status: 'done',
+            stage: 'done',
+            stageProgress: 1,
+            notice:
+              'Every edit already has measured timing — nothing to re-time.',
+          });
 
-      if (isStale()) return;
+          return;
+        }
+        const results: Array<{ from: number; words: AlignedWord[] }> = [];
 
-      store.set({
-        status: 'done',
-        stage: 'done',
-        stageProgress: 1,
-        words: ordered,
-        cues: rebuilt,
-        // Only claim the upgrade if something actually took a measured timing.
-        timingSource: applied.aligned > 0 ? 'aligned' : 'estimated',
-        alignedWords: applied.aligned,
-      });
-    } catch (err) {
-      if (isStale()) return;
-      if (err instanceof WorkerError) {
-        // A failed refinement must not destroy a good transcript: keep the words
-        // and say the upgrade failed.
+        for (const [index, window] of plan.entries()) {
+          if (isStale()) return;
+
+          const slice = decoded.samples.slice(
+            Math.max(0, Math.floor(window.start * decoded.sampleRate)),
+            Math.min(
+              decoded.samples.length,
+              Math.ceil(window.end * decoded.sampleRate)
+            )
+          );
+          const pcm = slice.buffer as ArrayBuffer;
+
+          const done = await align.request(
+            {
+              t: 'align',
+              jobId,
+              chunkId: index,
+              pcm,
+              sampleRate: decoded.sampleRate,
+              offset: window.start,
+              tokens: words.slice(window.from, window.to).map((w) => w.text),
+            },
+            'align:done',
+            [pcm]
+          );
+          if (isStale()) return;
+
+          results.push({ from: window.from, words: done.words });
+          store.set({
+            stage: 'align',
+            stageProgress: (index + 1) / plan.length,
+            chunkIndex: index + 1,
+            chunkCount: plan.length,
+          });
+        }
+
+        align.terminate();
+        clientsRef.current = clientsRef.current.filter((c) => c !== align);
+
+        const applied = applyAlignment(words, indexAlignments(results));
+        // Clear the stale markers for the windows this pass covered, or the next run
+        // would redo exactly the same work forever.
+        const marked = clearRealignmentMarks(applied.words, plan);
+        const ordered = enforceWordOrder(marked);
+
+        // A full pass re-derives the grouping, because every timing moved and the
+        // old grouping was built from estimates. A partial pass must NOT: rebuilding
+        // would throw away every split and merge the user made by hand in order to
+        // fix the timing of one phrase. Re-normalising the cues they already have
+        // keeps those decisions and still enforces the readability rules.
+        const rebuilt =
+          mode === 'all'
+            ? normalizeCues(ordered, buildCues(ordered))
+            : normalizeCues(ordered, snapshot0.cues);
+
+        if (isStale()) return;
+
+        // conf is only ever written by the aligner, so it is the durable record of
+        // which words carry a measured timing, however many passes produced them.
+        const measured = ordered.filter((word) => word.conf > 0).length;
+
+        store.set({
+          status: 'done',
+          stage: 'done',
+          stageProgress: 1,
+          words: ordered,
+          cues: rebuilt,
+          // Counted over the whole transcript, never from this pass alone.
+          // `applied.aligned` is what *this run* measured — right for a full pass and
+          // badly wrong for a partial one: re-timing a single edited phrase reported
+          // "27 of 160 measured" and looked like it had destroyed the alignment it
+          // had in fact preserved.
+          timingSource: measured > 0 ? 'aligned' : 'estimated',
+          alignedWords: measured,
+        });
+      } catch (err) {
+        if (isStale()) return;
+        if (err instanceof WorkerError) {
+          // A failed refinement must not destroy a good transcript: keep the words
+          // and say the upgrade failed.
+          store.set({
+            status: 'done',
+            stage: 'done',
+            error: {
+              code: err.code as ErrorCode,
+              message: `Couldn’t improve the timings — ${err.message}. Your transcript is unchanged.`,
+            },
+          });
+
+          return;
+        }
+        console.error('[subtitler] alignment failed', err);
         store.set({
           status: 'done',
           stage: 'done',
           error: {
-            code: err.code as ErrorCode,
-            message: `Couldn’t improve the timings — ${err.message}. Your transcript is unchanged.`,
+            code: 'unknown',
+            message:
+              'Couldn’t improve the timings. Your transcript is unchanged.',
           },
         });
-
-        return;
       }
-      console.error('[subtitler] alignment failed', err);
-      store.set({
-        status: 'done',
-        stage: 'done',
-        error: {
-          code: 'unknown',
-          message:
-            'Couldn’t improve the timings. Your transcript is unchanged.',
-        },
-      });
-    }
-  }, [store, track]);
+    },
+    [store, track]
+  );
 
   const cancel = useCallback(() => {
     const jobId = jobIdRef.current;
@@ -663,6 +733,18 @@ export function useSubtitler() {
    * timings into measured ones, and words inserted by `retextCue` carry `conf: 0`
    * so the QC panel already reports them as unmeasured.
    */
+  /** The opt-in full pass: every window, first time the aligner is used. */
+  const refineTiming = useCallback(() => runAligner('all'), [runAligner]);
+
+  /**
+   * M4: re-time only what an edit made stale.
+   *
+   * The aligner is one forward pass per window, so this is roughly free next to a
+   * full pass — the property the two-model split was chosen for. Nothing outside the
+   * affected windows is touched, and `timeLocked` words are skipped entirely.
+   */
+  const realignEdits = useCallback(() => runAligner('edits'), [runAligner]);
+
   const applyEdits = useCallback(
     (words: Word[], cues: Cue[]) => {
       store.set({ words, cues });
@@ -676,6 +758,7 @@ export function useSubtitler() {
     start,
     cancel,
     refineTiming,
+    realignEdits,
     applyEdits,
     reset: cancel,
   };

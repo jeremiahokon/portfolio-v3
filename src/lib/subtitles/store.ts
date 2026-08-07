@@ -63,6 +63,14 @@ export interface JobSnapshot {
   /** How many words took a measured timing from the aligner. */
   alignedWords: number;
   error: { code: ErrorCode; message: string } | null;
+  /**
+   * A non-blocking warning, e.g. "this will be slow on this device".
+   *
+   * Separate from `error` on purpose: an error ends the job, a notice sits alongside
+   * one that is still running. Collapsing them would mean either dismissing real
+   * failures or blocking on advisory ones.
+   */
+  notice: string | null;
 }
 
 export const INITIAL_SNAPSHOT: JobSnapshot = {
@@ -80,6 +88,7 @@ export const INITIAL_SNAPSHOT: JobSnapshot = {
   timingSource: 'estimated',
   alignedWords: 0,
   error: null,
+  notice: null,
 };
 
 export interface JobStore {

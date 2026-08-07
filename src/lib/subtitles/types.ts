@@ -112,6 +112,8 @@ export type ErrorCode =
   | 'quota-exceeded'
   | 'out-of-memory'
   | 'unsupported-browser'
+  /** The device reports too little memory or storage to finish without crashing. */
+  | 'unsupported-device'
   | 'cancelled'
   | 'unknown';
 
