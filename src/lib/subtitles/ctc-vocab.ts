@@ -108,14 +108,32 @@ export function tokenizeForCtc(
 /**
  * Token counts per aligned word, including the delimiters that precede them.
  *
- * `mergeTokensToWords` walks the token sequence in order, so a delimiter has to
- * be accounted to some word or every span after the first would be off by one.
- * Attributing it to the word that follows is correct: the silence before a word
- * belongs to that word's approach, and taking the min-score across the group
- * means a confidently-detected pause cannot inflate a poorly-aligned word.
+ * `mergeTokensToWords` walks the token sequence in order, so a delimiter has to be
+ * accounted to some word or every span after the first would be off by one. It is
+ * counted against the word that follows purely so that bookkeeping works.
+ *
+ * **It must not contribute to that word's time span** — see
+ * `leadingDelimitersPerWord`. An earlier version of this comment argued the opposite,
+ * that "the silence before a word belongs to that word's approach", and the M2 gate
+ * measured what that cost: word *starts* landed 350–450 ms early because the
+ * delimiter's frames are exactly the inter-word pause, so every word began at the end
+ * of the previous one. Ends were fine; only 7 of 54 starts were within the 200 ms
+ * collar. It was a plausible sentence about subtitles and a wrong statement about
+ * where a word starts.
  */
 export function tokenCountsPerWord(tokenized: Tokenized): number[] {
   return tokenized.words.map((word, index) =>
     index === 0 ? word.to - word.from : word.to - word.from + 1
   );
+}
+
+/**
+ * How many tokens at the head of each word's group are delimiters, not characters.
+ *
+ * Always 0 for the first word and 1 for the rest, given how `tokenizeForCtc` emits
+ * them — but derived rather than assumed, so a change to the tokenisation cannot
+ * silently reintroduce the 350 ms error this exists to prevent.
+ */
+export function leadingDelimitersPerWord(tokenized: Tokenized): number[] {
+  return tokenized.words.map((_, index) => (index === 0 ? 0 : 1));
 }

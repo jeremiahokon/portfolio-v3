@@ -35,6 +35,11 @@ import {
   planAlignmentWindows,
   windowsNeedingRealignment,
 } from '@/lib/subtitles/apply-alignment';
+import {
+  clearCheckpoint,
+  loadCheckpoint,
+  saveCheckpoint,
+} from '@/lib/subtitles/checkpoint';
 import { planChunks, sliceChunk } from '@/lib/subtitles/chunk-plan';
 import {
   buildCues,
@@ -47,6 +52,7 @@ import {
   repairImpossibleSpans,
 } from '@/lib/subtitles/degenerate';
 import { dropHallucinations, rmsProbe } from '@/lib/subtitles/hallucination';
+import { draftKey } from '@/lib/subtitles/persist';
 import { type ChunkResult, stitch } from '@/lib/subtitles/stitch';
 import { createJobStore } from '@/lib/subtitles/store';
 import type { AlignedWord, Cue, ErrorCode, Word } from '@/lib/subtitles/types';
@@ -399,11 +405,40 @@ export function useSubtitler() {
           chunkIndex: 0,
         });
 
+        // Resume where a previous attempt stopped. Keyed by file identity plus
+        // model revision, and rejected outright if the window count differs —
+        // results are indexed by chunk id, so resuming against a different plan
+        // would attribute one window's transcript to another window's audio.
+        const checkpointKey = draftKey(file, ASR.revision);
+        const resumed = await loadCheckpoint(checkpointKey, chunks.length);
+        const done0 = new Map(
+          (resumed ?? []).map((result) => [result.chunk.id, result])
+        );
+        if (done0.size > 0) {
+          store.set({
+            notice: `Resuming — ${done0.size} of ${chunks.length} sections were already transcribed.`,
+          });
+        }
+
         // Sequential, not parallel: one session on one device, so concurrent
         // requests would queue inside ORT anyway while multiplying peak memory.
         const results: ChunkResult[] = [];
         for (const chunk of chunks) {
           if (isStale()) return;
+
+          // Already transcribed on a previous run: reuse it. Whisper on a 30-second
+          // window is the expensive, irreproducible step; everything before it
+          // reproduces identically from the same file.
+          const cached = done0.get(chunk.id);
+          if (cached) {
+            results.push(cached);
+            store.set({
+              chunkIndex: results.length,
+              stage: 'asr',
+              stageProgress: results.length / chunks.length,
+            });
+            continue;
+          }
 
           const slice = sliceChunk(decoded.samples, chunk, decoded.sampleRate);
           const pcm = slice.buffer as ArrayBuffer;
@@ -431,7 +466,16 @@ export function useSubtitler() {
             stage: 'asr',
             stageProgress: results.length / chunks.length,
           });
+          // After every window, so a crash costs one window rather than the job.
+          // Awaited rather than fired and forgotten: the write is small and a
+          // checkpoint that races the next window is worse than a slower loop.
+          await saveCheckpoint(checkpointKey, chunks.length, results);
         }
+
+        // The expensive part is banked; the rest is cheap and deterministic, so the
+        // checkpoint has no further value and holding it would leave a stale resume
+        // offer on a job that finished.
+        await clearCheckpoint(checkpointKey);
 
         asr.terminate();
         clientsRef.current = clientsRef.current.filter(

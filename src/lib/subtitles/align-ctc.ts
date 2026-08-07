@@ -188,18 +188,29 @@ export function alignTokens(
  * A word whose tokens were all skipped by the path gets a zero-length span at the
  * previous word's end, keeping the sequence monotonic instead of leaving a hole
  * at time zero that would sort to the front of the transcript.
+ *
+ * `leadingSkips` says how many tokens at the head of each group are word delimiters
+ * rather than characters. They still advance the cursor but are excluded from the
+ * span, because a delimiter's frames are the silence before the word.
  */
 export function mergeTokensToWords(
   spans: TokenSpan[],
-  wordTokenCounts: number[]
+  wordTokenCounts: number[],
+  leadingSkips: number[] = []
 ): AlignedSpan[] {
   const words: AlignedSpan[] = [];
   let cursor = 0;
   let lastEnd = 0;
 
-  for (const count of wordTokenCounts) {
+  for (const [index, count] of wordTokenCounts.entries()) {
+    // The cursor advances over the whole group, including any leading word
+    // delimiter, or every later word would be off by one. But the delimiter is
+    // excluded from the span itself: its frames *are* the pause before the word, so
+    // including them made every word start at the end of the previous one — measured
+    // at 350–450 ms early by the M2 gate.
+    const skip = Math.min(leadingSkips[index] ?? 0, count);
     const owned = spans
-      .slice(cursor, cursor + count)
+      .slice(cursor + skip, cursor + count)
       .filter((s) => s.endFrame > s.startFrame);
     cursor += count;
 

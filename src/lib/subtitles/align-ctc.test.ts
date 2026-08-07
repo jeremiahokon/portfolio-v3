@@ -233,3 +233,51 @@ describe('the alignment as a whole', () => {
     expect(sat.start - cat.end).toBeCloseTo(0.06, 6);
   });
 });
+
+describe('mergeTokensToWords — the word delimiter must not extend a word', () => {
+  /** Two characters, a delimiter in the silence between, then two more. */
+  const spans = [
+    { tokenIndex: 0, token: 1, startFrame: 0, endFrame: 5, score: 0.9 },
+    { tokenIndex: 1, token: 2, startFrame: 5, endFrame: 10, score: 0.9 },
+    // The delimiter owns the pause: frames 10-25.
+    { tokenIndex: 2, token: 99, startFrame: 10, endFrame: 25, score: 0.9 },
+    { tokenIndex: 3, token: 3, startFrame: 25, endFrame: 30, score: 0.9 },
+    { tokenIndex: 4, token: 4, startFrame: 30, endFrame: 35, score: 0.9 },
+  ];
+
+  it('starts the second word at its first character, not at the pause', () => {
+    const words = mergeTokensToWords(spans, [2, 3], [0, 1]);
+
+    expect(words[0]).toMatchObject({ startFrame: 0, endFrame: 10 });
+    // 25, not 10: the fifteen frames of silence belong to neither word.
+    expect(words[1]).toMatchObject({ startFrame: 25, endFrame: 35 });
+  });
+
+  it('reproduces the measured defect when the delimiter is included', () => {
+    // Without the skip — the behaviour the M2 gate scored at 0.375 recall.
+    const words = mergeTokensToWords(spans, [2, 3]);
+
+    expect(words[1]!.startFrame).toBe(10);
+  });
+
+  it('still advances the cursor over the delimiter, so later words stay aligned', () => {
+    const three = [
+      ...spans,
+      { tokenIndex: 5, token: 99, startFrame: 35, endFrame: 40, score: 0.9 },
+      { tokenIndex: 6, token: 5, startFrame: 40, endFrame: 45, score: 0.9 },
+    ];
+
+    const words = mergeTokensToWords(three, [2, 3, 2], [0, 1, 1]);
+
+    expect(words).toHaveLength(3);
+    expect(words[2]).toMatchObject({ startFrame: 40, endFrame: 45 });
+  });
+
+  it('does not skip past a word that is entirely a delimiter', () => {
+    // Degenerate input: skip is clamped to the group size, so the word still gets
+    // a span from what it owns rather than an empty slice and a zero-length span.
+    const words = mergeTokensToWords(spans.slice(2, 3), [1], [5]);
+
+    expect(words[0]!.endFrame).toBeGreaterThanOrEqual(words[0]!.startFrame);
+  });
+});

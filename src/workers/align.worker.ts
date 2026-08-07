@@ -20,6 +20,7 @@ import {
 } from '@/lib/subtitles/align-ctc';
 import {
   type CtcVocabulary,
+  leadingDelimitersPerWord,
   makeVocabulary,
   tokenCountsPerWord,
   tokenizeForCtc,
@@ -236,7 +237,11 @@ async function align(
     }
 
     const spans = alignTokens(emissions, tokenized.tokens, vocabulary.blankId);
-    const merged = mergeTokensToWords(spans, tokenCountsPerWord(tokenized));
+    const merged = mergeTokensToWords(
+      spans,
+      tokenCountsPerWord(tokenized),
+      leadingDelimitersPerWord(tokenized)
+    );
 
     const words: AlignedWord[] = tokenized.words.map((word, index) => {
       const span = merged[index]!;

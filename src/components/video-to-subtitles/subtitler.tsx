@@ -15,6 +15,7 @@ import { draftKey } from '@/lib/subtitles/persist';
 
 import { Dropzone } from './dropzone';
 import { ExportPanel } from './export-panel';
+import { ModelManager } from './model-manager';
 import { ProgressPanel } from './progress-panel';
 import { TranscriptEditor } from './transcript-editor';
 import { useSubtitler } from './use-subtitler';
@@ -193,6 +194,11 @@ export function Subtitler() {
           Everything runs locally in your browser. Your file is never uploaded
           to a server.
         </p>
+
+        {/* Renders nothing until something is actually cached, so a first visit
+            is unchanged and the row appears only once there is something to
+            manage. */}
+        <ModelManager />
       </div>
     </TooltipProvider>
   );
