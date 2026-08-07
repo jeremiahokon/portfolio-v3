@@ -42,7 +42,7 @@ export function FaqAccordion({ faqs }: { faqs: Faq[] }) {
                 </span>
                 <m.span
                   aria-hidden="true"
-                  className="text-sky-deep shrink-0"
+                  className="text-sky-text shrink-0"
                   animate={{ rotate: open ? 180 : 0 }}
                   transition={transition}
                 >
@@ -62,7 +62,7 @@ export function FaqAccordion({ faqs }: { faqs: Faq[] }) {
               transition={transition}
               className="overflow-hidden"
             >
-              <p className="font-family-inter text-ink/60 px-6 pb-6 text-sm leading-relaxed">
+              <p className="font-family-inter text-ink/80 px-6 pb-6 text-sm leading-relaxed">
                 {faq.answer}
               </p>
             </m.div>

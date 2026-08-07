@@ -177,6 +177,31 @@ export default function Hero() {
           },
         };
 
+  /**
+   * Motion for fold content that must not delay first paint.
+   *
+   * The `<h1>` is the largest-contentful-paint element, and fading it in from
+   * `opacity: 0` meant LCP was not recorded until the fade finished — measured at
+   * **4.2 s** on throttled mobile while first paint was already at 1.0 s. The text
+   * was on screen; the browser was right not to count it.
+   *
+   * So the headline and its eyebrow now paint at full opacity and move only. `y` is
+   * a transform, which is composited and does not gate LCP, so the entrance still
+   * reads as an entrance while the text counts as painted immediately.
+   */
+  const enterNoFade = (delay: number) =>
+    prefersReducedMotion
+      ? {}
+      : {
+          initial: { y: 16 },
+          animate: { y: 0 },
+          transition: {
+            delay,
+            duration: 0.55,
+            ease: [0.22, 1, 0.36, 1] as const,
+          },
+        };
+
   return (
     <section
       id="home"
@@ -209,7 +234,7 @@ export default function Hero() {
             <div className="flex flex-col gap-3 md:gap-4">
               {/* Eyebrow sits directly on the headline */}
               <m.p
-                {...enter(0)}
+                {...enterNoFade(0)}
                 className="font-family-inter text-paper/70 text-xs font-medium tracking-[0.3em] uppercase md:text-sm"
               >
                 Jeremiah Okon — Frontend &amp; Full-Stack Developer
@@ -219,7 +244,7 @@ export default function Hero() {
                 </span>
               </m.p>
               <m.h1
-                {...enter(0)}
+                {...enterNoFade(0)}
                 className="text-paper text-[clamp(3.25rem,8.5vw,9.5rem)] leading-[0.95] font-bold tracking-tighter"
               >
                 Websites that load{' '}
@@ -244,7 +269,12 @@ export default function Hero() {
                 });
               }}
               className="font-family-inter text-paper/70 hover:text-paper flex w-fit flex-wrap items-center gap-x-3 gap-y-1 text-sm transition-colors md:text-base"
-              aria-label="4.9 star average rating from 6 client reviews on Upwork — view profile"
+              // No aria-label. The visible text — rating, review count, availability —
+              // already describes this link, and an aria-label has to *contain* that
+              // text or a voice-control user saying what they can see gets no match.
+              // Keeping two strings in sync by hand is how that breaks: the label here
+              // did, silently, the moment "Available now" was added to the strip. The
+              // separators are aria-hidden so the name reads as a sentence.
             >
               <span>
                 <span className="text-[#e58f2a]">4.9★</span> Upwork rating
@@ -317,7 +347,7 @@ export default function Hero() {
                   });
                 }}
                 className="inline-flex items-center gap-2.5 rounded-sm border border-[#1DB954]/40 bg-[#14A800]/15 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#3ddc74] transition-all duration-300 hover:border-[#1DB954]/60 hover:bg-[#14A800]/25 md:text-base"
-                aria-label="View my Upwork profile"
+                aria-label="Hire me on Upwork — view my profile"
               >
                 <UpworkIcon className="h-5 w-5" />
                 <span>Hire me on Upwork</span>

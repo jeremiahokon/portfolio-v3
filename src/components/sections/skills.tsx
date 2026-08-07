@@ -111,7 +111,7 @@ export default function Skills() {
     <section className="group relative w-full overflow-hidden py-20 md:py-32">
       {/* Header */}
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center md:mb-16 md:px-10">
-        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/50 uppercase">
+        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/75 uppercase">
           [ STACK ]
         </span>
         <h2 className="text-footer-background max-w-2xl text-3xl leading-tight font-bold tracking-tight md:text-5xl lg:text-6xl">
@@ -145,7 +145,7 @@ export default function Skills() {
             className="h-5 w-5 flex-shrink-0 md:h-[22px] md:w-[22px]"
             loading="lazy"
           />
-          <p className="font-family-inter text-sm text-[#2C3333]/60 md:text-base">
+          <p className="font-family-inter text-sm text-[#2C3333]/80 md:text-base">
             Currently leveling up:{' '}
             <span className="font-semibold text-[#2C3333]">Go</span> — expanding
             into backend systems.

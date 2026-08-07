@@ -50,7 +50,7 @@ export function BusyPanel({
             <span className="font-family-inter text-ink/45 text-xs">
               Encoding MP3
             </span>
-            <span className="font-family-inter text-sky-deep text-sm font-bold tabular-nums">
+            <span className="font-family-inter text-sky-text text-sm font-bold tabular-nums">
               {progress}%
             </span>
           </div>

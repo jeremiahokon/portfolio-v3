@@ -32,8 +32,8 @@ export function ResultPanel({ reduced, result, onReset }: ResultPanelProps) {
         <p className="text-footer-background text-xl font-bold md:text-2xl">
           Your MP3 is ready
         </p>
-        <p className="font-family-inter text-ink/60 flex items-center justify-center gap-2 text-sm">
-          <AudioLines className="text-sky-deep h-4 w-4" />
+        <p className="font-family-inter text-ink/80 flex items-center justify-center gap-2 text-sm">
+          <AudioLines className="text-sky-text h-4 w-4" />
           {result.name}
         </p>
       </div>
@@ -58,7 +58,7 @@ export function ResultPanel({ reduced, result, onReset }: ResultPanelProps) {
         <Button
           variant="ghost"
           onClick={onReset}
-          className="text-ink/70 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
+          className="text-ink/85 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
         >
           <RotateCcw className="h-4 w-4" />
           Extract another

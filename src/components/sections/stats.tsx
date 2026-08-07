@@ -84,7 +84,7 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
       <span
         className={`text-ink leading-none font-bold ${
           href
-            ? 'group-hover/stat:text-sky-deep transition-colors duration-300'
+            ? 'group-hover/stat:text-sky-text transition-colors duration-300'
             : ''
         }`}
         style={{ fontSize: 'clamp(3rem, 8vw, 7rem)' }}
@@ -99,7 +99,7 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
           suffix
         )}
       </span>
-      <span className="font-family-inter text-ink/40 flex items-center gap-1 text-xs font-medium tracking-[0.2em] uppercase md:text-sm">
+      <span className="font-family-inter text-ink/75 flex items-center gap-1 text-xs font-medium tracking-[0.2em] uppercase md:text-sm">
         {label}
         {href && (
           <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity duration-300 group-hover/stat:opacity-100" />
@@ -127,10 +127,13 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
             ? {}
             : { target: '_blank', rel: 'noopener noreferrer' })}
           className="group/stat flex flex-col items-center gap-2"
+          // The number is part of the visible text, so it has to be part of the
+          // accessible name too — "Jobs on Upwork" alone does not contain "7 Jobs on
+          // Upwork", which is what axe checks and what a voice-control user says.
           aria-label={
             isInternal
-              ? `${label} — jump to the work section`
-              : `${label} — view on Upwork`
+              ? `${displayValue}${suffix} ${label} — jump to the work section`
+              : `${displayValue}${suffix} ${label} — view on Upwork`
           }
           onClick={() => {
             sendGAEvent({

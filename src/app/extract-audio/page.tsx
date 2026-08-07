@@ -83,7 +83,7 @@ export default function ExtractAudioPage() {
             <TransitionLink href="/tools" className="text-link text-lg">
               back to all tools
             </TransitionLink>
-            <span className="font-family-inter text-ink/50 text-xs font-medium tracking-[0.3em] uppercase">
+            <span className="font-family-inter text-ink/75 text-xs font-medium tracking-[0.3em] uppercase">
               [ FREE TOOL ]
             </span>
             <h1 className="text-footer-background max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight md:text-6xl lg:text-7xl">
@@ -97,7 +97,7 @@ export default function ExtractAudioPage() {
           <Reveal
             as="p"
             delay={0.1}
-            className="font-family-inter text-ink/50 max-w-xl text-lg md:text-xl"
+            className="font-family-inter text-ink/75 max-w-xl text-lg md:text-xl"
           >
             Drop in a clip and get a high-quality MP3 back in seconds. Runs
             entirely in your browser. Nothing is uploaded.
@@ -108,12 +108,12 @@ export default function ExtractAudioPage() {
             delay={0.2}
             className="mt-2 flex flex-wrap items-center justify-center gap-3"
           >
-            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/70 flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium">
-              <ShieldCheck className="text-sky-deep h-4 w-4" />
+            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/85 flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium">
+              <ShieldCheck className="text-sky-text h-4 w-4" />
               100% private
             </span>
-            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/70 flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium">
-              <Zap className="text-sky-deep h-4 w-4" />
+            <span className="font-family-inter border-ink/10 bg-ink/[0.03] text-ink/85 flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium">
+              <Zap className="text-sky-text h-4 w-4" />
               No sign up · No watermark
             </span>
           </Reveal>
@@ -125,7 +125,7 @@ export default function ExtractAudioPage() {
         <Reveal className="mx-auto mt-20 w-full max-w-3xl">
           <h2 className="text-footer-background text-center text-2xl font-bold tracking-tight md:text-4xl">
             Common{' '}
-            <em className="font-family-instrument text-sky-deep font-normal italic">
+            <em className="font-family-instrument text-sky-text font-normal italic">
               questions
             </em>
           </h2>

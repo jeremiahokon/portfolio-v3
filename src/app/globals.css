@@ -6,6 +6,20 @@
   --ink: #2c3333;
   --sky: #7bb6dd;
   --sky-deep: #5ba4d1;
+  /*
+   * The accent, dark enough to read as text.
+   *
+   * `--sky-deep` is 1.94:1 against the page background — Lighthouse flagged it on
+   * links and italic emphasis, and it is genuinely hard to read, not a technicality.
+   * It stays exactly as it is for borders, fills and icons, where contrast minimums do
+   * not apply and the lighter tone is the brand. This is the value for anything that
+   * is *text*. Measured against every surface it actually lands on, because the first
+   * value I picked cleared the page background at 4.61:1 and still failed on the
+   * slightly darker #d4d4d4 panel (4.39) and on the sky/15 chip (4.33) — "passes on the
+   * background I thought of" is not the same as passing:
+   *   page #d9d9d9 5.27 · card #f0f0f0 6.53 · panel #d4d4d4 5.02 · sky/15 chip 4.95
+   */
+  --sky-text: #2a5a76;
   --paper: #d9d9d9;
   /* The single corner radius for the whole design language. */
   --radius: 4px;
@@ -49,6 +63,7 @@
   --color-ink: var(--ink);
   --color-sky: var(--sky);
   --color-sky-deep: var(--sky-deep);
+  --color-sky-text: var(--sky-text);
   --color-paper: var(--paper);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -249,7 +264,7 @@ body {
 /* House style for inline text links: accent color + persistent underline so
    they read as clickable at rest (hover only strengthens the underline). */
 @utility text-link {
-  @apply font-family-instrument text-sky-deep decoration-sky-deep/40 hover:decoration-sky-deep italic underline underline-offset-4 transition-colors;
+  @apply font-family-instrument text-sky-text decoration-sky-text/40 hover:decoration-sky-text italic underline underline-offset-4 transition-colors;
 }
 
 /* Marquee animations */

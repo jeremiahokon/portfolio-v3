@@ -116,7 +116,7 @@ export function FindReplacePanel({
         <button
           type="button"
           onClick={onClose}
-          className="font-family-inter text-ink/50 rounded-sm px-3 py-2 text-xs whitespace-nowrap hover:bg-black/5"
+          className="font-family-inter text-ink/75 rounded-sm px-3 py-2 text-xs whitespace-nowrap hover:bg-black/5"
         >
           Close
         </button>
@@ -124,7 +124,7 @@ export function FindReplacePanel({
 
       <div className="mt-2 flex flex-wrap items-center gap-4">
         <Tooltip label="Off by default, so searching “arc” also finds “ARC” and “Arc”.">
-          <label className="font-family-inter text-ink/50 flex items-center gap-1.5 text-[11px]">
+          <label className="font-family-inter text-ink/75 flex items-center gap-1.5 text-[11px]">
             <input
               type="checkbox"
               checked={options.caseSensitive}
@@ -136,7 +136,7 @@ export function FindReplacePanel({
           </label>
         </Tooltip>
         <Tooltip label="On by default: matches a complete word and ignores punctuation around it, so “arrc” finds “arrc,” too. Turn it off to match inside longer words.">
-          <label className="font-family-inter text-ink/50 flex items-center gap-1.5 text-[11px]">
+          <label className="font-family-inter text-ink/75 flex items-center gap-1.5 text-[11px]">
             <input
               type="checkbox"
               checked={options.wholeWord}
@@ -175,7 +175,7 @@ export function FindReplacePanel({
           label="The speech model has never seen your client's name, your product, or your industry's acronyms, so it guesses at them. List them here and it will point out the spellings in the transcript that sound like each one."
           side="right"
         >
-          <label className="font-family-inter text-ink/50 mb-1.5 flex w-fit cursor-help items-center gap-1.5 text-[11px]">
+          <label className="font-family-inter text-ink/75 mb-1.5 flex w-fit cursor-help items-center gap-1.5 text-[11px]">
             <Sparkles className="h-3 w-3" />
             Names and terms the model won’t know — one per line
           </label>
@@ -206,7 +206,7 @@ export function FindReplacePanel({
                       setReplacement(s.term);
                       run(s.found, s.term);
                     }}
-                    className="font-family-inter border-sky-deep/30 text-sky-deep hover:bg-sky/10 rounded-sm border px-2.5 py-1 text-[11px]"
+                    className="font-family-inter border-sky-deep/30 text-sky-text hover:bg-sky/10 rounded-sm border px-2.5 py-1 text-[11px]"
                   >
                     {s.found} → {s.term}
                     <span className="text-ink/35 ml-1.5">×{s.count}</span>
@@ -218,7 +218,7 @@ export function FindReplacePanel({
         )}
 
         {vocabulary.trim() !== '' && suggestions.length === 0 && (
-          <p className="font-family-inter text-ink/40 mt-2 text-[11px]">
+          <p className="font-family-inter text-ink/75 mt-2 text-[11px]">
             Nothing in the transcript resembles those terms — they may already
             be correct.
           </p>

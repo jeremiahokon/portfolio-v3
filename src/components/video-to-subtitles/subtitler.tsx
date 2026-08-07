@@ -190,7 +190,7 @@ export function Subtitler() {
           )}
         </div>
 
-        <p className="font-family-inter text-ink/40 mt-4 text-center text-xs">
+        <p className="font-family-inter text-ink/75 mt-4 text-center text-xs">
           Everything runs locally in your browser. Your file is never uploaded
           to a server.
         </p>

@@ -52,7 +52,7 @@ export default function Contact() {
           &ldquo;Jeremiah understands the customer requirement from very little
           information provided. I love working with him.&rdquo;
         </blockquote>
-        <figcaption className="font-family-inter text-ink/50 text-xs tracking-[0.2em] uppercase">
+        <figcaption className="font-family-inter text-ink/75 text-xs tracking-[0.2em] uppercase">
           Upwork client · React frontend development
         </figcaption>
       </m.figure>
@@ -78,7 +78,7 @@ export default function Contact() {
 
       {/* Subline */}
       <m.p
-        className="font-family-inter mb-12 text-center text-lg text-[#2C3333]/50 md:text-xl"
+        className="font-family-inter mb-12 text-center text-lg text-[#2C3333]/75 md:text-xl"
         initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
         whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}

@@ -19,11 +19,11 @@ export default function Tools() {
             <div className="flex items-center gap-3">
               <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-sm">
                 <AudioLines
-                  className="text-sky-deep h-5 w-5"
+                  className="text-sky-text h-5 w-5"
                   strokeWidth={1.5}
                 />
               </span>
-              <span className="font-family-inter bg-sky/15 text-sky-deep rounded-sm px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
+              <span className="font-family-inter bg-sky/15 text-sky-text rounded-sm px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
                 Free tools
               </span>
             </div>
@@ -36,9 +36,9 @@ export default function Tools() {
               .
             </h2>
 
-            <p className="font-family-inter text-ink/70 text-base leading-relaxed">
+            <p className="font-family-inter text-ink/85 text-base leading-relaxed">
               Like a Video{' '}
-              <em className="font-family-instrument text-sky-deep text-[1.2em] font-normal italic">
+              <em className="font-family-instrument text-sky-text text-[1.2em] font-normal italic">
                 to
               </em>{' '}
               Audio extractor that runs entirely in your browser. Nothing

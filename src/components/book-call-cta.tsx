@@ -29,9 +29,9 @@ export function BookCallCta({ location }: { location: BookCallCtaLocation }) {
         <div className="relative z-10 flex max-w-xl flex-col gap-4">
           <div className="flex items-center gap-3">
             <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-sm">
-              <Calendar className="text-sky-deep h-5 w-5" strokeWidth={1.5} />
+              <Calendar className="text-sky-text h-5 w-5" strokeWidth={1.5} />
             </span>
-            <span className="font-family-inter bg-sky/15 text-sky-deep rounded-sm px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
+            <span className="font-family-inter bg-sky/15 text-sky-text rounded-sm px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
               Work with me
             </span>
           </div>
@@ -44,7 +44,7 @@ export function BookCallCta({ location }: { location: BookCallCtaLocation }) {
             .
           </h2>
 
-          <p className="font-family-inter text-ink/70 text-base leading-relaxed">
+          <p className="font-family-inter text-ink/85 text-base leading-relaxed">
             Need a web app, a landing page that converts, or a tool for your
             team? Let&apos;s talk about it — the call is free.
           </p>

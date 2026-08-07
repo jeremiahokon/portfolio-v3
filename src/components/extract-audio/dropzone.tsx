@@ -31,7 +31,11 @@ export function Dropzone({
     <m.button
       {...panelMotion(reduced)}
       type="button"
-      aria-label="Choose a video file to extract audio from, or drag and drop one here"
+      // No aria-label. The accessible name has to contain the visible text, and the
+      // visible text here is three lines — headline, hint, accepted formats — so any
+      // label short enough to be useful fails the check, and one long enough to pass
+      // duplicates copy that will drift. The rendered text already reads as an
+      // instruction, which is what a screen reader and voice control both want.
       onClick={onBrowse}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
@@ -82,7 +86,7 @@ export function Dropzone({
         <span className="text-footer-background text-lg font-bold md:text-xl">
           {isDragging ? 'Release to extract' : 'Drop your video here'}
         </span>
-        <span className="font-family-inter text-ink/60 text-sm">
+        <span className="font-family-inter text-ink/80 text-sm">
           or click to browse
         </span>
       </span>
@@ -92,7 +96,7 @@ export function Dropzone({
         Choose a video
       </span>
 
-      <span className="font-family-inter text-ink/40 relative text-xs">
+      <span className="font-family-inter text-ink/75 relative text-xs">
         MP4 · MOV · MKV · AVI · WEBM · M4V — up to 1 GB
       </span>
     </m.button>

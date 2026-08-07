@@ -54,13 +54,13 @@ export function ProgressPanel({
         <span className="text-footer-background text-lg font-bold md:text-xl">
           {headline}
         </span>
-        <span className="font-family-inter text-ink/60 text-sm">{detail}</span>
+        <span className="font-family-inter text-ink/80 text-sm">{detail}</span>
       </span>
 
       <div className="flex w-full max-w-sm flex-col gap-2">
         <Progress value={value * 100} />
         {isDownloading && download && (
-          <span className="font-family-inter text-ink/40 text-xs">
+          <span className="font-family-inter text-ink/75 text-xs">
             {formatBytes(download.loaded)} of about{' '}
             {formatBytes(download.total)}
           </span>
@@ -74,7 +74,7 @@ export function ProgressPanel({
         //
         // Worded without blaming the browser, because this state is also
         // reachable deliberately via ?backend=wasm.
-        <span className="font-family-inter text-ink/50 max-w-sm text-xs">
+        <span className="font-family-inter text-ink/75 max-w-sm text-xs">
           Running without GPU acceleration, so this will take noticeably longer.
           It will still finish.
         </span>
@@ -92,7 +92,7 @@ export function ProgressPanel({
       <Button
         variant="ghost"
         onClick={onCancel}
-        className="text-ink/70 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
+        className="text-ink/85 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
       >
         Cancel
       </Button>

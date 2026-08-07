@@ -132,7 +132,7 @@ export function ExportPanel({
         <span className="text-footer-background text-lg font-bold md:text-xl">
           Your subtitles are ready
         </span>
-        <span className="font-family-inter text-ink/60 text-sm">
+        <span className="font-family-inter text-ink/80 text-sm">
           {cueCount.toLocaleString()} cues from {wordCount.toLocaleString()}{' '}
           words
         </span>
@@ -145,8 +145,8 @@ export function ExportPanel({
         // stated, so the trade is the user's to make rather than a surprise.
         <div className="border-ink/10 bg-ink/[0.03] flex w-full max-w-md flex-col items-center gap-3 rounded-sm border px-5 py-4">
           <Tooltip label="The speech model reports roughly one-second granularity, so each word's start is worked out by sharing its cue's span across the words in it. Good enough to caption with; not frame-accurate.">
-            <span className="font-family-inter text-ink/70 inline-flex cursor-help items-center gap-2 text-xs">
-              <Clock3 className="text-sky-deep h-4 w-4" />
+            <span className="font-family-inter text-ink/85 inline-flex cursor-help items-center gap-2 text-xs">
+              <Clock3 className="text-sky-text h-4 w-4" />
               Timings are estimated to about a second
             </span>
           </Tooltip>
@@ -154,11 +154,11 @@ export function ExportPanel({
             <button
               type="button"
               onClick={onRefineTiming}
-              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+              className="border-sky-deep/40 text-sky-text hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
             >
               <Wand2 className="h-4 w-4" />
               Improve timing accuracy
-              <span className="text-ink/40">
+              <span className="text-ink/75">
                 +{formatBytes(ALIGNER.approxBytes)} download
               </span>
             </button>
@@ -184,7 +184,7 @@ export function ExportPanel({
             <button
               type="button"
               onClick={onRealignEdits}
-              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+              className="border-sky-deep/40 text-sky-text hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
             >
               <Wand2 className="h-4 w-4" />
               Re-time your edits
@@ -202,12 +202,12 @@ export function ExportPanel({
               className={cn(
                 'font-family-inter rounded-sm border px-4 py-2 text-xs font-medium transition-all',
                 format === option.id
-                  ? 'border-sky-deep bg-sky/15 text-sky-deep'
-                  : 'border-ink/10 text-ink/60 hover:border-sky/40 hover:text-ink'
+                  ? 'border-sky-deep bg-sky/15 text-sky-text'
+                  : 'border-ink/10 text-ink/80 hover:border-sky/40 hover:text-ink'
               )}
             >
               {option.label}
-              <span className="text-ink/40 ml-2">{option.hint}</span>
+              <span className="text-ink/75 ml-2">{option.hint}</span>
             </button>
           </Tooltip>
         ))}
@@ -226,7 +226,7 @@ export function ExportPanel({
         <Button
           variant="ghost"
           onClick={onReset}
-          className="text-ink/70 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
+          className="text-ink/85 hover:bg-ink/[0.05] hover:text-ink rounded-sm"
         >
           <RotateCcw className="mr-2 h-4 w-4" />
           Transcribe another
@@ -237,7 +237,7 @@ export function ExportPanel({
             type="button"
             onClick={() => void downloadMp3()}
             disabled={mp3 === 'working'}
-            className="border-ink/15 text-ink hover:bg-ink/[0.04] disabled:text-ink/40 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+            className="border-ink/15 text-ink hover:bg-ink/[0.04] disabled:text-ink/75 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
           >
             <Music className="h-4 w-4" />
             {mp3 === 'working'

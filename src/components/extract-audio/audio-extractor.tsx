@@ -111,7 +111,7 @@ export default function AudioExtractor() {
         )}
       </AnimatePresence>
 
-      <p className="font-family-inter text-ink/45 mt-5 text-center text-xs">
+      <p className="font-family-inter text-ink/75 mt-5 text-center text-xs">
         Everything runs locally in your browser using WebAssembly. Your video is
         never uploaded to a server.
       </p>

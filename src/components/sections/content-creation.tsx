@@ -139,7 +139,7 @@ export default function ContentCreation({
     >
       {/* Eyebrow + Heading */}
       <div className="flex flex-col items-center gap-4 text-center">
-        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/50 uppercase">
+        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/75 uppercase">
           [ ON THE SIDE ]
         </span>
         <h2 className="text-footer-background max-w-3xl text-3xl leading-tight font-bold tracking-tight md:text-5xl lg:text-6xl">
@@ -149,7 +149,7 @@ export default function ContentCreation({
           </span>{' '}
           off the clock, too.
         </h2>
-        <p className="font-family-inter max-w-xl text-base text-[#2C3333]/70 md:text-lg">
+        <p className="font-family-inter max-w-xl text-base text-[#2C3333]/85 md:text-lg">
           When I&apos;m not shipping code, I&apos;m sharing the journey — dev
           life, tips, and building in public on YouTube and TikTok.
         </p>

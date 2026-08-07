@@ -194,7 +194,7 @@ const CueBlock = memo(function CueBlock({
                 e.stopPropagation();
                 onPlay(cueIndex);
               }}
-              className="font-family-inter text-ink/35 hover:text-ink/70 mt-0.5 shrink-0 text-[11px] tabular-nums"
+              className="font-family-inter text-ink/35 hover:text-ink/85 mt-0.5 shrink-0 text-[11px] tabular-nums"
             >
               {stamp(start)}
             </button>
@@ -322,7 +322,7 @@ const CueBlock = memo(function CueBlock({
                   e.stopPropagation();
                   onSplit(cueIndex);
                 }}
-                className="text-ink/50 hover:text-ink rounded-sm p-1.5 hover:bg-black/5"
+                className="text-ink/75 hover:text-ink rounded-sm p-1.5 hover:bg-black/5"
                 aria-label="Split cue"
               >
                 <Scissors className="h-3.5 w-3.5" />
@@ -342,7 +342,7 @@ const CueBlock = memo(function CueBlock({
                   e.stopPropagation();
                   onMerge(cueIndex);
                 }}
-                className="text-ink/50 hover:text-ink disabled:text-ink/15 rounded-sm p-1.5 hover:bg-black/5"
+                className="text-ink/75 hover:text-ink disabled:text-ink/15 rounded-sm p-1.5 hover:bg-black/5"
                 aria-label="Merge with next cue"
               >
                 <Merge className="h-3.5 w-3.5" />
@@ -382,7 +382,7 @@ function EdgeNudge({
             e.stopPropagation();
             onNudge(-NUDGE_SECONDS);
           }}
-          className="text-ink/50 hover:text-ink rounded-sm p-1 hover:bg-black/5"
+          className="text-ink/75 hover:text-ink rounded-sm p-1 hover:bg-black/5"
           aria-label={`Move ${label} earlier`}
         >
           <ChevronLeft className="h-3.5 w-3.5" />
@@ -395,7 +395,7 @@ function EdgeNudge({
             e.stopPropagation();
             onNudge(NUDGE_SECONDS);
           }}
-          className="text-ink/50 hover:text-ink rounded-sm p-1 hover:bg-black/5"
+          className="text-ink/75 hover:text-ink rounded-sm p-1 hover:bg-black/5"
           aria-label={`Move ${label} later`}
         >
           <ChevronRight className="h-3.5 w-3.5" />
@@ -612,13 +612,13 @@ export function TranscriptEditor(props: Props) {
           </Tooltip>
 
           <Tooltip label="Where the audio is now, and how long the file is.">
-            <span className="font-family-inter text-ink/50 cursor-help text-xs tabular-nums">
+            <span className="font-family-inter text-ink/75 cursor-help text-xs tabular-nums">
               {stamp(currentTime)} / {stamp(props.duration)}
             </span>
           </Tooltip>
 
           <Tooltip label="Cues are the subtitle blocks that get exported. Words are the timed units underneath them — editing a word's text never moves its timing.">
-            <span className="font-family-inter text-ink/40 cursor-help text-xs">
+            <span className="font-family-inter text-ink/75 cursor-help text-xs">
               {stats}
             </span>
           </Tooltip>
@@ -648,7 +648,7 @@ export function TranscriptEditor(props: Props) {
                 onClick={undoEdit}
                 disabled={!canUndo}
                 aria-label="Undo"
-                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 whitespace-nowrap hover:bg-black/5"
+                className="text-ink/80 disabled:text-ink/20 rounded-sm p-2 whitespace-nowrap hover:bg-black/5"
               >
                 <Undo2 className="h-4 w-4" />
               </button>
@@ -659,7 +659,7 @@ export function TranscriptEditor(props: Props) {
                 onClick={redoEdit}
                 disabled={!canRedo}
                 aria-label="Redo"
-                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 whitespace-nowrap hover:bg-black/5"
+                className="text-ink/80 disabled:text-ink/20 rounded-sm p-2 whitespace-nowrap hover:bg-black/5"
               >
                 <Redo2 className="h-4 w-4" />
               </button>
@@ -671,7 +671,7 @@ export function TranscriptEditor(props: Props) {
                 aria-label="Find and replace"
                 className={[
                   'rounded-sm p-2 hover:bg-black/5',
-                  findOpen ? 'text-ink bg-black/5' : 'text-ink/60',
+                  findOpen ? 'text-ink bg-black/5' : 'text-ink/80',
                 ].join(' ')}
               >
                 <Replace className="h-4 w-4" />
@@ -687,7 +687,7 @@ export function TranscriptEditor(props: Props) {
               <button
                 type="button"
                 onClick={() => setShowTimes((v) => !v)}
-                className="font-family-inter text-ink/60 rounded-sm px-2 py-1 text-xs hover:bg-black/5"
+                className="font-family-inter text-ink/80 rounded-sm px-2 py-1 text-xs hover:bg-black/5"
               >
                 {showTimes ? 'Read' : 'Cues'}
               </button>
@@ -748,7 +748,7 @@ export function TranscriptEditor(props: Props) {
 
         {/* Footer */}
         <div className="flex flex-wrap items-center gap-3 border-t border-black/5 px-4 py-3">
-          <p className="font-family-inter text-ink/40 text-[11px]">
+          <p className="font-family-inter text-ink/75 text-[11px]">
             Click any line to edit it · Space plays · Tab jumps to the next
             issue · ⌘F to replace everywhere · K splits, J merges, , / . shift
           </p>
@@ -757,7 +757,7 @@ export function TranscriptEditor(props: Props) {
               <button
                 type="button"
                 onClick={() => props.onBack(words, cues)}
-                className="font-family-inter text-ink/60 rounded-sm px-4 py-2 text-xs hover:bg-black/5"
+                className="font-family-inter text-ink/80 rounded-sm px-4 py-2 text-xs hover:bg-black/5"
               >
                 Back
               </button>

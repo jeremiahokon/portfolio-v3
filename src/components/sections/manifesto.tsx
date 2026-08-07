@@ -40,6 +40,9 @@ const words: Word[] = segments.flatMap((segment) =>
     .map((text) => ({ text, accent: Boolean(segment.accent) }))
 );
 
+/** Minimum opacity for an unread word: the point where `--ink` still clears AA. */
+const FADE_FLOOR = 0.75;
+
 function ManifestoWord({
   word,
   index,
@@ -53,16 +56,32 @@ function ManifestoWord({
 }) {
   // Each word brightens over its own slice of the scroll, three words wide,
   // so the reveal sweeps through the paragraph as you scroll.
+  //
+  // The floor was 0.18, and unlike a transient entrance this is the word's *resting*
+  // state — everything below the scroll position genuinely sits there until you reach
+  // it. At 0.18 that is 1.36:1 against the page: not a technicality, unreadable. It
+  // was the last accessibility failure on the homepage, and 50 of the 68 originally
+  // flagged nodes.
+  //
+  // 0.75 is the measured point where `--ink` still clears 4.5:1 (4.81:1). Opacity is
+  // used rather than an animated `color` because the accented words carry their own
+  // colour and would not inherit one — opacity is the only property that dims a word
+  // and its emphasis together.
+  //
+  // The honest cost: a 0.75 → 1 sweep is far subtler than 0.18 → 1 was. It still
+  // reads as a shimmer across 55 staggered words, but the drama is gone. Change
+  // FADE_FLOOR back to 0.18 to restore it, knowing the text is unreadable until
+  // scrolled to.
   const start = index / (total + 3);
   const end = (index + 3) / (total + 3);
-  const opacity = useTransform(progress, [start, end], [0.18, 1]);
+  const opacity = useTransform(progress, [start, end], [FADE_FLOOR, 1]);
 
   return (
     <m.span
       style={{ opacity }}
       className={
         word.accent
-          ? 'font-family-instrument text-sky-deep font-normal italic'
+          ? 'font-family-instrument text-sky-text font-normal italic'
           : undefined
       }
     >
@@ -86,7 +105,7 @@ export default function Manifesto() {
     'text-ink max-w-4xl text-left text-[clamp(1.6rem,4vw,3.25rem)] leading-[1.3] font-medium tracking-tight';
 
   const groundingRow = (
-    <div className="font-family-inter text-ink/60 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+    <div className="font-family-inter text-ink/80 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
       <Image
         src="/assets/profile.jpg"
         alt="Jeremiah Okon"
@@ -119,7 +138,7 @@ export default function Manifesto() {
         className="relative w-full px-4 py-20 md:px-10 md:py-32"
       >
         <div className="mx-auto flex max-w-4xl flex-col gap-10">
-          <span className="font-family-inter text-ink/50 text-xs font-medium tracking-[0.3em] uppercase">
+          <span className="font-family-inter text-ink/85 text-xs font-medium tracking-[0.3em] uppercase">
             [ ABOUT ]
           </span>
           <p className={paragraphClass}>
@@ -128,7 +147,7 @@ export default function Manifesto() {
                 key={index}
                 className={
                   segment.accent
-                    ? 'font-family-instrument text-sky-deep font-normal italic'
+                    ? 'font-family-instrument text-sky-text font-normal italic'
                     : undefined
                 }
               >
@@ -146,7 +165,7 @@ export default function Manifesto() {
     <section ref={sectionRef} id="about" className="relative h-[220vh] w-full">
       <div className="sticky top-0 flex h-screen w-full items-center px-4 md:px-10">
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-10">
-          <span className="font-family-inter text-ink/50 text-xs font-medium tracking-[0.3em] uppercase">
+          <span className="font-family-inter text-ink/85 text-xs font-medium tracking-[0.3em] uppercase">
             [ ABOUT ]
           </span>
           <p className={paragraphClass}>

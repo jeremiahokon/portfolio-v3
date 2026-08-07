@@ -58,7 +58,7 @@ export function ModelManager() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="font-family-inter text-ink/60 hover:text-ink flex w-full items-center gap-2 text-xs whitespace-nowrap"
+        className="font-family-inter text-ink/80 hover:text-ink flex w-full items-center gap-2 text-xs whitespace-nowrap"
       >
         <HardDrive className="h-3.5 w-3.5" />
         <span>
@@ -74,7 +74,7 @@ export function ModelManager() {
               key={model.id}
               className="font-family-inter flex items-center gap-2 text-[11px]"
             >
-              <span className="text-ink/70">{model.label}</span>
+              <span className="text-ink/85">{model.label}</span>
               {!model.complete && (
                 <Tooltip label="Fewer files than this model needs are cached, which usually means a download was interrupted. It will be re-fetched on next use.">
                   <span className="cursor-help rounded-sm bg-amber-100 px-1.5 py-0.5 text-[10px] text-amber-800">
@@ -82,7 +82,7 @@ export function ModelManager() {
                   </span>
                 </Tooltip>
               )}
-              <span className="text-ink/40 ml-auto tabular-nums">
+              <span className="text-ink/75 ml-auto tabular-nums">
                 {formatBytes(model.bytes)}
               </span>
             </div>
