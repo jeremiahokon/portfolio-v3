@@ -258,13 +258,10 @@ export function useTranscriptEditor(options: EditorOptions) {
     setSelectedCue(cueIndex);
   }, []);
 
-  const endEditing = useCallback(
-    (resume: boolean) => {
-      setEditingCue(null);
-      if (resume) play(audioRef.current);
-    },
-    []
-  );
+  const endEditing = useCallback((resume: boolean) => {
+    setEditingCue(null);
+    if (resume) play(audioRef.current);
+  }, []);
 
   // Keep the selected cue in step with playback, so the transcript follows the
   // audio without the user scrolling.

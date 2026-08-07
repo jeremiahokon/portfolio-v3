@@ -8,13 +8,14 @@ import {
   useSyncExternalStore,
 } from 'react';
 
-import { subscribeEngine } from '@/lib/ffmpeg/engine';
+import { getEngine, subscribeEngine } from '@/lib/ffmpeg/engine';
 import {
   type DecodedAudio,
   decodeToPcm,
   isEffectivelySilent,
   NoAudioTrackError,
 } from '@/lib/media/decode-pcm';
+import { describeMp3Failure, extractMp3 } from '@/lib/media/extract-mp3';
 import { currentBackendOverride } from '@/lib/models/backend-override';
 import { assess, probeDevice } from '@/lib/models/capability';
 import {
@@ -110,6 +111,11 @@ export function useSubtitler() {
   const jobIdRef = useRef<string | null>(null);
   // Held after a job finishes so the opt-in aligner needs no second decode.
   const decodedRef = useRef<DecodedAudio | null>(null);
+  // The source file, kept so the MP3 export can run without asking for it again.
+  // Deliberately the original rather than the decoded PCM: what the pipeline
+  // decoded is 16 kHz mono for Whisper, which is not a file to hand anyone.
+  const sourceRef = useRef<File | null>(null);
+  const mp3LogRef = useRef<string[]>([]);
 
   // Decode progress comes from the shared engine. Subscribing here rather than
   // inside decodeToPcm leaves the extractor's own handlers untouched.
@@ -229,6 +235,8 @@ export function useSubtitler() {
       const asrDtype = decoder
         ? { ...ASR.dtype, decoder_model_merged: decoder }
         : ASR.dtype;
+
+      sourceRef.current = file;
 
       try {
         // ---- Decode -------------------------------------------------------
@@ -745,6 +753,46 @@ export function useSubtitler() {
    */
   const realignEdits = useCallback(() => runAligner('edits'), [runAligner]);
 
+  /**
+   * Produces the MP3 for the same file, on demand.
+   *
+   * **On demand, not automatically**, and that is the whole design. Most people
+   * dropping a file into a subtitles tool want subtitles; encoding an MP3 nobody
+   * asked for would spend time and memory on every single job to serve a minority.
+   * Clicked, it costs one FFmpeg pass on an engine that is already loaded and warm
+   * from the decode — seconds, against the minutes transcription already took.
+   *
+   * Returns null on failure rather than throwing, and never touches the transcript:
+   * losing a finished transcript because a bonus download failed would be
+   * indefensible.
+   */
+  const exportMp3 = useCallback(async (): Promise<Blob | null> => {
+    const file = sourceRef.current;
+    if (!file) return null;
+
+    mp3LogRef.current = [];
+    const stop = subscribeEngine({
+      onLog: (message) => {
+        mp3LogRef.current.push(message);
+        if (mp3LogRef.current.length > 40) mp3LogRef.current.shift();
+      },
+    });
+
+    try {
+      const ffmpeg = await getEngine();
+      const { blob } = await extractMp3(ffmpeg, file);
+
+      return blob;
+    } catch (err) {
+      console.error('[subtitler] mp3 export failed', err);
+      store.set({ notice: describeMp3Failure(mp3LogRef.current.join('\n')) });
+
+      return null;
+    } finally {
+      stop();
+    }
+  }, [store]);
+
   const applyEdits = useCallback(
     (words: Word[], cues: Cue[]) => {
       store.set({ words, cues });
@@ -759,6 +807,7 @@ export function useSubtitler() {
     cancel,
     refineTiming,
     realignEdits,
+    exportMp3,
     applyEdits,
     reset: cancel,
   };

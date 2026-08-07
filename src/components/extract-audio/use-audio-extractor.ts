@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
 
-import type { FFFSType, FFmpeg } from '@ffmpeg/ffmpeg';
+import type { FFmpeg } from '@ffmpeg/ffmpeg';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
 import {
@@ -11,7 +11,8 @@ import {
   isEngineLoaded,
   subscribeEngine,
 } from '@/lib/ffmpeg/engine';
-import { baseName, formatBytes } from '@/lib/utils';
+import { describeMp3Failure, extractMp3 } from '@/lib/media/extract-mp3';
+import { formatBytes } from '@/lib/utils';
 
 // The input is streamed into ffmpeg via a WORKERFS mount (read by reference,
 // never copied into WASM memory), and `-vn` means the video stream is never
@@ -136,56 +137,30 @@ export function useAudioExtractor() {
     // disk) instead of copying every byte into WASM memory with writeFile.
     // This lets multi-gigabyte videos through — only the small MP3 output
     // and ffmpeg's working buffers live in linear memory.
-    const dir = '/mount';
-    const inputPath = `${dir}/${file.name}`;
-    const outputName = `${baseName(file.name)}.mp3`;
     logTailRef.current = [];
-    let mounted = false;
 
     try {
-      await ffmpeg.createDir(dir).catch(() => undefined);
-      // `FFFSType.WORKERFS` is a string enum ("WORKERFS"); pass the literal so
-      // we don't depend on the enum being re-exported as a runtime value.
-      await ffmpeg.mount('WORKERFS' as FFFSType, { files: [file] }, dir);
-      mounted = true;
-
-      await ffmpeg.exec([
-        '-i',
-        inputPath,
-        '-vn',
-        '-c:a',
-        'libmp3lame',
-        '-q:a',
-        '2',
-        outputName,
-      ]);
-
-      const data = await ffmpeg.readFile(outputName);
-      // Copy into a fresh Uint8Array so the Blob owns its bytes independently
-      // of ffmpeg's WASM heap (which is freed/reused after this call).
-      const bytes = new Uint8Array(data as Uint8Array);
-      const blob = new Blob([bytes], { type: 'audio/mpeg' });
+      // The command, the mount and the cleanup now live in `extractMp3`, shared
+      // with the subtitles tool so both hand back an identical file from the same
+      // source. No behaviour change here: same arguments, same quality, same
+      // WORKERFS-by-reference mount.
+      const { blob, name } = await extractMp3(ffmpeg, file);
       const url = URL.createObjectURL(blob);
       resultUrlRef.current = url;
 
-      setResult({ url, name: outputName });
+      setResult({ url, name });
       setProgress(100);
       setStatus('done');
       sendGAEvent({
         event: GA_EVENTS.EXTRACTOR_SUCCESS,
-        value: outputName,
+        value: name,
         event_category: 'tool_usage',
       });
     } catch (err) {
       // Surface the real cause — the friendly copy below hides it, and this
       // path swallowed a cross-origin-isolation failure once already.
       console.error('[audio-extractor] extraction failed', err);
-      const tail = logTailRef.current.join('\n');
-      const friendlyError =
-        tail.includes('does not contain any stream') ||
-        tail.includes('Output file is empty')
-          ? 'This video doesn’t seem to have an audio track.'
-          : 'Extraction failed — the file may be corrupted or in an unsupported format.';
+      const friendlyError = describeMp3Failure(logTailRef.current.join('\n'));
       setError(friendlyError);
       setStatus('idle');
       sendGAEvent({
@@ -194,12 +169,6 @@ export function useAudioExtractor() {
         error_message: friendlyError,
         event_category: 'tool_usage',
       });
-    } finally {
-      // Always clean up, even when exec throws — a dirty /mount would make
-      // the next attempt's mount fail.
-      await ffmpeg.deleteFile(outputName).catch(() => undefined);
-      if (mounted) await ffmpeg.unmount(dir).catch(() => undefined);
-      await ffmpeg.deleteDir(dir).catch(() => undefined);
     }
   }, []);
 

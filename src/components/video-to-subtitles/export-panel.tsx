@@ -3,7 +3,14 @@
 import { useMemo, useState } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
 
-import { Clock3, Download, Pencil, RotateCcw, Wand2 } from 'lucide-react';
+import {
+  Clock3,
+  Download,
+  Music,
+  Pencil,
+  RotateCcw,
+  Wand2,
+} from 'lucide-react';
 import { m } from 'motion/react';
 
 import { SuccessCheck } from '@/components/extract-audio/animated-icons';
@@ -29,6 +36,7 @@ interface ExportPanelProps {
   onRefineTiming: () => void;
   onEdit: () => void;
   onRealignEdits: () => void;
+  onExportMp3: () => Promise<Blob | null>;
 }
 
 /** One line on what each format is actually for. */
@@ -51,8 +59,35 @@ export function ExportPanel({
   onRefineTiming,
   onEdit,
   onRealignEdits,
+  onExportMp3,
 }: ExportPanelProps) {
   const [format, setFormat] = useState<ExportFormat>('srt');
+  const [mp3, setMp3] = useState<'idle' | 'working' | 'failed'>('idle');
+
+  /**
+   * Encodes the MP3 and hands it straight to the browser.
+   *
+   * Not cached: someone who wants the audio wants it once, and holding a
+   * multi-megabyte Blob alive for a second click nobody makes is worse than
+   * re-encoding for the rare person who does.
+   */
+  const downloadMp3 = async () => {
+    setMp3('working');
+    const blob = await onExportMp3();
+    if (!blob) {
+      setMp3('failed');
+
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${baseName(snapshot.fileName ?? 'audio')}.mp3`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setMp3('idle');
+  };
 
   const wordCount = snapshot.words.length;
   const cueCount = snapshot.cues.length;
@@ -119,7 +154,7 @@ export function ExportPanel({
             <button
               type="button"
               onClick={onRefineTiming}
-              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all whitespace-nowrap"
+              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
             >
               <Wand2 className="h-4 w-4" />
               Improve timing accuracy
@@ -149,7 +184,7 @@ export function ExportPanel({
             <button
               type="button"
               onClick={onRealignEdits}
-              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all whitespace-nowrap"
+              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
             >
               <Wand2 className="h-4 w-4" />
               Re-time your edits
@@ -182,7 +217,7 @@ export function ExportPanel({
         <button
           type="button"
           onClick={download}
-          className="from-sky to-sky-deep inline-flex items-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)] whitespace-nowrap"
+          className="from-sky to-sky-deep inline-flex items-center gap-2 rounded-sm bg-gradient-to-r px-8 py-3.5 text-sm font-bold tracking-wide whitespace-nowrap text-white uppercase shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_40px_rgba(123,182,221,0.45)]"
         >
           <Download className="h-4 w-4" />
           Download {format.toUpperCase()}
@@ -197,11 +232,27 @@ export function ExportPanel({
           Transcribe another
         </Button>
 
+        <Tooltip label="Extracts the original audio as a high-quality MP3 — the same file the audio extractor produces. Encoded when you ask for it, so it costs nothing unless you want it.">
+          <button
+            type="button"
+            onClick={() => void downloadMp3()}
+            disabled={mp3 === 'working'}
+            className="border-ink/15 text-ink hover:bg-ink/[0.04] disabled:text-ink/40 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
+          >
+            <Music className="h-4 w-4" />
+            {mp3 === 'working'
+              ? 'Encoding MP3…'
+              : mp3 === 'failed'
+                ? 'MP3 failed — retry'
+                : 'Also get the MP3'}
+          </button>
+        </Tooltip>
+
         <Tooltip label="Read the transcript alongside the audio and fix what the model misheard — names and acronyms especially. Correcting a word never moves its timing.">
           <button
             type="button"
             onClick={onEdit}
-            className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all whitespace-nowrap"
+            className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium whitespace-nowrap transition-all"
           >
             <Pencil className="h-4 w-4" />
             Edit transcript

@@ -35,6 +35,7 @@ export function Subtitler() {
     reset,
     refineTiming,
     realignEdits,
+    exportMp3,
     applyEdits,
   } = useSubtitler();
   const [isDragging, setIsDragging] = useState(false);
@@ -162,6 +163,7 @@ export function Subtitler() {
                 onRefineTiming={() => void refineTiming()}
                 onEdit={() => setEditing(true)}
                 onRealignEdits={() => void realignEdits()}
+                onExportMp3={exportMp3}
               />
             )}
           </AnimatePresence>
