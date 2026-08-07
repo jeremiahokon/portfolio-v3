@@ -14,6 +14,7 @@ export const GA_EVENTS = {
   BOOK_CALL_CTA: {
     tools_page: 'user_clicked_book_call_on_tools_page',
     extract_audio: 'user_clicked_book_call_on_extract_audio',
+    video_to_subtitles: 'user_clicked_book_call_on_video_to_subtitles',
   },
 
   // Email
@@ -33,6 +34,8 @@ export const GA_EVENTS = {
   UPWORK_STATS_ON_HERO: 'user_clicked_upwork_stats_on_hero',
   UPWORK_BADGE_ON_HERO: 'user_clicked_upwork_badge_on_hero',
   UPWORK_STAT_ON_STATS: 'user_clicked_upwork_stat_on_stats',
+  /** The "Live Products" stat, which jumps to the work section rather than Upwork. */
+  WORK_STAT_ON_STATS: 'user_clicked_work_stat_on_stats',
   UPWORK_ON_TESTIMONIALS: 'user_clicked_upwork_on_testimonials',
 
   // Social / content
@@ -57,6 +60,17 @@ export const GA_EVENTS = {
   EXTRACTOR_SUCCESS: 'user_extracted_audio_successfully',
   EXTRACTOR_FAILED: 'user_failed_extraction_on_extractor',
   EXTRACTOR_MP3_DOWNLOADED: 'user_downloaded_mp3_on_extractor',
+
+  // Subtitle generator funnel. MODEL_GATE_REACHED is the one that matters most:
+  // it marks the point where a ~170 MB download is disclosed, so the drop-off
+  // between it and MODEL_READY is the real cost of running the model on-device.
+  SUBTITLER_FILE_SELECTED: 'user_selected_file_on_subtitler',
+  SUBTITLER_MODEL_GATE_REACHED: 'user_reached_model_gate_on_subtitler',
+  SUBTITLER_MODEL_READY: 'user_loaded_model_on_subtitler',
+  SUBTITLER_SUCCESS: 'user_generated_subtitles_successfully',
+  SUBTITLER_FAILED: 'user_failed_transcription_on_subtitler',
+  SUBTITLER_EXPORTED: 'user_downloaded_subtitles_on_subtitler',
+  SUBTITLER_CANCELLED: 'user_cancelled_job_on_subtitler',
 } as const;
 
 export type BookCallCtaLocation = keyof typeof GA_EVENTS.BOOK_CALL_CTA;

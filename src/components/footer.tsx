@@ -102,7 +102,7 @@ export default function Footer() {
             });
             setIsCalendlyOpen(true);
           }}
-          className="group relative overflow-hidden rounded-full bg-white px-10 py-5 text-[#0F172A] shadow-2xl transition-all duration-300 hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] md:px-12 md:py-6"
+          className="group relative overflow-hidden rounded-sm bg-white px-10 py-5 text-[#0F172A] shadow-2xl transition-all duration-300 hover:shadow-[0_0_60px_rgba(255,255,255,0.4)] md:px-12 md:py-6"
           variants={headingVariants}
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
@@ -144,7 +144,7 @@ export default function Footer() {
 
           {/* Ripple effect on hover */}
           <m.div
-            className="absolute inset-0 rounded-full bg-white/50"
+            className="absolute inset-0 rounded-sm bg-white/50"
             initial={{ scale: 0, opacity: 0.5 }}
             whileHover={{
               scale: 2,
@@ -217,7 +217,7 @@ export default function Footer() {
                 {EMAIL}
               </m.span>
               <m.div
-                className="absolute inset-0 -z-0 rounded-lg bg-white/10"
+                className="absolute inset-0 -z-0 rounded-sm bg-white/10"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{
                   scale: isEmailHovered ? 1 : 0,

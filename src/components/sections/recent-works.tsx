@@ -149,14 +149,14 @@ function FeaturedCaseCard({
             event_category: 'engagement',
           });
         }}
-        className={`group relative block overflow-hidden rounded-2xl shadow-xl md:col-span-3 ${
+        className={`group relative block overflow-hidden rounded-sm shadow-xl md:col-span-3 ${
           imageFirst ? '' : 'md:order-last'
         }`}
       >
         <div className="bg-ink flex items-center gap-1.5 px-4 py-2.5">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-          <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-[#ff5f57]" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-[#febc2e]" />
+          <span className="h-2.5 w-2.5 rounded-sm bg-[#28c840]" />
         </div>
         <div className="relative aspect-[16/10] overflow-hidden">
           <Image
@@ -171,7 +171,7 @@ function FeaturedCaseCard({
       </Link>
 
       <div className="flex flex-col gap-4 md:col-span-2">
-        <span className="font-family-inter text-sky-deep text-[10px] font-medium tracking-[0.18em] uppercase md:text-xs">
+        <span className="font-family-inter text-sky-text text-[10px] font-medium tracking-[0.18em] uppercase md:text-xs">
           {project.tag}
         </span>
         <h3 className="text-ink text-3xl font-bold tracking-tight md:text-4xl">
@@ -181,20 +181,20 @@ function FeaturedCaseCard({
         <div ref={ref} className="flex flex-col gap-1">
           <span className="text-ink flex items-baseline gap-2.5 text-5xl font-bold tracking-tight md:text-6xl">
             {displayValue}
-            <em className="font-family-instrument text-sky-deep text-3xl font-normal italic md:text-4xl">
+            <em className="font-family-instrument text-sky-text text-3xl font-normal italic md:text-4xl">
               {project.metric.unit}
             </em>
           </span>
-          <span className="font-family-inter text-ink/50 text-xs leading-snug md:text-sm">
+          <span className="font-family-inter text-ink/75 text-xs leading-snug md:text-sm">
             {project.metric.label}
           </span>
         </div>
 
-        <p className="font-family-inter text-ink/70 text-sm leading-relaxed md:text-base">
+        <p className="font-family-inter text-ink/85 text-sm leading-relaxed md:text-base">
           {project.description}
         </p>
 
-        <p className="font-family-inter text-ink/45 text-xs tracking-[0.12em] uppercase">
+        <p className="font-family-inter text-ink/75 text-xs tracking-[0.12em] uppercase">
           {project.stack}
         </p>
 
@@ -261,7 +261,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
 
         {/* Left: Project name + description */}
         <div className="relative z-10 flex items-baseline gap-4 md:gap-6">
-          <span className="font-family-inter text-xs font-medium text-[#2C3333]/30 md:text-sm">
+          <span className="font-family-inter text-xs font-medium text-[#2C3333]/75 md:text-sm">
             {formattedIndex}
           </span>
           <div className="flex flex-col gap-1">
@@ -273,7 +273,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
             <h3 className="text-footer-background text-2xl font-bold tracking-tight transition-colors duration-300 md:text-4xl lg:text-5xl">
               {project.name}
             </h3>
-            <p className="font-family-inter hidden text-sm leading-relaxed text-[#2C3333]/70 md:block md:text-base">
+            <p className="font-family-inter hidden text-sm leading-relaxed text-[#2C3333]/85 md:block md:text-base">
               {project.description}
             </p>
           </div>
@@ -314,7 +314,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
           }
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="relative h-[280px] w-[480px] overflow-hidden rounded-lg shadow-2xl lg:h-[320px] lg:w-[560px]">
+          <div className="relative h-[280px] w-[480px] overflow-hidden rounded-sm shadow-2xl lg:h-[320px] lg:w-[560px]">
             <Image
               src={project.image}
               alt={project.name}
@@ -338,7 +338,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
         transition={{ duration: 0.3 }}
       >
         <div className="pb-4">
-          <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-lg">
+          <div className="relative mb-3 aspect-video w-full overflow-hidden rounded-sm">
             <Image
               src={project.image}
               alt={project.name}
@@ -347,7 +347,7 @@ function ProjectRow({ project, index }: { project: Project; index: number }) {
               sizes="100vw"
             />
           </div>
-          <p className="font-family-inter text-sm leading-relaxed text-[#2C3333]/70">
+          <p className="font-family-inter text-sm leading-relaxed text-[#2C3333]/85">
             {project.description}
           </p>
         </div>
@@ -371,7 +371,7 @@ export default function RecentWorks() {
     <section id="work" className="relative flex w-full flex-col py-16 md:py-24">
       {/* Header */}
       <Reveal className="mb-8 flex flex-col items-center gap-4 px-4 text-center md:mb-12 md:px-10">
-        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/50 uppercase">
+        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/75 uppercase">
           [ WORK — THE PROOF ]
         </span>
         <h2 className="text-footer-background text-4xl leading-tight font-bold tracking-tight md:text-6xl lg:text-7xl">
@@ -382,11 +382,11 @@ export default function RecentWorks() {
 
         {/* Capabilities strip — what the killed services grid used to say,
             compressed to one line */}
-        <p className="font-family-inter mt-2 flex max-w-4xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs tracking-[0.12em] text-[#2C3333]/55 uppercase md:text-sm">
+        <p className="font-family-inter mt-2 flex max-w-4xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs tracking-[0.12em] text-[#2C3333]/75 uppercase md:text-sm">
           {capabilities.map((capability, index) => (
             <span key={capability} className="flex items-center gap-3">
               {index > 0 && (
-                <span aria-hidden="true" className="text-sky-deep">
+                <span aria-hidden="true" className="text-sky-text">
                   ·
                 </span>
               )}

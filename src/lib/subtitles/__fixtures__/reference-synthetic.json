@@ -1,0 +1,277 @@
+{
+  "audio": "reference-synthetic.wav",
+  "duration": 45.4623,
+  "words": [
+    {
+      "text": "because",
+      "start": 0,
+      "end": 0.4941
+    },
+    {
+      "text": "project",
+      "start": 0.8441,
+      "end": 1.2887
+    },
+    {
+      "text": "timeline",
+      "start": 1.6387,
+      "end": 2.1683
+    },
+    {
+      "text": "budget",
+      "start": 2.5183,
+      "end": 2.8312
+    },
+    {
+      "text": "delivery",
+      "start": 3.1812,
+      "end": 3.6265
+    },
+    {
+      "text": "contract",
+      "start": 3.9765,
+      "end": 4.5223
+    },
+    {
+      "text": "invoice",
+      "start": 4.8723,
+      "end": 5.4439
+    },
+    {
+      "text": "meeting",
+      "start": 5.7939,
+      "end": 6.2033
+    },
+    {
+      "text": "yesterday",
+      "start": 6.5533,
+      "end": 7.1101
+    },
+    {
+      "text": "tomorrow",
+      "start": 7.4601,
+      "end": 7.8488
+    },
+    {
+      "text": "schedule",
+      "start": 8.1988,
+      "end": 8.7128
+    },
+    {
+      "text": "approval",
+      "start": 9.0628,
+      "end": 9.5483
+    },
+    {
+      "text": "yes",
+      "start": 9.8983,
+      "end": 10.2986
+    },
+    {
+      "text": "no",
+      "start": 10.6486,
+      "end": 10.9885
+    },
+    {
+      "text": "and",
+      "start": 11.3385,
+      "end": 11.6569
+    },
+    {
+      "text": "but",
+      "start": 12.0069,
+      "end": 12.1992
+    },
+    {
+      "text": "when",
+      "start": 12.5492,
+      "end": 12.9004
+    },
+    {
+      "text": "where",
+      "start": 13.2504,
+      "end": 13.566
+    },
+    {
+      "text": "which",
+      "start": 13.916,
+      "end": 14.2587
+    },
+    {
+      "text": "them",
+      "start": 14.6087,
+      "end": 14.8948
+    },
+    {
+      "text": "platform",
+      "start": 15.2448,
+      "end": 15.7363
+    },
+    {
+      "text": "integration",
+      "start": 16.0863,
+      "end": 16.7739
+    },
+    {
+      "text": "migration",
+      "start": 17.1239,
+      "end": 17.6951
+    },
+    {
+      "text": "dashboard",
+      "start": 18.0451,
+      "end": 18.5489
+    },
+    {
+      "text": "reporting",
+      "start": 18.8989,
+      "end": 19.3669
+    },
+    {
+      "text": "analytics",
+      "start": 19.7169,
+      "end": 20.3274
+    },
+    {
+      "text": "onboarding",
+      "start": 20.6774,
+      "end": 21.2321
+    },
+    {
+      "text": "subscription",
+      "start": 21.5821,
+      "end": 22.2391
+    },
+    {
+      "text": "renewal",
+      "start": 22.5891,
+      "end": 23.0251
+    },
+    {
+      "text": "proposal",
+      "start": 23.3751,
+      "end": 23.875
+    },
+    {
+      "text": "engineering",
+      "start": 24.225,
+      "end": 24.8437
+    },
+    {
+      "text": "requirement",
+      "start": 25.1937,
+      "end": 25.7642
+    },
+    {
+      "text": "specification",
+      "start": 26.1142,
+      "end": 26.9739
+    },
+    {
+      "text": "deployment",
+      "start": 27.3239,
+      "end": 27.8004
+    },
+    {
+      "text": "monitoring",
+      "start": 28.1504,
+      "end": 28.7225
+    },
+    {
+      "text": "authentication",
+      "start": 29.0725,
+      "end": 29.8833
+    },
+    {
+      "text": "permissions",
+      "start": 30.2333,
+      "end": 30.8024
+    },
+    {
+      "text": "database",
+      "start": 31.1524,
+      "end": 31.7416
+    },
+    {
+      "text": "infrastructure",
+      "start": 32.0916,
+      "end": 32.8483
+    },
+    {
+      "text": "reliability",
+      "start": 33.1983,
+      "end": 33.9911
+    },
+    {
+      "text": "quick",
+      "start": 34.3411,
+      "end": 34.6394
+    },
+    {
+      "text": "brown",
+      "start": 34.9894,
+      "end": 35.3465
+    },
+    {
+      "text": "jumps",
+      "start": 35.6965,
+      "end": 36.1113
+    },
+    {
+      "text": "lazy",
+      "start": 36.4613,
+      "end": 36.8929
+    },
+    {
+      "text": "ship",
+      "start": 37.2429,
+      "end": 37.5333
+    },
+    {
+      "text": "build",
+      "start": 37.8833,
+      "end": 38.1806
+    },
+    {
+      "text": "measure",
+      "start": 38.5306,
+      "end": 38.9303
+    },
+    {
+      "text": "learn",
+      "start": 39.2803,
+      "end": 39.629
+    },
+    {
+      "text": "2026",
+      "start": 39.979,
+      "end": 41.1228
+    },
+    {
+      "text": "API",
+      "start": 41.4728,
+      "end": 42.1503
+    },
+    {
+      "text": "ARC",
+      "start": 42.5003,
+      "end": 42.7657
+    },
+    {
+      "text": "IATA",
+      "start": 43.1157,
+      "end": 43.4405
+    },
+    {
+      "text": "SQL",
+      "start": 43.7905,
+      "end": 44.2385
+    },
+    {
+      "text": "JSON",
+      "start": 44.5885,
+      "end": 45.1123
+    }
+  ],
+  "note": "Ground truth by construction, not by hand: each word was synthesised separately, trimmed to its speech extent, and concatenated with 0.35s silences, so every boundary is arithmetic over sample counts. Synthetic speech is easier than real conversation — passing here is necessary but not sufficient. Regenerate with scripts/make-reference-clip.mjs."
+}

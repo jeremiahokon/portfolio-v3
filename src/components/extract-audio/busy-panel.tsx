@@ -26,7 +26,7 @@ export function BusyPanel({
       {...panelMotion(reduced)}
       role="status"
       aria-live="polite"
-      className="bg-sky/[0.04] flex flex-col items-center gap-6 rounded-2xl p-8 text-center md:p-14"
+      className="bg-sky/[0.04] flex flex-col items-center gap-6 rounded-sm p-8 text-center md:p-14"
     >
       <div className="h-20 w-20">
         <EqualizerBars />
@@ -50,7 +50,7 @@ export function BusyPanel({
             <span className="font-family-inter text-ink/45 text-xs">
               Encoding MP3
             </span>
-            <span className="font-family-inter text-sky-deep text-sm font-bold tabular-nums">
+            <span className="font-family-inter text-sky-text text-sm font-bold tabular-nums">
               {progress}%
             </span>
           </div>

@@ -102,21 +102,21 @@ function TestimonialCard({
   endorsements,
 }: Testimonial) {
   return (
-    <div className="flex w-[320px] flex-shrink-0 flex-col gap-5 rounded-2xl border border-[#2C3333]/8 bg-white/60 p-6 backdrop-blur-sm md:w-[400px] md:p-8">
+    <div className="flex w-[320px] flex-shrink-0 flex-col gap-5 rounded-sm border border-[#2C3333]/8 bg-white/60 p-6 backdrop-blur-sm md:w-[400px] md:p-8">
       <div className="flex items-center justify-between">
         <StarRating rating={rating} />
-        <span className="font-family-inter rounded-full bg-[#14a800]/10 px-3 py-1 text-[10px] font-semibold tracking-wide text-[#14a800] uppercase">
+        <span className="font-family-inter rounded-sm bg-[#14a800]/10 px-3 py-1 text-[10px] font-semibold tracking-wide text-[#0a5c00] uppercase">
           via Upwork
         </span>
       </div>
-      <p className="font-family-inter text-sm leading-relaxed text-[#2C3333]/70 md:text-base">
+      <p className="font-family-inter text-sm leading-relaxed text-[#2C3333]/85 md:text-base">
         &ldquo;{quote}&rdquo;
       </p>
       <div className="flex flex-wrap gap-2">
         {endorsements.map((endorsement) => (
           <span
             key={endorsement}
-            className="font-family-inter rounded-full bg-[#2C3333]/5 px-3 py-1 text-xs text-[#2C3333]/60"
+            className="font-family-inter rounded-sm bg-[#2C3333]/5 px-3 py-1 text-xs text-[#2C3333]/80"
           >
             {endorsement}
           </span>
@@ -124,7 +124,7 @@ function TestimonialCard({
       </div>
       <div className="flex flex-col">
         <span className="text-sm font-semibold text-[#2C3333]">{project}</span>
-        <span className="font-family-inter text-xs text-[#2C3333]/40">
+        <span className="font-family-inter text-xs text-[#2C3333]/75">
           {period}
         </span>
       </div>
@@ -142,7 +142,7 @@ export default function Testimonials() {
     >
       {/* Header */}
       <div className="mb-12 flex flex-col items-center gap-4 px-4 text-center md:mb-16 md:px-10">
-        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/50 uppercase">
+        <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/75 uppercase">
           [ KIND WORDS ]
         </span>
         <h2 className="text-footer-background text-3xl leading-tight font-bold tracking-tight md:text-5xl lg:text-6xl">
@@ -151,7 +151,7 @@ export default function Testimonials() {
         {UPWORK_PROFILE_URL && (
           <TrackedLink
             href={UPWORK_PROFILE_URL}
-            className="font-family-inter text-sm text-[#2C3333]/60 underline underline-offset-4 transition-colors hover:text-[#2C3333]"
+            className="font-family-inter text-sm text-[#2C3333]/80 underline underline-offset-4 transition-colors hover:text-[#2C3333]"
             gaEvent={{
               event: GA_EVENTS.UPWORK_ON_TESTIMONIALS,
               value: 'Upwork',

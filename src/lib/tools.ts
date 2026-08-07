@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { AudioLines } from 'lucide-react';
+import { AudioLines, Captions } from 'lucide-react';
 
 export interface Tool {
   slug: string;
@@ -23,5 +23,18 @@ export const tools: Tool[] = [
     perks: ['100% private', 'No sign up', 'No watermark'],
     status: 'live',
     href: '/extract-audio',
+  },
+  {
+    slug: 'video-to-subtitles',
+    name: 'Video to Subtitles Generator',
+    tagline: 'Turn any video into timed subtitles.',
+    description:
+      'Drop in a clip and get timestamped SRT, VTT or JSON back, then correct the transcript in the browser. The speech model runs on your own device — nothing is uploaded.',
+    icon: Captions,
+    perks: ['100% private', 'No sign up', 'Editable transcript'],
+    // Registered only now that it is live, per D13: `tools/page.tsx` never filters
+    // on `status`, so a 'soon' entry would render as a card linking nowhere.
+    status: 'live',
+    href: '/video-to-subtitles',
   },
 ];

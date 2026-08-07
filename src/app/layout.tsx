@@ -15,13 +15,26 @@ import { SITE_URL } from '@/lib/constant';
 
 import './globals.css';
 
+/**
+ * Only the faces something actually renders.
+ *
+ * The 300 face was declared and preloaded on every route, and **nothing ever
+ * selected it** — there is no `font-light` anywhere in `src`. A declared face is a
+ * download whether or not an element picks it, so that was 15 KB of every cold visit
+ * spent on a weight the site never draws.
+ *
+ * The four utilities in use resolve to the three faces below: `font-normal` (400) and
+ * `font-medium` (500) to Regular and Medium, and both `font-semibold` (600) and
+ * `font-black` (900) to Bold, since CSS font matching walks to the nearest declared
+ * weight. Audit with:
+ *   grep -rhoE "font-(thin|extralight|light|normal|medium|semibold|bold|extrabold|black)" src | sort | uniq -c
+ *
+ * `display: 'swap'` is next/font's default and is stated anyway, so nobody removes it
+ * believing it changes nothing: without it the headline is invisible until the face
+ * arrives, which is the fold text this page is judged on.
+ */
 const neueMontreal = localFont({
   src: [
-    {
-      path: '../../public/fonts/NeueMontreal-Light.woff2',
-      weight: '300',
-      style: 'normal',
-    },
     {
       path: '../../public/fonts/NeueMontreal-Regular.woff2',
       weight: '400',
@@ -39,6 +52,7 @@ const neueMontreal = localFont({
     },
   ],
   variable: '--font-neue-montreal',
+  display: 'swap',
 });
 
 const instrumentSerif = Instrument_Serif({

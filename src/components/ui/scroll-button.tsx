@@ -14,13 +14,13 @@ export function ScrollButton() {
   return (
     <m.button
       onClick={handleScroll}
-      className="group border-footer-background hover:bg-footer-background/5 relative flex h-24 w-24 items-center justify-center rounded-full border-2 bg-transparent transition-all"
+      className="group border-footer-background hover:bg-footer-background/5 relative flex h-24 w-24 items-center justify-center rounded-sm border-2 bg-transparent transition-all"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
     >
       {/* Rotating border circle */}
       <m.div
-        className="border-t-footer-background absolute inset-0 rounded-full border-2 border-transparent"
+        className="border-t-footer-background absolute inset-0 rounded-sm border-2 border-transparent"
         animate={{
           rotate: 360,
         }}
@@ -33,7 +33,7 @@ export function ScrollButton() {
 
       {/* Second rotating circle for enhanced effect */}
       <m.div
-        className="border-b-footer-background absolute inset-2 rounded-full border-2 border-transparent"
+        className="border-b-footer-background absolute inset-2 rounded-sm border-2 border-transparent"
         animate={{
           rotate: -360,
         }}
@@ -64,7 +64,7 @@ export function ScrollButton() {
 
       {/* Pulsing background effect */}
       <m.div
-        className="bg-footer-background absolute inset-0 rounded-full opacity-0"
+        className="bg-footer-background absolute inset-0 rounded-sm opacity-0"
         animate={{
           scale: [1, 1.3, 1],
           opacity: [0, 0.1, 0],

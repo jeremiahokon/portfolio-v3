@@ -11,19 +11,19 @@ export default function Tools() {
       className="relative w-full px-4 py-16 md:px-10 md:py-20"
     >
       <div className="mx-auto max-w-6xl">
-        <div className="relative flex flex-col gap-8 overflow-hidden rounded-3xl border border-[#2C3333]/10 bg-[#2C3333]/[0.03] p-8 md:flex-row md:items-center md:justify-between md:p-10">
+        <div className="relative flex flex-col gap-8 overflow-hidden rounded-sm border border-[#2C3333]/10 bg-[#2C3333]/[0.03] p-8 md:flex-row md:items-center md:justify-between md:p-10">
           {/* Ambient glow */}
-          <div className="bg-sky/15 pointer-events-none absolute -top-1/3 -right-1/4 h-[300px] w-[300px] rounded-full blur-[110px]" />
+          <div className="bg-sky/15 pointer-events-none absolute -top-1/3 -right-1/4 h-[300px] w-[300px] rounded-sm blur-[110px]" />
 
           <div className="relative z-10 flex max-w-xl flex-col gap-4">
             <div className="flex items-center gap-3">
-              <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-xl">
+              <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-sm">
                 <AudioLines
-                  className="text-sky-deep h-5 w-5"
+                  className="text-sky-text h-5 w-5"
                   strokeWidth={1.5}
                 />
               </span>
-              <span className="font-family-inter bg-sky/15 text-sky-deep rounded-full px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
+              <span className="font-family-inter bg-sky/15 text-sky-text rounded-sm px-3 py-1 text-[10px] font-medium tracking-[0.15em] uppercase">
                 Free tools
               </span>
             </div>
@@ -36,9 +36,9 @@ export default function Tools() {
               .
             </h2>
 
-            <p className="font-family-inter text-ink/70 text-base leading-relaxed">
+            <p className="font-family-inter text-ink/85 text-base leading-relaxed">
               Like a Video{' '}
-              <em className="font-family-instrument text-sky-deep text-[1.2em] font-normal italic">
+              <em className="font-family-instrument text-sky-text text-[1.2em] font-normal italic">
                 to
               </em>{' '}
               Audio extractor that runs entirely in your browser. Nothing
@@ -55,7 +55,7 @@ export default function Tools() {
                 value: 'Open the audio extractor',
                 event_category: 'engagement',
               }}
-              className="from-sky to-sky-deep inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r px-7 py-3.5 text-sm font-black tracking-wide text-white uppercase shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_50px_rgba(123,182,221,0.4)]"
+              className="from-sky to-sky-deep inline-flex items-center justify-center gap-2 rounded-sm bg-gradient-to-r px-7 py-3.5 text-sm font-black tracking-wide text-white uppercase shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_50px_rgba(123,182,221,0.4)]"
             >
               Open the audio extractor
             </TrackedTransitionLink>
