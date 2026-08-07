@@ -34,6 +34,8 @@ export const GA_EVENTS = {
   UPWORK_STATS_ON_HERO: 'user_clicked_upwork_stats_on_hero',
   UPWORK_BADGE_ON_HERO: 'user_clicked_upwork_badge_on_hero',
   UPWORK_STAT_ON_STATS: 'user_clicked_upwork_stat_on_stats',
+  /** The "Live Products" stat, which jumps to the work section rather than Upwork. */
+  WORK_STAT_ON_STATS: 'user_clicked_work_stat_on_stats',
   UPWORK_ON_TESTIMONIALS: 'user_clicked_upwork_on_testimonials',
 
   // Social / content
