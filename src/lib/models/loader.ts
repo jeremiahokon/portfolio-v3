@@ -2,6 +2,8 @@ import { env } from '@huggingface/transformers';
 
 import type { Backend } from '@/workers/protocol';
 
+import { ORT_WASM_PATH } from './config';
+
 /**
  * transformers.js environment wiring, shared by every pipeline worker.
  *
@@ -81,9 +83,19 @@ export function configureEnv({
   env.cacheKey = cacheKey;
   env.useBrowserCache = isCacheAvailable();
 
-  // Pre-loads and caches the ORT WASM binary and its .mjs factory, which is
-  // most of the reason one would otherwise self-host them. Left on the CDN for
-  // now; revisit only if that proves flaky.
+  // Point ORT at the CDN explicitly. Without this the bundler resolves the
+  // binaries as build assets and ships 23.6 MB of them from our own origin — see
+  // ORT_WASM_PATH for the measurement and the version-pinning constraint.
+  //
+  // Assigned defensively: `backends.onnx.wasm` is optional in the installed
+  // types, so a runtime that has not populated it must not throw here.
+  const wasm = env.backends?.onnx?.wasm;
+  if (wasm) {
+    (wasm as { wasmPaths?: string }).wasmPaths = ORT_WASM_PATH;
+  }
+
+  // Pre-loads and caches the ORT WASM binary and its .mjs factory, so the CDN is
+  // hit once per revision rather than once per session.
   env.useWasmCache = isCacheAvailable();
 
   installQuotaTolerantCache();

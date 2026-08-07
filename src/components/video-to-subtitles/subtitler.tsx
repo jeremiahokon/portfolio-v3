@@ -6,6 +6,8 @@ import { sendGAEvent } from '@next/third-parties/google';
 import { AlertCircle } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
+import { TooltipProvider } from '@/components/ui/tooltip';
+
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { useReducedMotion } from '@/lib/hooks';
 import { ASR } from '@/lib/models/config';
@@ -76,94 +78,98 @@ export function Subtitler() {
 
   if (editing && snapshot.status === 'done') {
     return (
-      <TranscriptEditor
-        words={snapshot.words}
-        cues={snapshot.cues}
-        timingSource={snapshot.timingSource}
-        fileName={snapshot.fileName ?? 'transcript'}
-        duration={snapshot.duration ?? 0}
-        mediaUrl={mediaUrl}
-        draftKey={file ? draftKey(file, ASR.revision) : null}
-        // Both paths commit. "Back" means "return to the export view", not
-        // "discard an hour of corrections", and there is no other way out of the
-        // editor — so a discarding path here would be a trap rather than a choice.
-        onBack={(words, cues) => {
-          applyEdits(words, cues);
-          setEditing(false);
-        }}
-        onExport={(words, cues) => {
-          applyEdits(words, cues);
-          setEditing(false);
-        }}
-      />
+      <TooltipProvider>
+        <TranscriptEditor
+          words={snapshot.words}
+          cues={snapshot.cues}
+          timingSource={snapshot.timingSource}
+          fileName={snapshot.fileName ?? 'transcript'}
+          duration={snapshot.duration ?? 0}
+          mediaUrl={mediaUrl}
+          draftKey={file ? draftKey(file, ASR.revision) : null}
+          // Both paths commit. "Back" means "return to the export view", not
+          // "discard an hour of corrections", and there is no other way out of the
+          // editor — so a discarding path here would be a trap rather than a choice.
+          onBack={(words, cues) => {
+            applyEdits(words, cues);
+            setEditing(false);
+          }}
+          onExport={(words, cues) => {
+            applyEdits(words, cues);
+            setEditing(false);
+          }}
+        />
+      </TooltipProvider>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
-      <div className="relative overflow-hidden rounded-sm border border-white/60 bg-white/70 p-3 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md md:p-4">
-        <AnimatePresence mode="wait">
-          {showDropzone && (
-            <Dropzone
-              key="dropzone"
-              reduced={reduced}
-              isDragging={isDragging}
-              onBrowse={() => inputRef.current?.click()}
-              onDragOver={(event) => {
-                event.preventDefault();
-                setIsDragging(true);
-              }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={onDrop}
-            />
+    <TooltipProvider>
+      <div className="mx-auto w-full max-w-2xl">
+        <div className="relative overflow-hidden rounded-sm border border-white/60 bg-white/70 p-3 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md md:p-4">
+          <AnimatePresence mode="wait">
+            {showDropzone && (
+              <Dropzone
+                key="dropzone"
+                reduced={reduced}
+                isDragging={isDragging}
+                onBrowse={() => inputRef.current?.click()}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={onDrop}
+              />
+            )}
+
+            {busy && (
+              <ProgressPanel
+                key="progress"
+                reduced={reduced}
+                snapshot={snapshot}
+                onCancel={reset}
+              />
+            )}
+
+            {snapshot.status === 'done' && (
+              <ExportPanel
+                key="export"
+                reduced={reduced}
+                snapshot={snapshot}
+                onReset={reset}
+                onRefineTiming={() => void refineTiming()}
+                onEdit={() => setEditing(true)}
+              />
+            )}
+          </AnimatePresence>
+
+          <input
+            ref={inputRef}
+            type="file"
+            accept="video/*,audio/*"
+            onChange={onInputChange}
+            className="hidden"
+          />
+
+          {snapshot.error && (
+            <div
+              role="alert"
+              className="mt-3 flex items-start gap-2 rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-left"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+              <span className="font-family-inter text-sm text-red-700">
+                {snapshot.error.message}
+              </span>
+            </div>
           )}
+        </div>
 
-          {busy && (
-            <ProgressPanel
-              key="progress"
-              reduced={reduced}
-              snapshot={snapshot}
-              onCancel={reset}
-            />
-          )}
-
-          {snapshot.status === 'done' && (
-            <ExportPanel
-              key="export"
-              reduced={reduced}
-              snapshot={snapshot}
-              onReset={reset}
-              onRefineTiming={() => void refineTiming()}
-              onEdit={() => setEditing(true)}
-            />
-          )}
-        </AnimatePresence>
-
-        <input
-          ref={inputRef}
-          type="file"
-          accept="video/*,audio/*"
-          onChange={onInputChange}
-          className="hidden"
-        />
-
-        {snapshot.error && (
-          <div
-            role="alert"
-            className="mt-3 flex items-start gap-2 rounded-sm border border-red-200 bg-red-50 px-4 py-3 text-left"
-          >
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-            <span className="font-family-inter text-sm text-red-700">
-              {snapshot.error.message}
-            </span>
-          </div>
-        )}
+        <p className="font-family-inter text-ink/40 mt-4 text-center text-xs">
+          Everything runs locally in your browser. Your file is never uploaded
+          to a server.
+        </p>
       </div>
-
-      <p className="font-family-inter text-ink/40 mt-4 text-center text-xs">
-        Everything runs locally in your browser. Your file is never uploaded to
-        a server.
-      </p>
-    </div>
+    </TooltipProvider>
   );
 }

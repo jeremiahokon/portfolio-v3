@@ -10,7 +10,16 @@ import {
   useState,
 } from 'react';
 
-import { AlertTriangle, Pause, Play, Redo2, Replace, Undo2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Pause,
+  Play,
+  Redo2,
+  Replace,
+  Undo2,
+} from 'lucide-react';
+
+import { Tooltip } from '@/components/ui/tooltip';
 
 import type { QcIssue } from '@/lib/subtitles/qc';
 import type { Cue, Word } from '@/lib/subtitles/types';
@@ -86,11 +95,11 @@ const WordSpan = memo(function WordSpan({
         // still extends past the glyphs while the gap between words stays exactly
         // one space wide. Padding alone made the prose visibly loose once a real
         // space was added between spans.
-        'rounded-sm -mx-0.5 px-0.5 transition-colors',
-        playing ? 'bg-amber-200/80 text-ink' : '',
+        '-mx-0.5 rounded-sm px-0.5 transition-colors',
+        playing ? 'text-ink bg-amber-200/80' : '',
         !playing && word.edited ? 'text-emerald-700' : '',
         !playing && !word.edited && lowConfidence
-          ? 'decoration-amber-400/70 underline decoration-wavy underline-offset-4'
+          ? 'underline decoration-amber-400/70 decoration-wavy underline-offset-4'
           : '',
       ]
         .filter(Boolean)
@@ -158,16 +167,18 @@ const CueBlock = memo(function CueBlock({
     >
       <div className="flex items-start gap-3">
         {showTimes && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(cueIndex);
-            }}
-            className="font-family-inter text-ink/35 hover:text-ink/70 mt-0.5 shrink-0 text-[11px] tabular-nums"
-          >
-            {stamp(start)}
-          </button>
+          <Tooltip label="When this cue starts. Click to play the audio from here.">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(cueIndex);
+              }}
+              className="font-family-inter text-ink/35 hover:text-ink/70 mt-0.5 shrink-0 text-[11px] tabular-nums"
+            >
+              {stamp(start)}
+            </button>
+          </Tooltip>
         )}
 
         {editing ? (
@@ -214,18 +225,27 @@ const CueBlock = memo(function CueBlock({
         )}
 
         {issues && issues.length > 0 && !editing && (
-          <span
-            title={issues.map((i) => i.message).join('\n')}
-            className={[
-              'mt-0.5 flex shrink-0 items-center gap-1 rounded-sm px-2 py-0.5 text-[10px]',
-              hasError
-                ? 'bg-red-100 text-red-700'
-                : 'bg-amber-100 text-amber-800',
-            ].join(' ')}
+          <Tooltip
+            label={
+              <ul className="space-y-0.5">
+                {issues.map((issue) => (
+                  <li key={issue.kind}>{issue.message}</li>
+                ))}
+              </ul>
+            }
           >
-            <AlertTriangle className="h-3 w-3" />
-            {issues.length}
-          </span>
+            <span
+              className={[
+                'mt-0.5 flex shrink-0 cursor-help items-center gap-1 rounded-sm px-2 py-0.5 text-[10px]',
+                hasError
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-amber-100 text-amber-800',
+              ].join(' ')}
+            >
+              <AlertTriangle className="h-3 w-3" />
+              {issues.length}
+            </span>
+          </Tooltip>
         )}
       </div>
     </div>
@@ -380,76 +400,102 @@ export function TranscriptEditor(props: Props) {
       <div className="rounded-sm border border-white/60 bg-white/70 shadow-[0_20px_60px_-20px_rgba(44,51,51,0.25)] backdrop-blur-md">
         {/* Transport */}
         <div className="flex flex-wrap items-center gap-3 border-b border-black/5 px-4 py-3">
-          <button
-            type="button"
-            onClick={togglePlay}
-            aria-label={playing ? 'Pause' : 'Play'}
-            className="bg-ink flex h-9 w-9 items-center justify-center rounded-sm text-white"
-          >
-            {playing ? (
-              <Pause className="h-4 w-4" />
-            ) : (
-              <Play className="ml-0.5 h-4 w-4" />
-            )}
-          </button>
-
-          <span className="font-family-inter text-ink/50 text-xs tabular-nums">
-            {stamp(currentTime)} / {stamp(props.duration)}
-          </span>
-
-          <span className="font-family-inter text-ink/40 text-xs">{stats}</span>
-
-          {qc.clean ? (
-            <span className="rounded-sm bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
-              no issues
-            </span>
-          ) : (
+          <Tooltip label="Play or pause the audio. Space does the same from anywhere in the transcript.">
             <button
               type="button"
-              onClick={() => stepFlagged(1)}
-              className="rounded-sm bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
+              onClick={togglePlay}
+              aria-label={playing ? 'Pause' : 'Play'}
+              className="bg-ink flex h-9 w-9 items-center justify-center rounded-sm text-white"
             >
-              {qc.errors} errors · {qc.warnings} warnings — press Tab
+              {playing ? (
+                <Pause className="h-4 w-4" />
+              ) : (
+                <Play className="ml-0.5 h-4 w-4" />
+              )}
             </button>
+          </Tooltip>
+
+          <Tooltip label="Where the audio is now, and how long the file is.">
+            <span className="font-family-inter text-ink/50 cursor-help text-xs tabular-nums">
+              {stamp(currentTime)} / {stamp(props.duration)}
+            </span>
+          </Tooltip>
+
+          <Tooltip label="Cues are the subtitle blocks that get exported. Words are the timed units underneath them — editing a word's text never moves its timing.">
+            <span className="font-family-inter text-ink/40 cursor-help text-xs">
+              {stats}
+            </span>
+          </Tooltip>
+
+          {qc.clean ? (
+            <Tooltip label="Every cue is within the readability rules: under 42 characters a line, at most two lines, no overlaps, and a comfortable reading speed.">
+              <span className="cursor-help rounded-sm bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
+                no issues
+              </span>
+            </Tooltip>
+          ) : (
+            <Tooltip label="Errors are cues a player may refuse to render — overlapping, or too short to display. Warnings are legible but uncomfortable, usually reading too fast. Click, or press Tab, to jump to the next one.">
+              <button
+                type="button"
+                onClick={() => stepFlagged(1)}
+                className="rounded-sm bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
+              >
+                {qc.errors} errors · {qc.warnings} warnings — press Tab
+              </button>
+            </Tooltip>
           )}
 
           <div className="ml-auto flex items-center gap-1">
-            <button
-              type="button"
-              onClick={undoEdit}
-              disabled={!canUndo}
-              aria-label="Undo"
-              className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
+            <Tooltip label="Undo the last change (⌘Z). Fifty steps are kept.">
+              <button
+                type="button"
+                onClick={undoEdit}
+                disabled={!canUndo}
+                aria-label="Undo"
+                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
+              >
+                <Undo2 className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label="Redo (⇧⌘Z).">
+              <button
+                type="button"
+                onClick={redoEdit}
+                disabled={!canRedo}
+                aria-label="Redo"
+                className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
+              >
+                <Redo2 className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip label="Find and replace across the whole transcript (⌘F). The fastest way to fix a name the model got wrong everywhere at once.">
+              <button
+                type="button"
+                onClick={() => setFindOpen((v) => !v)}
+                aria-label="Find and replace"
+                className={[
+                  'rounded-sm p-2 hover:bg-black/5',
+                  findOpen ? 'text-ink bg-black/5' : 'text-ink/60',
+                ].join(' ')}
+              >
+                <Replace className="h-4 w-4" />
+              </button>
+            </Tooltip>
+            <Tooltip
+              label={
+                showTimes
+                  ? 'Switch to Read view: the transcript as prose, without timestamps, for reading and correcting quickly.'
+                  : 'Switch to Cue view: one row per subtitle block with its start time, for checking timing.'
+              }
             >
-              <Undo2 className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={redoEdit}
-              disabled={!canRedo}
-              aria-label="Redo"
-              className="text-ink/60 disabled:text-ink/20 rounded-sm p-2 hover:bg-black/5"
-            >
-              <Redo2 className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setFindOpen((v) => !v)}
-              aria-label="Find and replace"
-              className={[
-                'rounded-sm p-2 hover:bg-black/5',
-                findOpen ? 'text-ink bg-black/5' : 'text-ink/60',
-              ].join(' ')}
-            >
-              <Replace className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowTimes((v) => !v)}
-              className="font-family-inter text-ink/60 rounded-sm px-2 py-1 text-xs hover:bg-black/5"
-            >
-              {showTimes ? 'Read' : 'Cues'}
-            </button>
+              <button
+                type="button"
+                onClick={() => setShowTimes((v) => !v)}
+                className="font-family-inter text-ink/60 rounded-sm px-2 py-1 text-xs hover:bg-black/5"
+              >
+                {showTimes ? 'Read' : 'Cues'}
+              </button>
+            </Tooltip>
           </div>
         </div>
 
@@ -506,20 +552,24 @@ export function TranscriptEditor(props: Props) {
             issue · ⌘F to replace everywhere
           </p>
           <div className="ml-auto flex gap-2">
-            <button
-              type="button"
-              onClick={() => props.onBack(words, cues)}
-              className="font-family-inter text-ink/60 rounded-sm px-4 py-2 text-xs hover:bg-black/5"
-            >
-              Back
-            </button>
-            <button
-              type="button"
-              onClick={() => props.onExport(words, cues)}
-              className="bg-ink font-family-inter rounded-sm px-5 py-2 text-xs text-white"
-            >
-              Done — export
-            </button>
+            <Tooltip label="Return to the download options. Your edits are kept.">
+              <button
+                type="button"
+                onClick={() => props.onBack(words, cues)}
+                className="font-family-inter text-ink/60 rounded-sm px-4 py-2 text-xs hover:bg-black/5"
+              >
+                Back
+              </button>
+            </Tooltip>
+            <Tooltip label="Apply your edits and go to the download options — the exported file will match what you see here.">
+              <button
+                type="button"
+                onClick={() => props.onExport(words, cues)}
+                className="bg-ink font-family-inter rounded-sm px-5 py-2 text-xs text-white"
+              >
+                Done — export
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>

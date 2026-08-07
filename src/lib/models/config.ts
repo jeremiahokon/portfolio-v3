@@ -21,6 +21,34 @@
 export const MODEL_HOST = 'https://huggingface.co';
 
 /**
+ * ONNX Runtime's own WASM binaries, served from a CDN rather than from us.
+ *
+ * **This was believed to be true and was not.** `configureEnv` carried a comment
+ * saying the ORT binaries were "left on the CDN", but without `wasmPaths` set,
+ * Turbopack resolved them as bundler assets and emitted
+ * `ort-wasm-simd-threaded.asyncify.wasm` — **23.6 MB** — into `.next/static/media`.
+ * Every first-time user was pulling it from Vercel, which is exactly what the
+ * plan's "weights are never served from Vercel" rule exists to prevent. The rule
+ * was honoured for the model weights and quietly broken for the runtime.
+ *
+ * Verified rather than assumed: this version is a **prerelease** pulled in by
+ * transformers.js, so its presence on a CDN is not a given. The pinned files
+ * return 200 with `content-type: application/wasm`,
+ * `access-control-allow-origin: *` and `cache-control: max-age=31536000, immutable`.
+ *
+ * **The version must match the installed `onnxruntime-web` exactly.** `wasmPaths`
+ * supplies both the `.wasm` and its `.mjs` factory, so those two are consistent
+ * with each other by construction — but the main ORT JavaScript is bundled from
+ * `node_modules`, and a skew between that and the CDN glue would break session
+ * creation. `ort-version.test.ts` fails if the two drift, so bumping
+ * transformers.js cannot silently break this.
+ */
+export const ORT_VERSION = '1.26.0-dev.20260416-b7804b056c';
+
+/** Trailing slash is required — ORT concatenates the file name onto it. */
+export const ORT_WASM_PATH = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
+
+/**
  * Namespace for cached weights. **Bump on any manifest change** — a dtype
  * swap, a revision bump, an added file — or clients will serve stale weights
  * that no longer match what the code expects.

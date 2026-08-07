@@ -9,6 +9,7 @@ import { m } from 'motion/react';
 import { SuccessCheck } from '@/components/extract-audio/animated-icons';
 import { panelMotion } from '@/components/extract-audio/panel-motion';
 import { Button } from '@/components/ui/button';
+import { Tooltip } from '@/components/ui/tooltip';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { ALIGNER } from '@/lib/models/config';
@@ -28,6 +29,13 @@ interface ExportPanelProps {
   onRefineTiming: () => void;
   onEdit: () => void;
 }
+
+/** One line on what each format is actually for. */
+const FORMAT_HELP: Record<ExportFormat, string> = {
+  srt: 'The most widely supported subtitle file. Load it alongside your video in almost any player or editor.',
+  vtt: 'The web standard. Use it with an HTML <track> element, or where a platform asks for WebVTT.',
+  json: 'Every word with its own start, end and confidence. For piping into your own tooling rather than for a player.',
+};
 
 const FORMATS: Array<{ id: ExportFormat; label: string; hint: string }> = [
   { id: 'srt', label: 'SRT', hint: 'Works everywhere' },
@@ -99,48 +107,55 @@ export function ExportPanel({
         // The offer to fix it sits right next to the admission, with its cost
         // stated, so the trade is the user's to make rather than a surprise.
         <div className="border-ink/10 bg-ink/[0.03] flex w-full max-w-md flex-col items-center gap-3 rounded-sm border px-5 py-4">
-          <span className="font-family-inter text-ink/70 inline-flex items-center gap-2 text-xs">
-            <Clock3 className="text-sky-deep h-4 w-4" />
-            Timings are estimated to about a second
-          </span>
-          <button
-            type="button"
-            onClick={onRefineTiming}
-            className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
-          >
-            <Wand2 className="h-4 w-4" />
-            Improve timing accuracy
-            <span className="text-ink/40">
-              +{formatBytes(ALIGNER.approxBytes)} download
+          <Tooltip label="The speech model reports roughly one-second granularity, so each word's start is worked out by sharing its cue's span across the words in it. Good enough to caption with; not frame-accurate.">
+            <span className="font-family-inter text-ink/70 inline-flex cursor-help items-center gap-2 text-xs">
+              <Clock3 className="text-sky-deep h-4 w-4" />
+              Timings are estimated to about a second
             </span>
-          </button>
+          </Tooltip>
+          <Tooltip label="Downloads a second model that measures where each word actually starts and ends, instead of estimating. It runs on your device like the first one. Your transcript is kept exactly as it is if the upgrade fails.">
+            <button
+              type="button"
+              onClick={onRefineTiming}
+              className="border-sky-deep/40 text-sky-deep hover:bg-sky/10 font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
+            >
+              <Wand2 className="h-4 w-4" />
+              Improve timing accuracy
+              <span className="text-ink/40">
+                +{formatBytes(ALIGNER.approxBytes)} download
+              </span>
+            </button>
+          </Tooltip>
         </div>
       ) : (
-        <span className="font-family-inter inline-flex items-center gap-2 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
-          <Clock3 className="h-4 w-4" />
-          Word-level timing measured for{' '}
-          {snapshot.alignedWords.toLocaleString()} of{' '}
-          {wordCount.toLocaleString()} words
-        </span>
+        <Tooltip label="The remaining words kept their estimated timing, either because the audio did not clearly support a measurement or because the word cannot be measured at all — the aligner's vocabulary has no digits or symbols.">
+          <span className="font-family-inter inline-flex cursor-help items-center gap-2 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
+            <Clock3 className="h-4 w-4" />
+            Word-level timing measured for{' '}
+            {snapshot.alignedWords.toLocaleString()} of{' '}
+            {wordCount.toLocaleString()} words
+          </span>
+        </Tooltip>
       )}
 
       <div className="flex flex-wrap items-center justify-center gap-2">
         {FORMATS.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            onClick={() => setFormat(option.id)}
-            aria-pressed={format === option.id}
-            className={cn(
-              'font-family-inter rounded-sm border px-4 py-2 text-xs font-medium transition-all',
-              format === option.id
-                ? 'border-sky-deep bg-sky/15 text-sky-deep'
-                : 'border-ink/10 text-ink/60 hover:border-sky/40 hover:text-ink'
-            )}
-          >
-            {option.label}
-            <span className="text-ink/40 ml-2">{option.hint}</span>
-          </button>
+          <Tooltip key={option.id} label={FORMAT_HELP[option.id]}>
+            <button
+              type="button"
+              onClick={() => setFormat(option.id)}
+              aria-pressed={format === option.id}
+              className={cn(
+                'font-family-inter rounded-sm border px-4 py-2 text-xs font-medium transition-all',
+                format === option.id
+                  ? 'border-sky-deep bg-sky/15 text-sky-deep'
+                  : 'border-ink/10 text-ink/60 hover:border-sky/40 hover:text-ink'
+              )}
+            >
+              {option.label}
+              <span className="text-ink/40 ml-2">{option.hint}</span>
+            </button>
+          </Tooltip>
         ))}
       </div>
 
@@ -163,14 +178,16 @@ export function ExportPanel({
           Transcribe another
         </Button>
 
-        <button
-          type="button"
-          onClick={onEdit}
-          className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
-        >
-          <Pencil className="h-4 w-4" />
-          Edit transcript
-        </button>
+        <Tooltip label="Read the transcript alongside the audio and fix what the model misheard — names and acronyms especially. Correcting a word never moves its timing.">
+          <button
+            type="button"
+            onClick={onEdit}
+            className="border-ink/15 text-ink hover:bg-ink/[0.04] font-family-inter inline-flex items-center gap-2 rounded-sm border px-4 py-2 text-xs font-medium transition-all"
+          >
+            <Pencil className="h-4 w-4" />
+            Edit transcript
+          </button>
+        </Tooltip>
       </div>
     </m.div>
   );

@@ -209,6 +209,41 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+
+  /*
+   * Pointer cursor on anything clickable.
+   *
+   * Tailwind v4 changed the preflight so `button` gets `cursor: default` rather
+   * than the browser's `cursor: pointer`, which is why interactive elements across
+   * this codebase stopped feeling clickable. Fixed once here rather than by adding
+   * `cursor-pointer` to a hundred-odd call sites — a utility class on every button
+   * is a rule the next component will forget, whereas this cannot be forgotten.
+   *
+   * Disabled controls get `not-allowed` instead, because a pointer cursor on a
+   * button that will not respond is a worse lie than no affordance at all.
+   */
+  button,
+  summary,
+  label[for],
+  select,
+  [role='button'],
+  [role='tab'],
+  [role='option'],
+  input[type='checkbox'],
+  input[type='radio'],
+  input[type='range'],
+  input[type='file'],
+  input[type='submit'],
+  input[type='reset'] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  select:disabled,
+  input:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
 }
 
 /* House style for inline text links: accent color + persistent underline so
