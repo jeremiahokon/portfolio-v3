@@ -237,22 +237,50 @@ export default function Hero() {
                 {...enterNoFade(0)}
                 className="font-family-inter text-paper/70 text-xs font-medium tracking-[0.3em] uppercase md:text-sm"
               >
-                Jeremiah Okon — Frontend &amp; Full-Stack Developer
+                Jeremiah Okon — Full-Stack Product Engineer
                 <span className="text-paper/40 hidden sm:inline">
                   {' '}
                   · React · Next.js · Node.js
                 </span>
               </m.p>
+              {/* This headline used to read "Websites that load fast — and sell
+                  faster." It was well-written and it was selling the wrong thing.
+                  That line bids for a marketing site with a small budget, and the
+                  reader hits Dokita and DriPA — a five-dashboard telemedicine
+                  platform and a fleet analytics product in production — about one
+                  scroll later. The headline was pricing the work three tiers below
+                  the portfolio directly underneath it.
+
+                  The replacement claims the complicated build on purpose, and every
+                  number in the subhead is checkable without leaving the page: the
+                  platforms are in the work section, the rating and review count are
+                  in the trust strip and the testimonials. "Fast websites that
+                  convert" survives as a service line further down, where it is a
+                  capability rather than a ceiling.
+
+                  Kept deliberately short. The first draft ran 14 words over three
+                  lines with a four-line subhead under it, and a hero that has to be
+                  *read* has already lost — the reader is scanning, not reading, and
+                  a long headline set large reads as a paragraph they can skip. Two
+                  lines, one clause each: the offer, then the payoff. The detail that
+                  got cut is not lost, it is in the subhead and the work section. */}
               <m.h1
                 {...enterNoFade(0)}
-                className="text-paper text-[clamp(3.25rem,8.5vw,9.5rem)] leading-[0.95] font-bold tracking-tighter"
+                className="text-paper text-[clamp(2.5rem,5.4vw,5rem)] leading-[1.02] font-bold tracking-tighter"
               >
-                Websites that load{' '}
+                Give me a messy problem. I&apos;ll ship the{' '}
                 <em className="font-family-instrument text-sky font-normal italic">
-                  fast
+                  product
                 </em>{' '}
-                — and sell faster.
+                that fixes it.
               </m.h1>
+              <m.p
+                {...enter(0.1)}
+                className="font-family-inter text-paper/75 max-w-xl text-base leading-relaxed md:text-lg"
+              >
+                Full-stack engineer, 4+ years. Telemedicine platforms, fleet
+                analytics, multi-role permission systems — live in production.
+              </m.p>
             </div>
 
             {/* Trust strip */}
@@ -283,16 +311,6 @@ export default function Hero() {
                 ·
               </span>
               <span>6 client reviews</span>
-              <span aria-hidden="true" className="text-paper/30">
-                ·
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-sm bg-[#14A800] opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-sm bg-[#14A800]" />
-                </span>
-                Available now
-              </span>
             </m.a>
 
             {/* CTAs — visible fast; a 6-second visitor must see these */}

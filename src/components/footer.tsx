@@ -15,6 +15,7 @@ import {
   INSTAGRAM_URL,
   LINKEDIN_URL,
   TIKTOK_URL,
+  X_URL,
   YOUTUBE_CHANNEL_URL,
 } from '@/lib/constant';
 
@@ -70,6 +71,10 @@ export default function Footer() {
     { name: 'Linkedin', url: LINKEDIN_URL },
     { name: 'Github', url: GITHUB_URL },
     { name: 'Youtube', url: YOUTUBE_CHANNEL_URL },
+    // X was missing entirely — the account existed but nothing on the site pointed
+    // at it, so it could never accumulate the cross-links that tie the profiles
+    // together.
+    { name: 'X', url: X_URL },
     { name: 'Tiktok', url: TIKTOK_URL },
     { name: 'Instagram', url: INSTAGRAM_URL },
     { name: 'Facebook', url: FACEBOOK_URL },
@@ -88,8 +93,8 @@ export default function Footer() {
           initial="hidden"
           animate={isInView ? 'visible' : 'hidden'}
         >
-          Let&apos;s Create{' '}
-          <span className="font-family-instrument italic">Magic!</span>
+          Let&apos;s build the{' '}
+          <span className="font-family-instrument italic">hard part.</span>
         </m.span>
 
         {/* CTA Button */}

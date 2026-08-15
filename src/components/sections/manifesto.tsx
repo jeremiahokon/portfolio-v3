@@ -17,16 +17,22 @@ interface Segment {
 // house headline pattern.
 const segments: Segment[] = [
   { text: "I'm Jeremiah — a " },
-  { text: 'frontend engineer gone full-stack', accent: true },
+  { text: 'full-stack product engineer', accent: true },
   { text: ". For 4+ years I've shipped " },
-  { text: 'React and Next.js', accent: true },
+  { text: 'React, Next.js and Node.js', accent: true },
   { text: ' products that clients actually profit from. I think in ' },
   { text: 'systems — and in revenue', accent: true },
   {
-    text: ' — owning every detail from first pixel to deployment. I build in public and sharpen sales and marketing daily, ',
+    text: ' — owning every detail from first pixel to deployment. On Dokita I built five role-based dashboards over one clinical platform: patients, doctors, pharmacy, admin, ',
   },
-  { text: "so you know exactly who you're hiring.", accent: true },
+  { text: 'each seeing only what it should.', accent: true },
 ];
+// The line that used to close this paragraph was "I build in public and sharpen
+// sales and marketing daily, so you know exactly who you're hiring." It was the
+// weakest sentence on the page: it asks a client to hire someone who is practising
+// marketing, and it is unfalsifiable — there is nothing in it a reader can check.
+// The replacement is one specific, verifiable thing I actually built, which does
+// the same job (you know who you're hiring) using evidence instead of assertion.
 
 interface Word {
   text: string;
