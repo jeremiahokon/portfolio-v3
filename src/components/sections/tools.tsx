@@ -20,7 +20,12 @@ export default function Tools() {
       className="relative w-full px-4 py-16 md:px-10 md:py-20"
     >
       <div className="mx-auto max-w-6xl">
-        <div className="relative flex flex-col gap-8 overflow-hidden rounded-sm border border-[#2C3333]/10 bg-[#2C3333]/[0.03] p-8 md:p-10">
+        {/* 1rem on mobile, not 2. This banner nests a padded card inside a padded
+            card inside the section's own px-4 gutter, and at p-8 the three stacked
+            up to ~72px of chrome on each side of a 390px screen — the tool cards
+            were left about half the viewport wide. The padding only needs to be
+            generous once the layout goes side-by-side. */}
+        <div className="relative flex flex-col gap-8 overflow-hidden rounded-sm border border-[#2C3333]/10 bg-[#2C3333]/[0.03] p-4 md:p-10">
           {/* Ambient glow */}
           <div className="bg-sky/15 pointer-events-none absolute -top-1/3 -right-1/4 h-[300px] w-[300px] rounded-sm blur-[110px]" />
 
@@ -51,7 +56,7 @@ export default function Tools() {
               return (
                 <div
                   key={tool.slug}
-                  className="flex flex-col gap-4 rounded-sm border border-[#2C3333]/10 bg-white/60 p-6"
+                  className="flex flex-col gap-4 rounded-sm border border-[#2C3333]/10 bg-white/60 p-4 md:p-6"
                 >
                   <span className="bg-sky/15 flex h-11 w-11 items-center justify-center rounded-sm">
                     <Icon className="text-sky-text h-5 w-5" strokeWidth={1.5} />
