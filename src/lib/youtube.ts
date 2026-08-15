@@ -31,13 +31,103 @@ interface YouTubeVideoItem {
   };
 }
 
+// The grid is sorted into categories, not filtered down to one.
+//
+// The problem it solves: rendering the six newest Shorts meant a prospective client
+// scrolled past six testimonials — one calling me a senior frontend developer — and
+// landed on "Coding is Not a Skill Anymore!" and "Don't Underestimate your
+// Competition!". Those are aimed at developers who are learning, which is a real
+// audience and a fine thing to make videos for; it is just not the audience deciding
+// whether to pay me, and senior proof sitting directly above junior content reads as
+// the junior version being the true one.
+//
+// Filtering them off the page fixed that and threw away most of the channel. Sorting
+// them fixes it without hiding anything: a client lands on Products and never has to
+// see the pep talks, someone who came from a motivational Short can still find its
+// siblings, and every video keeps its VideoObject markup in the page. The tab order
+// below is the priority order — Products first, because that tab is the default.
+export type VideoCategory = 'products' | 'tools' | 'opinions';
+
+export const VIDEO_CATEGORIES: {
+  id: VideoCategory;
+  label: string;
+  blurb: string;
+}[] = [
+  {
+    id: 'products',
+    label: 'Products',
+    blurb: 'Real platforms I built, walked through end to end.',
+  },
+  {
+    id: 'tools',
+    label: 'Free tools',
+    blurb: 'The tools on this site, and how they work.',
+  },
+  {
+    id: 'opinions',
+    label: 'Opinions',
+    blurb: 'What I think about building, shipping and starting.',
+  },
+];
+
+// Explicit id → category. Titles are too unreliable to classify on ("Dokita Product
+// Demo" and "Coding is Not a Skill Anymore!" share no pattern worth regexing), and a
+// wrong guess here puts a pep talk on the Products tab, which is the exact failure
+// this whole section is meant to prevent. Anything unlisted falls to DEFAULT_CATEGORY.
+const VIDEO_CATEGORY_BY_ID: Record<string, VideoCategory> = {
+  l7N5K_BUiMc: 'products', // Product Demo (Patient Journey) — Dokita
+  '-0kmwpvGJVc': 'products', // Dokita Product Demo
+  cPlMLAKCJeg: 'tools', // Extract audio — free, client-side
+  // Titled with a bare URL, but it is a personal/brand talk, not a walkthrough of
+  // anything. Filed under products at first on the strength of the title alone,
+  // which is exactly the mistake the id map exists to prevent.
+  CuOJ4VC9RkY: 'opinions',
+  Hn4ZPBhCKpk: 'opinions', // Before you Judge, Try it!
+  AOH6HErQQK4: 'opinions', // Don't Underestimate your Competition!
+  'he-uobSPSzY': 'opinions', // Coding is Not a Skill Anymore!
+  '2xFkMccBZo0': 'opinions', // Keep Going at It!
+  UTmr9NrpPUk: 'opinions', // Overcome Shyness and Speak with Confidence
+  QWuZ9gC0B94: 'opinions', // Anthropic Claude Corps Program
+};
+
+// A new upload lands here until it is classified above. 'opinions' rather than
+// 'products' on purpose: an unclassified video showing up under Opinions is untidy,
+// whereas one showing up under Products is a false claim about my work.
+const DEFAULT_CATEGORY: VideoCategory = 'opinions';
+
+// Already rendered on its own, above this section, by youtube-video.tsx. Without
+// this it appears twice on the page.
+const FEATURE_VIDEO_ID = 'tN3F0NwmBc8';
+
+export function categoryOf(videoId: string): VideoCategory {
+  return VIDEO_CATEGORY_BY_ID[videoId] ?? DEFAULT_CATEGORY;
+}
+
 // Stats only need to be roughly fresh — 6h keeps the page effectively
 // static and the quota cost negligible (2 units per revalidation).
 const REVALIDATE_SECONDS = 21600;
-const MAX_SHORTS = 6;
+// Per category, not per page — six cards is what the grid shows well, and each tab
+// is its own grid.
+const MAX_SHORTS_PER_CATEGORY = 6;
 // Anything longer is treated as a regular video (e.g. the 16:9 intro), not a Short.
 const MAX_SHORT_DURATION_SECONDS = 210;
-const PLAYLIST_FETCH_COUNT = 15;
+// 50 is the API maximum for both playlistItems and the videos lookup. It was 15,
+// which was fine when the grid was "the newest six" but starves the quieter tabs now
+// that the videos are split three ways.
+const PLAYLIST_FETCH_COUNT = 50;
+
+/**
+ * Splits videos into the tab order above, newest first within each tab, capped per
+ * tab. Empty categories are dropped so the UI never renders a tab onto a blank grid.
+ */
+export function groupByCategory<T extends { id: string }>(videos: T[]) {
+  return VIDEO_CATEGORIES.map((category) => ({
+    ...category,
+    videos: videos
+      .filter((video) => categoryOf(video.id) === category.id)
+      .slice(0, MAX_SHORTS_PER_CATEGORY),
+  })).filter((category) => category.videos.length > 0);
+}
 
 // A channel's uploads playlist id is its channel id with the 'UC' prefix
 // swapped for 'UU'.
@@ -114,10 +204,10 @@ export async function getShortsData(): Promise<ShortVideoData[] | null> {
       .filter(
         (video) =>
           video.durationSeconds !== null &&
-          video.durationSeconds <= MAX_SHORT_DURATION_SECONDS
+          video.durationSeconds <= MAX_SHORT_DURATION_SECONDS &&
+          video.id !== FEATURE_VIDEO_ID
       )
       .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
-      .slice(0, MAX_SHORTS)
       .map((video) => ({
         id: video.id,
         title: video.title,
@@ -127,6 +217,8 @@ export async function getShortsData(): Promise<ShortVideoData[] | null> {
         description: video.description,
       }));
 
+    // Returned whole and newest-first; the split into tabs happens at render, so
+    // page.tsx can still emit VideoObject markup for every video on the page.
     return shorts.length > 0 ? shorts : null;
   } catch {
     return null;

@@ -1,10 +1,17 @@
 {
-  "generatedAt": "2026-08-03T00:21:35.940Z",
+  "generatedAt": "2026-08-15T12:11:58.353Z",
   "videos": [
+    {
+      "id": "l7N5K_BUiMc",
+      "title": "Product Demo (Patient Journey) - Dokita Telemedicine Platform",
+      "viewCount": 12,
+      "thumbnailUrl": "https://i.ytimg.com/vi/l7N5K_BUiMc/maxresdefault.jpg",
+      "publishedAt": "2026-08-11T12:01:06Z"
+    },
     {
       "id": "-0kmwpvGJVc",
       "title": "Dokita Product Demo",
-      "viewCount": 4,
+      "viewCount": 8,
       "thumbnailUrl": "https://i.ytimg.com/vi/-0kmwpvGJVc/maxresdefault.jpg",
       "publishedAt": "2026-07-24T16:27:47Z",
       "description": "Telemedicine Platfrom Walkthrough - https://dokita-website.vercel.app/"
@@ -12,7 +19,7 @@
     {
       "id": "cPlMLAKCJeg",
       "title": "Extract audio from any video for free, no signup, no watermark, and no upload.",
-      "viewCount": 13,
+      "viewCount": 16,
       "thumbnailUrl": "https://i.ytimg.com/vi/cPlMLAKCJeg/maxresdefault.jpg",
       "publishedAt": "2026-07-23T11:30:15Z",
       "description": "No sign-up, no paywall, no watermark. And because it runs right in your browser, you're not wasting data uploading and downloading your video to some random server — it all happens on your device. Drop in a clip, get your MP3, done. 🎧\n\nWhat's a tool you use that's stuck behind a paywall for no reason? Tell me below — I might build the next one."
@@ -20,7 +27,7 @@
     {
       "id": "Hn4ZPBhCKpk",
       "title": "Before you Judge, Try it!",
-      "viewCount": 28,
+      "viewCount": 29,
       "thumbnailUrl": "https://i.ytimg.com/vi/Hn4ZPBhCKpk/maxresdefault.jpg",
       "publishedAt": "2026-07-14T07:15:49Z"
     },
@@ -41,9 +48,30 @@
     {
       "id": "2xFkMccBZo0",
       "title": "Keep Going at It!",
-      "viewCount": 6,
+      "viewCount": 7,
       "thumbnailUrl": "https://i.ytimg.com/vi/2xFkMccBZo0/maxresdefault.jpg",
       "publishedAt": "2026-06-26T14:41:43Z"
+    },
+    {
+      "id": "UTmr9NrpPUk",
+      "title": "Overcome Shyness and Speak with Confidence",
+      "viewCount": 2,
+      "thumbnailUrl": "https://i.ytimg.com/vi/UTmr9NrpPUk/maxresdefault.jpg",
+      "publishedAt": "2026-06-26T14:35:14Z"
+    },
+    {
+      "id": "QWuZ9gC0B94",
+      "title": "Anthropic Claude Corps Program",
+      "viewCount": 4,
+      "thumbnailUrl": "https://i.ytimg.com/vi/QWuZ9gC0B94/maxresdefault.jpg",
+      "publishedAt": "2026-06-26T14:28:23Z"
+    },
+    {
+      "id": "CuOJ4VC9RkY",
+      "title": "https://www.jeremiahokon.online/",
+      "viewCount": 18,
+      "thumbnailUrl": "https://i.ytimg.com/vi/CuOJ4VC9RkY/maxresdefault.jpg",
+      "publishedAt": "2026-04-27T15:29:08Z"
     }
   ]
 }

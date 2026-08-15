@@ -14,9 +14,13 @@ import { fileURLToPath } from 'node:url';
 
 const CHANNEL_ID = 'UCcmp0d3tTWEbIJkMNVvG9pw';
 const UPLOADS_PLAYLIST_ID = 'UU' + CHANNEL_ID.slice(2);
-const MAX_SHORTS = 6;
 const MAX_SHORT_DURATION_SECONDS = 210;
-const PLAYLIST_FETCH_COUNT = 15;
+const PLAYLIST_FETCH_COUNT = 50;
+// Mirrors FEATURE_VIDEO_ID in src/lib/youtube.ts — a plain .mjs script cannot import
+// the .ts module, so it lives in both places. Change both together. The snapshot is
+// deliberately NOT categorised or capped here: the split into tabs happens at render,
+// so the fallback should hold everything the tabs might need.
+const FEATURE_VIDEO_ID = 'tN3F0NwmBc8';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const snapshotPath = path.join(repoRoot, 'src', 'lib', 'shorts-fallback.json');
@@ -65,7 +69,7 @@ async function fetchLatestShorts(key) {
   if (!videosRes.ok) throw new Error(`videos HTTP ${videosRes.status}`);
   const videosJson = await videosRes.json();
 
-  return (videosJson.items ?? [])
+  const filtered = (videosJson.items ?? [])
     .map((item) => {
       const thumbnails = item.snippet?.thumbnails ?? {};
       const best = thumbnails.maxres ?? thumbnails.standard ?? thumbnails.high;
@@ -84,10 +88,12 @@ async function fetchLatestShorts(key) {
     .filter(
       (video) =>
         video.durationSeconds !== null &&
-        video.durationSeconds <= MAX_SHORT_DURATION_SECONDS
+        video.durationSeconds <= MAX_SHORT_DURATION_SECONDS &&
+        video.id !== FEATURE_VIDEO_ID
     )
-    .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''))
-    .slice(0, MAX_SHORTS)
+    .sort((a, b) => (b.publishedAt ?? '').localeCompare(a.publishedAt ?? ''));
+
+  return filtered
     .map((video) => ({
       id: video.id,
       title: video.title,
