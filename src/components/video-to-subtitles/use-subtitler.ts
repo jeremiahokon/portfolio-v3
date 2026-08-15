@@ -8,7 +8,11 @@ import {
   useSyncExternalStore,
 } from 'react';
 
-import { getEngine, subscribeEngine } from '@/lib/ffmpeg/engine';
+import {
+  getEngine,
+  subscribeEngine,
+  terminateEngine,
+} from '@/lib/ffmpeg/engine';
 import {
   type DecodedAudio,
   decodeToPcm,
@@ -16,6 +20,7 @@ import {
   NoAudioTrackError,
 } from '@/lib/media/decode-pcm';
 import { describeMp3Failure, extractMp3 } from '@/lib/media/extract-mp3';
+import { selectBackend } from '@/lib/models/backend';
 import { currentBackendOverride } from '@/lib/models/backend-override';
 import { assess, probeDevice } from '@/lib/models/capability';
 import {
@@ -52,7 +57,11 @@ import {
   repairImpossibleSpans,
 } from '@/lib/subtitles/degenerate';
 import { dropHallucinations, rmsProbe } from '@/lib/subtitles/hallucination';
-import { draftKey } from '@/lib/subtitles/persist';
+import {
+  clearJobInFlight,
+  draftKey,
+  markJobInFlight,
+} from '@/lib/subtitles/persist';
 import { type ChunkResult, stitch } from '@/lib/subtitles/stitch';
 import { createJobStore } from '@/lib/subtitles/store';
 import type { AlignedWord, Cue, ErrorCode, Word } from '@/lib/subtitles/types';
@@ -216,9 +225,29 @@ export function useSubtitler() {
 
       const fail = (code: ErrorCode, message: string) => {
         if (isStale()) return;
+        // A handled failure is not a crash, and the notice on next load must not
+        // claim it was one.
+        clearJobInFlight();
         store.set({ status: 'error', error: { code, message } });
         teardown();
       };
+
+      // Read once per job rather than per stage, so a mid-job URL change cannot
+      // switch backends between chunks.
+      const override = currentBackendOverride();
+      // Resolved once here rather than again inside each worker. The workers
+      // used to probe for a WebGPU adapter themselves, which meant asking the
+      // same question twice per job and leaving the main thread unable to say
+      // which path it was on. `ModelInit.device` exists to carry a resolved
+      // answer; what it must never carry is a hardcoded one.
+      const backend = override ?? (await selectBackend());
+
+      // `?decoder=int8` etc., for the D17 measurement. Same read-once discipline:
+      // two dtypes inside one transcript would make the result meaningless.
+      const decoder = currentDecoderOverride();
+      const dtype = decoder
+        ? { ...ASR.dtype, decoder_model_merged: decoder }
+        : ASR.dtype;
 
       store.set({
         status: 'decoding',
@@ -231,16 +260,6 @@ export function useSubtitler() {
       const recordDownload = (fileName: string, loaded: number) => {
         store.recordDownload(fileName, loaded, 0);
       };
-
-      // Read once per job rather than per stage, so a mid-job URL change cannot
-      // switch backends between chunks.
-      const override = currentBackendOverride();
-      // `?decoder=int8` etc., for the D17 measurement. Same read-once discipline:
-      // two dtypes inside one transcript would make the result meaningless.
-      const decoder = currentDecoderOverride();
-      const asrDtype = decoder
-        ? { ...ASR.dtype, decoder_model_merged: decoder }
-        : ASR.dtype;
 
       sourceRef.current = file;
 
@@ -269,7 +288,21 @@ export function useSubtitler() {
         }
         if (isStale()) return;
 
+        // The 32 MB ffmpeg core and its worker have done their job, and nothing
+        // downstream touches them — the PCM is already a plain Float32Array. On
+        // Chrome this is tidiness; on Safari it is 32 MB of headroom at exactly
+        // the moment the tab was dying, since the model download used to begin
+        // with the core still resident. `getEngine()` rebuilds on demand if the
+        // user starts another file.
+        terminateEngine();
+
         store.set({ duration: decoded.duration });
+
+        // From here the job holds enough memory that the tab can be killed
+        // outright rather than throwing. If that happens the page reloads and
+        // this marker is the only evidence it was ever running — see
+        // `markJobInFlight`.
+        markJobInFlight({ fileName: file.name, duration: decoded.duration });
 
         // ---- Voice activity detection --------------------------------------
         store.set({ status: 'loading-model', stage: 'vad', stageProgress: 0 });
@@ -385,11 +418,13 @@ export function useSubtitler() {
             model: {
               id: ASR.id,
               revision: ASR.revision,
-              dtype: asrDtype,
-              // Omitted unless explicitly overridden, so the worker resolves it
-              // by actually requesting a WebGPU adapter. Hardcoding 'webgpu'
-              // here would hand a device to browsers that cannot provide one.
-              ...(override ? { device: override } : {}),
+              dtype,
+              // A *resolved* backend, not a hardcoded one — see `backend`
+              // above. Hardcoding `'webgpu'` would hand a device to browsers
+              // that cannot provide one; resolving it on the main thread and
+              // passing it down is what lets the UI name the path it is on
+              // before the worker has loaded anything.
+              device: backend,
             },
           },
           'ready'
@@ -532,6 +567,7 @@ export function useSubtitler() {
         // its stage is over; `reset` drops it.
         decodedRef.current = decoded;
 
+        clearJobInFlight();
         store.set({
           status: 'done',
           stage: 'done',
@@ -763,6 +799,8 @@ export function useSubtitler() {
         client.send({ t: 'cancel', jobId });
       }
     }
+    // A deliberate stop is not a crash.
+    clearJobInFlight();
     teardown();
     store.reset();
   }, [store, teardown]);

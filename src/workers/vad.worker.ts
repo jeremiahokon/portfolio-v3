@@ -29,6 +29,28 @@ import { type FromWorker, isToWorker, type ToWorker } from './protocol';
  *
  * The model is a stateful RNN, so `state` is threaded from each call into the
  * next rather than being a fresh zero tensor per frame.
+ *
+ * **The 404 in the network tab is this, and it is harmless.** Loading the VAD
+ * emits one failing request:
+ *
+ * ```
+ * huggingface.co/onnx-community/silero-vad/resolve/<sha>/config.json  404
+ * ```
+ *
+ * It is *not* the config load — that is short-circuited by the object passed
+ * below, and was traced through `PretrainedConfig.from_pretrained`
+ * (`const data = config ?? await loadConfig(...)`) to confirm it. It comes from
+ * `get_model_files`, which transformers.js 4.2.0 runs **only when a
+ * `progress_callback` is supplied**, to size the download bar. That function
+ * opens with a hardcoded `const files = ["config.json"]` — commented "always
+ * loaded" — and then probes each entry for metadata. For a repository that has
+ * no `config.json`, the probe 404s and is discarded.
+ *
+ * Deliberately not worked around. The only lever is dropping the
+ * `progress_callback`, which would silence one ignored request at the cost of
+ * leaving 2.2 MB out of the download total the UI promises — a progress bar
+ * that lies is worse than a console entry that changes nothing. The cost of
+ * this 404 is that it looks alarming, so the fix is to say what it is here.
  */
 
 /** Silero v5 consumes exactly 512 samples per frame at 16 kHz. Not tunable. */

@@ -30,6 +30,12 @@
  *
  * Anything unrecognised is ignored, so a typo falls back to the shipped default
  * instead of requesting a file that does not exist.
+ *
+ * **`int8` is downloadable but not loadable on the WASM backend.** Measured, not
+ * assumed: the weights fetch and then ORT 1.26-dev refuses to build the session
+ * with `TransposeDQWeightsForMatMulNBits Missing required scale`. It is left in
+ * the list because reproducing that failure in one URL is the point of this
+ * file, but it cannot be the shipped default — see the table in `config.ts`.
  */
 
 /** Decoder dtypes confirmed present at `ASR.revision` by HTTP HEAD. */

@@ -140,6 +140,84 @@ export async function deleteDraft(key: string): Promise<void> {
  * A tool that quietly accumulates megabytes of other people's meeting transcripts
  * in browser storage is a tool that deserves the complaint it will get.
  */
+/**
+ * Marks that a transcription is in flight, so a crash can be told from a visit.
+ *
+ * When Safari runs out of memory it kills the tab and reloads it. From the
+ * user's side that is indistinguishable from arriving fresh — the page comes
+ * back at step one with no error and no explanation, and they watch it happen
+ * again. That is the whole of the reported symptom: not that it failed, but that
+ * it failed *silently*, on a loop.
+ *
+ * `sessionStorage`, not IndexedDB: this must be readable synchronously on mount,
+ * before anything renders, and it must not outlive the tab. A marker that
+ * survived into a genuinely new session would accuse a working browser of a
+ * crash that never happened. Writes are wrapped because Safari's private mode
+ * throws on `setItem` rather than failing quietly — and a diagnostic aid must
+ * never be the thing that breaks the tool.
+ */
+const IN_FLIGHT_KEY = 'subtitles-job-in-flight';
+
+export interface InFlightJob {
+  fileName: string;
+  /** Audio duration in seconds, so the notice can be specific. */
+  duration: number;
+}
+
+export function markJobInFlight(job: InFlightJob): void {
+  try {
+    globalThis.sessionStorage?.setItem(IN_FLIGHT_KEY, JSON.stringify(job));
+  } catch {
+    // Storage disabled. The job still runs; only the post-crash notice is lost.
+  }
+}
+
+/** Called on success *and* on any handled failure — both mean "not a crash". */
+export function clearJobInFlight(): void {
+  try {
+    globalThis.sessionStorage?.removeItem(IN_FLIGHT_KEY);
+  } catch {
+    // Nothing to do; a stale marker costs one dismissable notice.
+  }
+}
+
+/**
+ * Reads the marker without consuming it.
+ *
+ * **Read-only on purpose.** The obvious shape here is read-and-clear, so the
+ * notice shows once — and it is wrong, because the caller is a React effect and
+ * StrictMode runs effects twice on mount in development. The first pass would
+ * consume the marker and the second would read `null` and render nothing, which
+ * is exactly the silence this whole mechanism exists to remove. Anything that
+ * can run twice must be safe to run twice.
+ *
+ * Clearing is therefore the job of `clearJobInFlight`, called when a new job
+ * starts. Until then the notice survives repeated reloads, which is also the
+ * honest behaviour: nothing has changed, so the explanation still applies. It
+ * dies with the tab regardless, because this is `sessionStorage`.
+ */
+export function peekInterruptedJob(): InFlightJob | null {
+  let raw: string | null = null;
+  try {
+    raw = globalThis.sessionStorage?.getItem(IN_FLIGHT_KEY) ?? null;
+  } catch {
+    return null;
+  }
+  if (raw === null) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<InFlightJob>;
+    if (typeof parsed.fileName !== 'string') return null;
+
+    return {
+      fileName: parsed.fileName,
+      duration: typeof parsed.duration === 'number' ? parsed.duration : 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function pruneDrafts(now: number = Date.now()): Promise<number> {
   const db = await open();
   if (!db) return 0;

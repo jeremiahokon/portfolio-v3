@@ -59,6 +59,22 @@ export interface ModelSpec {
   id: string;
   revision: string;
   approxBytes: number;
+  /**
+   * How many `.onnx` weight files a complete download leaves in the cache.
+   *
+   * The cache manager needs a per-model answer, and this is the only honest
+   * one. It previously assumed every model caches "weights plus a tokenizer and
+   * configs" and tested for three or more files of any kind — which is true of
+   * Whisper and wav2vec2 and **false of Silero**, a single-file model with no
+   * `config.json` and no tokenizer at all (see `vad.worker.ts`). The VAD
+   * therefore reported "incomplete" on a perfectly healthy cache, forever.
+   *
+   * Counting `.onnx` entries rather than all entries is also the more robust
+   * test: Cache API writes are atomic, so a weight file is either wholly present
+   * or absent, and which *JSON* sidecars transformers.js chooses to fetch is an
+   * internal detail that has changed between versions.
+   */
+  weightFiles: number;
 }
 
 /**
@@ -103,6 +119,42 @@ export interface ModelSpec {
  *
  * The merged decoder reuses the KV cache; the unmerged pair would cost
  * 123.4 MB + 121.3 MB instead of one 123.6 MB file.
+ *
+ * **The int8 decoder is not available on the WASM backend, and that was tried.**
+ * The obvious lever for Safari's memory ceiling is the decoder: `q4` is
+ * 123.6 MB, the largest of the quantized variants, while
+ * `decoder_model_merged_int8` is 53.7 MB. Switching it on the WASM path would
+ * have taken stage one from ~151 MB to ~81 MB.
+ *
+ * It does not load. The weights download fine and then ORT 1.26-dev fails to
+ * create the session outright, on Chromium's WASM backend, before Safari is even
+ * in the picture:
+ *
+ * ```
+ * Can't create a session. ERROR_CODE: 1,
+ * qdq_actions.cc:137 TransposeDQWeightsForMatMulNBits Missing required scale:
+ * model.decoder.embed_tokens.weight_merged_0_scale
+ * ```
+ *
+ * Measured on the same fixture and the same backend, for the next person who
+ * reaches for this:
+ *
+ * | decoder dtype | size     | WASM result                          |
+ * |---------------|----------|--------------------------------------|
+ * | `int8`        |  51.2 MB | **session creation fails** (above)   |
+ * | `fp16`        |  99.9 MB | works — 9 cues, 53 words             |
+ * | **`q4`**      | 117.9 MB | works — 9 cues, 54 words             |
+ *
+ * `quantized` and `uint8` are byte-identical to `int8` and would hit the same
+ * graph. `fp16` does work and would save ~18 MB, but that is a different and
+ * unmeasured quality trade on a path with no fp16 CPU kernels — the scorer the
+ * aligner milestone builds is what should decide it, exactly as D15 decided the
+ * encoder. Until then `q4` stays on both backends because it is the one that was
+ * actually measured.
+ *
+ * So Safari's headroom is bought elsewhere: the ffmpeg core is now freed before
+ * the download starts (32 MB), and `capability.ts` warns before spending the
+ * bandwidth rather than after.
  */
 export const ASR = {
   id: 'onnx-community/whisper-base',
@@ -110,6 +162,8 @@ export const ASR = {
   dtype: { encoder_model: 'int8', decoder_model_merged: 'q4' },
   // int8 encoder 23.2 MB + q4 merged decoder 123.6 MB + tokenizer/configs ~4.3 MB.
   approxBytes: 151_000_000,
+  /** Encoder + merged decoder. */
+  weightFiles: 2,
 } as const;
 
 /**
@@ -133,6 +187,7 @@ export const ALIGNER = {
   revision: '729c1a6730fb549c20a1c73a3d3f96f11020225e',
   dtype: 'fp16',
   approxBytes: 189_000_000,
+  weightFiles: 1,
 } as const;
 
 /**
@@ -150,6 +205,8 @@ export const VAD = {
   revision: 'e71cae966052b992a7eca6b17738916ce0eca4ec',
   file: 'onnx/model.onnx',
   approxBytes: 2_243_022,
+  // The whole repo: no config.json, no tokenizer, nothing but this one file.
+  weightFiles: 1,
 } as const;
 
 /** Total bytes for the first-stage download, disclosed before it starts. */

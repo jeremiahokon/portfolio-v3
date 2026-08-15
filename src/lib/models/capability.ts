@@ -32,6 +32,7 @@ export interface Capability {
     webgpu: boolean;
     storageQuotaGb: number | null;
     coarsePointer: boolean;
+    webkit: boolean;
   };
 }
 
@@ -44,6 +45,15 @@ export interface CapabilityInput {
   storageQuotaGb: number | null;
   /** True on touch-primary devices — a proxy for phone, not a decision on its own. */
   coarsePointer: boolean;
+  /**
+   * WebKit — Safari on any platform, and every iOS browser.
+   *
+   * The one engine fact this file needs, because it is the one that makes every
+   * *other* signal here unreliable. It is a capability inference, not the
+   * user-agent sniffing the note above rejects: nothing is decided from it
+   * except how much to trust an absent `deviceMemory`.
+   */
+  webkit: boolean;
   /** Seconds of audio the user is asking for, when known. */
   durationSeconds?: number;
 }
@@ -69,6 +79,18 @@ export const MIN_MEMORY_GB = 2;
  */
 export const LONG_JOB_MINUTES = 15;
 
+/**
+ * Minutes beyond which a WebKit device gets an explicit warning.
+ *
+ * Lower than `LONG_JOB_MINUTES` because the guard below it is weaker: Safari
+ * does not implement `navigator.deviceMemory`, so `memoryGb` is null there, the
+ * `< MIN_MEMORY_GB` refusal can never fire, and `constrained` is false on every
+ * desktop Safari. The check designed to catch memory pressure was blind on the
+ * one engine that reliably dies of it — which is how a user reached the download
+ * and watched the tab reload.
+ */
+export const WEBKIT_LONG_JOB_MINUTES = 10;
+
 export function assess(input: CapabilityInput): Capability {
   const signals = {
     memoryGb: input.memoryGb,
@@ -76,6 +98,7 @@ export function assess(input: CapabilityInput): Capability {
     webgpu: input.webgpu,
     storageQuotaGb: input.storageQuotaGb,
     coarsePointer: input.coarsePointer,
+    webkit: input.webkit,
   };
 
   // Storage is the one hard refusal that does not depend on a heuristic: without
@@ -113,6 +136,23 @@ export function assess(input: CapabilityInput): Capability {
     };
   }
 
+  // WebKit on a long file. Deliberately a warning and not a refusal: freeing the
+  // ffmpeg core after decode recovered 32 MB at the exact moment tabs were
+  // dying, so runs that used to fail now finish, and refusing a device that
+  // would have worked is its own kind of failure (see the note above). What was
+  // never defensible was saying nothing at all.
+  if (
+    input.webkit &&
+    input.memoryGb === null &&
+    minutes > WEBKIT_LONG_JOB_MINUTES
+  ) {
+    return {
+      verdict: 'warn',
+      message: `Safari is stricter about memory than other browsers and can reload the page partway through a file this long (${Math.round(minutes)} minutes). If that happens, try a shorter clip or run it in Chrome or Edge.`,
+      signals,
+    };
+  }
+
   // WebGPU absent means the WASM path, which is correct but much slower — and since
   // isolation is off it cannot even use threads. Worth saying before a long wait,
   // not worth refusing over.
@@ -126,6 +166,21 @@ export function assess(input: CapabilityInput): Capability {
   }
 
   return { verdict: 'ready', message: '', signals };
+}
+
+/**
+ * Detects WebKit — Safari anywhere, and every browser on iOS.
+ *
+ * There is no capability that identifies the engine, so this reads the UA
+ * string, which is the only signal available. It is narrow on purpose: Chrome
+ * and Edge put "Safari" in their UA too, so both Chromium tokens must be absent,
+ * and the result is used for nothing but deciding whether an unreported
+ * `deviceMemory` means "unknown" or "Safari, which never reports it".
+ */
+export function isWebKit(
+  userAgent: string = globalThis.navigator?.userAgent ?? ''
+): boolean {
+  return /Safari/.test(userAgent) && !/Chrome|Chromium|Edg\//.test(userAgent);
 }
 
 /** Reads the signals from the browser. Returns nulls for anything unreported. */
@@ -148,8 +203,11 @@ export async function probeDevice(
 
   let webgpu = false;
   try {
-    const gpu = (globalThis.navigator as Navigator & { gpu?: { requestAdapter(): Promise<unknown> } })
-      .gpu;
+    const gpu = (
+      globalThis.navigator as Navigator & {
+        gpu?: { requestAdapter(): Promise<unknown> };
+      }
+    ).gpu;
     webgpu = gpu ? Boolean(await gpu.requestAdapter()) : false;
   } catch {
     webgpu = false;
@@ -162,6 +220,7 @@ export async function probeDevice(
     storageQuotaGb,
     coarsePointer:
       globalThis.matchMedia?.('(pointer: coarse)').matches ?? false,
+    webkit: isWebKit(),
     ...(durationSeconds === undefined ? {} : { durationSeconds }),
   };
 }

@@ -77,9 +77,11 @@ export function ExportPanel({
   const [alignerCached, setAlignerCached] = useState<boolean | null>(null);
   useEffect(() => {
     let live = true;
-    void isModelCached(ALIGNER.id, ALIGNER.revision).then((cached) => {
-      if (live) setAlignerCached(cached);
-    });
+    void isModelCached(ALIGNER.id, ALIGNER.revision, ALIGNER.weightFiles).then(
+      (cached) => {
+        if (live) setAlignerCached(cached);
+      }
+    );
 
     return () => {
       live = false;
