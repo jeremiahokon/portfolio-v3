@@ -8,7 +8,6 @@ import Stats from '@/components/sections/stats';
 import Testimonials from '@/components/sections/testimonials';
 import Tools from '@/components/sections/tools';
 import YouTubeVideo from '@/components/sections/youtube-video';
-import { StickyCta } from '@/components/sticky-cta';
 
 import { getShortsData } from '@/lib/youtube';
 
@@ -50,16 +49,21 @@ export default async function Home() {
       <Hero />
       <div className="bg-background relative z-10 rounded-t-sm shadow-[0_-28px_70px_rgba(0,0,0,0.45)] md:rounded-t-sm">
         <RecentWorks />
+        {/* Tools sat below the testimonials, seven sections deep — most visitors
+            never scrolled far enough to learn they existed. They are free, need no
+            signup, and run on the visitor's own machine, which makes them the
+            cheapest possible reason to interact with this site before deciding
+            anything. Directly after the work section: proof of what I build, then
+            something you can use immediately. */}
+        <Tools />
         <Manifesto />
         <Skills />
         <Stats />
         <Testimonials />
-        <Tools />
         <YouTubeVideo />
         <ContentCreation videos={shortsData} />
         <Contact />
       </div>
-      <StickyCta />
     </div>
   );
 }
