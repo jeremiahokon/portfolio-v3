@@ -1,7 +1,5 @@
 import { env } from '@huggingface/transformers';
 
-import type { Backend } from '@/workers/protocol';
-
 import { ORT_WASM_PATH } from './config';
 
 /**
@@ -9,7 +7,9 @@ import { ORT_WASM_PATH } from './config';
  *
  * This module is imported *inside workers only*. It touches the global
  * `env` singleton, so importing it on the main thread would configure a
- * different ORT instance than the one actually running inference.
+ * different ORT instance than the one actually running inference. Backend
+ * *selection* used to live here too but is now in `./backend`, because the main
+ * thread needs it to size the download disclosure — see that file.
  *
  * **On capability detection.** transformers.js does maintain an internal `apis`
  * object with exactly the flags we want (`IS_WEBGPU_AVAILABLE`, `IS_SAFARI`,
@@ -30,26 +30,6 @@ export interface DownloadProgress {
 /** The Cache API is absent in some private-browsing modes, not just old browsers. */
 function isCacheAvailable(): boolean {
   return typeof caches !== 'undefined';
-}
-
-/**
- * Whether WebGPU is genuinely usable, not merely present.
- *
- * `'gpu' in navigator` is not sufficient: the property exists in contexts where
- * `requestAdapter()` then resolves to `null` (no compatible adapter, blocklisted
- * driver, or a software fallback the browser declines to expose). Since the
- * fallback path is ~10x slower and the UI promises a duration up front, this
- * asks for a real adapter rather than trusting feature detection.
- */
-export async function isWebGpuAvailable(): Promise<boolean> {
-  const gpu = (navigator as { gpu?: { requestAdapter(): Promise<unknown> } })
-    .gpu;
-  if (!gpu) return false;
-  try {
-    return (await gpu.requestAdapter()) !== null;
-  } catch {
-    return false;
-  }
 }
 
 let configured = false;
@@ -158,32 +138,6 @@ function installQuotaTolerantCache(): void {
       }
     },
   };
-}
-
-/**
- * Picks an execution backend.
- *
- * WebGPU needs no SharedArrayBuffer and therefore no cross-origin isolation,
- * which is why it is the primary path on a site that deliberately ships without
- * COOP/COEP. The WASM fallback will run **single-threaded** here for exactly
- * that reason — ORT enables WASM threads only when `crossOriginIsolated` is
- * true — so it is materially slower, and the UI must say so before starting
- * rather than letting the user discover a 10x slowdown.
- */
-export async function selectBackend(): Promise<Backend> {
-  return (await isWebGpuAvailable()) ? 'webgpu' : 'wasm';
-}
-
-/**
- * True when inference will run on single-threaded WASM, i.e. slowly.
- *
- * `crossOriginIsolated` is `false` on every route of this site by design — the
- * audio extractor's single-threaded FFmpeg core needs no isolation, and adding
- * `require-corp` back would re-introduce the Vercel module-worker block that
- * hung it in production. So this is `true` whenever WebGPU is unavailable.
- */
-export function isSingleThreadedWasm(backend: Backend): boolean {
-  return backend === 'wasm' && !globalThis.crossOriginIsolated;
 }
 
 /**

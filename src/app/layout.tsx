@@ -11,7 +11,7 @@ import Header from '@/components/header';
 import MotionProvider from '@/components/motion-provider';
 import StructuredData from '@/components/structured-data';
 
-import { SITE_URL } from '@/lib/constant';
+import { SITE_URL, X_HANDLE } from '@/lib/constant';
 
 import './globals.css';
 
@@ -66,33 +66,53 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   title: {
     default:
-      'Jeremiah Okon - Frontend & Full-Stack Developer | React, Next.js & Node.js',
+      'Jeremiah Okon - Full-Stack Product Engineer | React, Next.js & Node.js',
     template: '%s | Jeremiah Okon',
   },
   description:
-    'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js. I build fast, high-converting web apps — from pixel-perfect interfaces to the APIs behind them.',
+    'Full-stack product engineer building complex React, Next.js and Node apps — telemedicine platforms, multi-role dashboards, real-time fleet analytics.',
+  // Reordered by buyer intent, and stripped of geography.
+  //
+  // "Web Developer Nigeria", "Ilorin Developer" and "Nigerian Developer" are gone:
+  // the work is remote contract work for clients abroad, and a local anchor filters
+  // for the market this site is not selling into. Nothing replaces them — no geo
+  // terms in either direction. That does cede some traffic (freelance-dev SEO leans
+  // hard on location modifiers); "international clients" and "remote" in the visible
+  // copy do the qualifying instead.
+  //
+  // Worth knowing before anyone tunes this list further: Google ignores the keywords
+  // meta tag outright. This array is hygiene and LLM-retrieval surface, nothing more.
+  // What actually ranks is the visible copy and the depth of the case studies — and
+  // the head terms here ("hire React developer") are owned by Toptal, Upwork and Arc
+  // and are not winnable. The specific capability phrases are.
+  //
+  // Deliberately absent: "HIPAA compliant". It is one of the strongest healthcare
+  // buyer filters and it is also a contractual claim in the US — BAAs, audits. Not
+  // claiming it until a build has actually been scoped that way.
   keywords: [
-    'Frontend Developer',
-    'Full-Stack Developer',
-    'React Developer',
-    'Next.js Developer',
-    'Node.js Developer',
-    'JavaScript Developer',
-    'TypeScript Developer',
-    'Web Developer Nigeria',
-    'Frontend Engineer',
-    'UI/UX Developer',
-    'Tailwind CSS',
-    'Responsive Web Design',
-    'SEO Optimization',
-    'Web Performance',
-    'Ilorin Developer',
-    'Nigerian Developer',
-    'Framer Motion',
-    'Animation Developer',
-    'Portfolio Website',
-    'Hire Frontend Developer',
-    'Hire Full Stack Developer',
+    'hire full stack product engineer',
+    'hire freelance Next.js developer',
+    'freelance React developer for hire',
+    'contract full stack engineer',
+    'hire TypeScript developer for SaaS',
+    'freelance Node.js developer',
+    'remote full stack engineer for hire',
+    'hire MVP developer',
+    'SaaS MVP development',
+    'telemedicine platform development',
+    'custom telehealth app development',
+    'healthcare SaaS platform development',
+    'video consultation app development',
+    'fleet analytics dashboard development',
+    'driver scoring platform development',
+    'telematics dashboard development',
+    'multi-role dashboard development',
+    'role based access control implementation',
+    'RBAC dashboard developer',
+    'multi-tenant SaaS dashboard',
+    'real-time dashboard development',
+    'React Next.js TypeScript developer',
+    'end to end product engineer',
   ],
   authors: [{ name: 'Jeremiah Okon', url: SITE_URL }],
   creator: 'Jeremiah Okon',
@@ -108,9 +128,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title:
-      'Jeremiah Okon - Frontend & Full-Stack Developer | React, Next.js & Node.js',
+      'Jeremiah Okon - Full-Stack Product Engineer | React, Next.js & Node.js',
     description:
-      'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js. Fast, high-converting web apps — from pixel-perfect interfaces to the APIs behind them.',
+      'Full-stack product engineer building complex React, Next.js and Node apps — telemedicine platforms, multi-role dashboards, real-time fleet analytics.',
     url: SITE_URL,
     siteName: 'Jeremiah Okon Portfolio',
     locale: 'en_US',
@@ -119,10 +139,10 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title:
-      'Jeremiah Okon - Frontend & Full-Stack Developer | React, Next.js & Node.js',
+      'Jeremiah Okon - Full-Stack Product Engineer | React, Next.js & Node.js',
     description:
-      'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js. Fast, high-converting web apps.',
-    creator: '@okonjeremiah4',
+      'Full-stack product engineer building complex React, Next.js and Node apps — telemedicine platforms, multi-role dashboards, real-time fleet analytics.',
+    creator: X_HANDLE,
   },
   icons: {
     icon: [

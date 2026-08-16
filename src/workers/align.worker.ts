@@ -7,11 +7,8 @@ import {
   type Processor,
 } from '@huggingface/transformers';
 
-import {
-  configureEnv,
-  selectBackend,
-  toDownloadProgress,
-} from '@/lib/models/loader';
+import { selectBackend } from '@/lib/models/backend';
+import { configureEnv, toDownloadProgress } from '@/lib/models/loader';
 import {
   alignTokens,
   type Emissions,

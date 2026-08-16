@@ -67,7 +67,9 @@ const AUTOSAVE_MS = 1500;
  * would train anyone reading the console to ignore real ones.
  */
 function play(audio: HTMLAudioElement | null): void {
-  audio?.play().catch(() => {});
+  audio?.play().catch(() => {
+    // Swallowed on purpose — see above.
+  });
 }
 
 export function useTranscriptEditor(options: EditorOptions) {

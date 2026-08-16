@@ -5,10 +5,10 @@ import {
   pipeline,
 } from '@huggingface/transformers';
 
+import { selectBackend } from '@/lib/models/backend';
 import {
   assertDtypeApplied,
   configureEnv,
-  selectBackend,
   toDownloadProgress,
 } from '@/lib/models/loader';
 import type { AsrSegment, ErrorCode } from '@/lib/subtitles/types';

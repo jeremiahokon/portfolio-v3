@@ -87,7 +87,13 @@ function MarqueeRow({
   skills: Skill[];
   direction: 'left' | 'right';
 }) {
-  const tripled = [...skills, ...skills, ...skills];
+  // The loop needs three copies of the row to scroll seamlessly, but only one of
+  // them is *content*. Rendering all three bare put every tool name in the DOM three
+  // times, so a crawler read "React, React, React, Next.js, Next.js, Next.js" — a
+  // keyword-stuffing signal produced entirely by an animation detail. The clones are
+  // marked aria-hidden (and dropped under reduced motion, where the row wraps into a
+  // static grid and duplicates would just be visible repeats).
+  const clones = [1, 2];
 
   return (
     <div className="relative overflow-hidden">
@@ -98,8 +104,19 @@ function MarqueeRow({
             : 'animate-marquee-right'
         } group-hover:[animation-play-state:paused] motion-reduce:w-auto motion-reduce:animate-none motion-reduce:flex-wrap motion-reduce:justify-center`}
       >
-        {tripled.map((skill, i) => (
-          <SkillPill key={`${skill.name}-${i}`} skill={skill} />
+        {skills.map((skill) => (
+          <SkillPill key={skill.name} skill={skill} />
+        ))}
+        {clones.map((copy) => (
+          <div
+            key={copy}
+            aria-hidden="true"
+            className="contents motion-reduce:hidden"
+          >
+            {skills.map((skill) => (
+              <SkillPill key={`${skill.name}-${copy}`} skill={skill} />
+            ))}
+          </div>
         ))}
       </div>
     </div>
@@ -134,24 +151,11 @@ export default function Skills() {
         ))}
       </div>
 
-      {/* Currently learning */}
-      <div className="mt-12 flex justify-center px-4 md:mt-16">
-        <div className="flex items-center gap-2.5 rounded-sm border border-dashed border-[#2C3333]/25 bg-white/60 px-5 py-2.5 md:gap-3 md:px-6 md:py-3">
-          <img
-            src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/go/go-original.svg"
-            alt="Go"
-            width={22}
-            height={22}
-            className="h-5 w-5 flex-shrink-0 md:h-[22px] md:w-[22px]"
-            loading="lazy"
-          />
-          <p className="font-family-inter text-sm text-[#2C3333]/80 md:text-base">
-            Currently leveling up:{' '}
-            <span className="font-semibold text-[#2C3333]">Go</span> — expanding
-            into backend systems.
-          </p>
-        </div>
-      </div>
+      {/* The "Currently leveling up: Go" badge used to live here, under the stack
+          grid. Two problems: a Go logo sitting inside a row of tools I ship with
+          implies I ship with Go, and the manifesto already says "currently learning
+          Go" — the honest phrasing, in the one place a reader is being told about
+          me rather than about the work. One mention, in the right section. */}
     </section>
   );
 }

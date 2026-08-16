@@ -37,14 +37,54 @@ export interface CacheReport {
 }
 
 const TRACKED = [
-  { id: ASR.id, revision: ASR.revision, label: 'Speech recognition (Whisper)' },
+  {
+    id: ASR.id,
+    revision: ASR.revision,
+    weightFiles: ASR.weightFiles,
+    label: 'Speech recognition (Whisper)',
+  },
   {
     id: ALIGNER.id,
     revision: ALIGNER.revision,
+    weightFiles: ALIGNER.weightFiles,
     label: 'Word timing (wav2vec2)',
   },
-  { id: VAD.id, revision: VAD.revision, label: 'Speech detection (Silero)' },
+  {
+    id: VAD.id,
+    revision: VAD.revision,
+    weightFiles: VAD.weightFiles,
+    label: 'Speech detection (Silero)',
+  },
 ];
+
+/** Cache entries for this model at this revision. */
+function entriesFor(
+  keys: readonly Request[],
+  id: string,
+  revision: string
+): Request[] {
+  // Matched on id *and* revision: weights from a superseded revision are not
+  // this model, and counting them would make a stale cache look healthy.
+  return keys.filter(
+    (request) => request.url.includes(id) && request.url.includes(revision)
+  );
+}
+
+/**
+ * Whether every weight file the model needs is present.
+ *
+ * Counts `.onnx` entries against the model's own `weightFiles`. The previous
+ * test — "three or more cached files of any kind" — was a single constant
+ * applied to three models with different shapes, and Silero has exactly one file
+ * in its entire repository. It could never pass, so a healthy VAD cache rendered
+ * as "incomplete" and `isModelCached` re-quoted its download on every visit.
+ */
+function isComplete(entries: readonly Request[], weightFiles: number): boolean {
+  return (
+    entries.filter((request) => request.url.endsWith('.onnx')).length >=
+    weightFiles
+  );
+}
 
 /**
  * Size of a cached response.
@@ -96,13 +136,7 @@ export async function readCache(): Promise<CacheReport> {
   const models: CachedModel[] = [];
 
   for (const tracked of TRACKED) {
-    // Matched on id *and* revision: weights from a superseded revision are not this
-    // model, and counting them here would make a stale cache look healthy.
-    const mine = keys.filter(
-      (request) =>
-        request.url.includes(tracked.id) &&
-        request.url.includes(tracked.revision)
-    );
+    const mine = entriesFor(keys, tracked.id, tracked.revision);
 
     let bytes = 0;
     for (const request of mine) {
@@ -115,10 +149,7 @@ export async function readCache(): Promise<CacheReport> {
       label: tracked.label,
       files: mine.length,
       bytes,
-      // A model needs weights plus a tokenizer and configs. Fewer than three files
-      // means an interrupted download, which is worth showing as incomplete rather
-      // than as a working cache that will fail on next use.
-      complete: mine.length >= 3,
+      complete: isComplete(mine, tracked.weightFiles),
     });
   }
 
@@ -139,12 +170,13 @@ export async function readCache(): Promise<CacheReport> {
  * `cache.keys()` and no reads. It is asked on render, by UI deciding whether to
  * quote a download size; `readCache` is asked once, by a panel the user opened.
  *
- * Same threshold as `complete` in `readCache`: weights plus a tokenizer and
- * configs, so an interrupted download does not read as present.
+ * Same test as `complete` in `readCache`, so the two can never disagree about
+ * whether a model is on the device.
  */
 export async function isModelCached(
   id: string,
-  revision: string
+  revision: string,
+  weightFiles: number
 ): Promise<boolean> {
   if (typeof caches === 'undefined') return false;
 
@@ -152,11 +184,7 @@ export async function isModelCached(
     const cache = await caches.open(CACHE_KEY);
     const keys = await cache.keys();
 
-    return (
-      keys.filter(
-        (request) => request.url.includes(id) && request.url.includes(revision)
-      ).length >= 3
-    );
+    return isComplete(entriesFor(keys, id, revision), weightFiles);
   } catch {
     // A browser that will not open the cache is one we cannot prove anything
     // about; quoting the download size is the safe answer.

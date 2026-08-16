@@ -108,13 +108,18 @@ const projects: Project[] = [
   },
 ];
 
+// This strip is the site's main visible-keyword surface, so it is written for the
+// phrases founders actually search — problem-and-capability first, stack second.
+// "Fast sites that convert" is still here and still true; it moved down from the
+// hero, where being the first thing a reader saw was pricing every complex build
+// on the page as a marketing site.
 const capabilities = [
-  'React & Next.js apps',
-  'Node.js APIs & integrations',
-  'SaaS dashboards',
-  'Performance & Core Web Vitals',
-  'Design systems',
-  'E-commerce',
+  'Multi-role dashboards & RBAC',
+  'Real-time features — live data, video, notifications',
+  'Telemedicine & healthcare platforms',
+  'Fleet & operations analytics',
+  'React, Next.js & Node.js',
+  'Fast sites that convert',
 ];
 
 function FeaturedCaseCard({

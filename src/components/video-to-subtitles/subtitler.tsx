@@ -11,7 +11,12 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { useReducedMotion } from '@/lib/hooks';
 import { ASR } from '@/lib/models/config';
-import { draftKey } from '@/lib/subtitles/persist';
+import {
+  clearJobInFlight,
+  draftKey,
+  type InFlightJob,
+  peekInterruptedJob,
+} from '@/lib/subtitles/persist';
 
 import { Dropzone } from './dropzone';
 import { ExportPanel } from './export-panel';
@@ -65,6 +70,21 @@ export function Subtitler() {
   // aligner and the M4 re-time both return to 'done', and being thrown back into the
   // editor after deliberately choosing an action from the export panel would fight
   // the user rather than help them.
+  /**
+   * Did the last run die with the tab?
+   *
+   * A browser that runs out of memory kills the tab and reloads it, so the page
+   * comes back at step one having said nothing — and the user, watching it
+   * happen twice, concludes the tool is broken rather than that their file is
+   * too big for this browser. Reading the marker here turns a silent loop into
+   * something actionable. The read is deliberately non-destructive — see
+   * `peekInterruptedJob` — and `begin` clears it when a new job starts.
+   */
+  const [interrupted, setInterrupted] = useState<InFlightJob | null>(null);
+  useEffect(() => {
+    setInterrupted(peekInterruptedJob());
+  }, []);
+
   const autoOpenedRef = useRef(false);
   useEffect(() => {
     if (snapshot.status !== 'done' || autoOpenedRef.current) return;
@@ -81,6 +101,10 @@ export function Subtitler() {
     });
     setFile(file);
     setEditing(false);
+    // The previous run's marker has been shown and is now history; a new job
+    // writes its own once it gets past decode.
+    clearJobInFlight();
+    setInterrupted(null);
     autoOpenedRef.current = false;
     void start(file);
   };
@@ -176,6 +200,21 @@ export function Subtitler() {
             onChange={onInputChange}
             className="hidden"
           />
+
+          {interrupted && !snapshot.error && (
+            <div
+              role="status"
+              className="mt-3 flex items-start gap-2 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-left"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+              <span className="font-family-inter text-sm text-amber-800">
+                Transcribing “{interrupted.fileName}” stopped before it
+                finished, most likely because this browser ran out of memory.
+                Safari is the strictest about this — a shorter clip, or Chrome
+                or Edge, will usually get through it.
+              </span>
+            </div>
+          )}
 
           {snapshot.error && (
             <div

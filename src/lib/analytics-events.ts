@@ -10,7 +10,8 @@ export const GA_EVENTS = {
   BOOK_CALL_ON_HERO: 'user_clicked_book_call_on_hero',
   BOOK_CALL_ON_CONTACT: 'user_clicked_book_call_on_contact',
   BOOK_CALL_ON_FOOTER: 'user_clicked_book_call_on_footer',
-  BOOK_CALL_ON_STICKY_BAR: 'user_clicked_book_call_on_sticky_bar',
+  // BOOK_CALL_ON_STICKY_BAR retired with the floating availability bar. The name
+  // is not reused: historical GA data still lives under it.
   BOOK_CALL_CTA: {
     tools_page: 'user_clicked_book_call_on_tools_page',
     extract_audio: 'user_clicked_book_call_on_extract_audio',

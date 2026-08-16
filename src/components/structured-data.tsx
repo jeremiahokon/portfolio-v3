@@ -7,6 +7,7 @@ import {
   SITE_URL,
   TIKTOK_URL,
   UPWORK_PROFILE_URL,
+  X_URL,
   YOUTUBE_CHANNEL_URL,
 } from '@/lib/constant';
 
@@ -15,22 +16,22 @@ export default function StructuredData() {
     '@type': 'Person',
     '@id': `${SITE_URL}/#person`,
     name: 'Jeremiah Okon',
-    jobTitle: 'Frontend & Full-Stack Developer',
+    jobTitle: 'Full-Stack Product Engineer',
     description:
-      'Frontend & full-stack developer specializing in React, Next.js, TypeScript, and Node.js',
+      'Full-stack product engineer building production web platforms — telemedicine, fleet analytics, multi-role dashboards — with React, Next.js, TypeScript, and Node.js',
     url: SITE_URL,
     image: `${SITE_URL}/assets/profile.jpg`,
     email: EMAIL,
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Ilorin',
-      addressRegion: 'Kwara State',
-      addressCountry: 'Nigeria',
-    },
+    // The street-level PostalAddress that used to sit here (Ilorin, Kwara State)
+    // is the strongest local-business signal in the whole schema, and it pointed at
+    // exactly the market this site is not selling into. The work is remote contract
+    // work for clients anywhere, which is what `areaServed: Worldwide` on the service
+    // schema now says instead.
     sameAs: [
       LINKEDIN_URL,
       GITHUB_URL,
       YOUTUBE_CHANNEL_URL,
+      X_URL,
       TIKTOK_URL,
       INSTAGRAM_URL,
       FACEBOOK_URL,
@@ -42,15 +43,17 @@ export default function StructuredData() {
       'TypeScript',
       'JavaScript',
       'Node.js',
-      'Frontend Development',
-      'Web Development',
-      'UI/UX Design',
+      'Full-Stack Development',
+      'Web Application Development',
+      'Multi-Role Dashboards',
+      'Role-Based Access Control',
+      'Telemedicine Platform Development',
+      'Fleet Analytics Dashboards',
+      'Real-Time Web Features',
+      'SaaS Product Development',
       'Tailwind CSS',
-      'Framer Motion',
-      'Animation',
-      'SEO Optimization',
+      'UI/UX Design',
       'Web Performance',
-      'Go (Programming Language)',
     ],
     alumniOf: {
       '@type': 'Organization',
@@ -62,7 +65,7 @@ export default function StructuredData() {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
     url: SITE_URL,
-    name: 'Jeremiah Okon - Frontend & Full-Stack Developer',
+    name: 'Jeremiah Okon - Full-Stack Product Engineer',
     mainEntity: personSchema,
   };
 
@@ -88,12 +91,6 @@ export default function StructuredData() {
     url: SITE_URL,
     telephone: '',
     email: EMAIL,
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Ilorin',
-      addressRegion: 'Kwara State',
-      addressCountry: 'Nigeria',
-    },
     areaServed: 'Worldwide',
     priceRange: '$$',
     // Mirrors the visible Upwork proof: rating in the hero/stats band,

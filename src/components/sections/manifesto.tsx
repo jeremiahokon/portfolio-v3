@@ -17,31 +17,95 @@ interface Segment {
 // house headline pattern.
 const segments: Segment[] = [
   { text: "I'm Jeremiah — a " },
-  { text: 'frontend engineer gone full-stack', accent: true },
+  { text: 'full-stack product engineer', accent: true },
   { text: ". For 4+ years I've shipped " },
-  { text: 'React and Next.js', accent: true },
+  { text: 'React, Next.js and Node.js', accent: true },
   { text: ' products that clients actually profit from. I think in ' },
   { text: 'systems — and in revenue', accent: true },
   {
-    text: ' — owning every detail from first pixel to deployment. I build in public and sharpen sales and marketing daily, ',
+    text: ' — owning every product I ship from first pixel to deployment. Bring me the problem you have been going in circles on, and ',
   },
-  { text: "so you know exactly who you're hiring.", accent: true },
+  {
+    text: "I'll find the solution your business can actually run on.",
+    accent: true,
+  },
 ];
+// This paragraph has now shed two closers. The first, "I build in public and
+// sharpen sales and marketing daily", was unfalsifiable. The second replaced it
+// with the Dokita five-dashboard build — verifiable, but a case study, and the
+// case studies are already two sections down. About is the only place on the page
+// that answers *who is this*, so it ends on the offer instead: how I think, and
+// what a client gets by bringing me a problem.
 
 interface Word {
   text: string;
   accent: boolean;
+  /** False before a word that opens with punctuation, so `engineer .` cannot happen. */
+  space: boolean;
 }
 
-const words: Word[] = segments.flatMap((segment) =>
+const split: Omit<Word, 'space'>[] = segments.flatMap((segment) =>
   segment.text
     .split(/\s+/)
     .filter(Boolean)
     .map((text) => ({ text, accent: Boolean(segment.accent) }))
 );
 
-/** Minimum opacity for an unread word: the point where `--ink` still clears AA. */
-const FADE_FLOOR = 0.75;
+// A segment boundary falls mid-sentence — ". For" starts the run after the first
+// accent — so splitting on whitespace leaves punctuation stranded as its own word.
+// It still animates on its own, it just loses the space in front of it.
+const words: Word[] = split.map((word, index) => ({
+  ...word,
+  space: !/^[.,;:!?)\]]/.test(split[index + 1]?.text ?? ''),
+}));
+
+/**
+ * Minimum opacity for an unread word.
+ *
+ * This was 0.75 because the paragraph was being held to 4.5:1. It should not have
+ * been: this text is `clamp(1.6rem, 4vw, 3.25rem)`, so 25.6px at its *smallest*
+ * viewport and heavier from there. That is WCAG large text (≥24px), whose AA
+ * threshold is 3:1 — a limit the 4.5:1 number was leaving unspent for nothing.
+ *
+ * 0.58 is the measured point where `--ink` blended onto `--paper` still clears it
+ * (3.1:1, against a 3:1 requirement). It roughly doubles the visible fade range, so
+ * unread text now reads as clearly held back rather than as a rounding error.
+ *
+ * Do not push it lower without recomputing: 0.5 is 2.6:1 and fails, and unlike an
+ * entrance animation this is a *resting* state — everything below the scroll
+ * position genuinely sits at the floor until you reach it. The old 0.18 was 1.36:1,
+ * unreadable, and 50 of the 68 accessibility failures once flagged on this page.
+ *
+ * The accent words get their own, higher floor. `--sky-text` starts closer to the
+ * page than `--ink` does, so it runs out of room sooner: at 0.58 it is 2.40:1 and
+ * fails, and 0.72 is where it clears (3.08:1). They still visibly dim — just less
+ * far, which is the price of them being blue.
+ */
+const FADE_FLOOR = { ink: 0.58, accent: 0.72 };
+
+/*
+ * The sweep is a moving colour front, not just a fade.
+ *
+ * Lightness alone is a small effect even with the range above, so the second signal
+ * is hue: each word passes through a vivid blue on its way to its resting colour,
+ * which reads as a bright front travelling through the paragraph. The colour ramp
+ * starts only once a word's opacity has finished, so nothing is ever dimmed and
+ * tinted at once, and every stop is checked against the same 3:1 large-text bar:
+ * `PEAK` is 3.9:1 on the page and `PEAK_ACCENT` is darker still.
+ *
+ * `PEAK` is deliberately more saturated than `--sky-text`. That token exists to be
+ * a *resting* colour for body-sized links and italics, where it has to clear 4.5:1;
+ * nothing rests here, so the front can be brighter than the brand's text blue while
+ * still passing the bar that applies to it.
+ */
+const INK = '#212727';
+const PEAK = '#0f7ab8';
+const ACCENT = '#2a5a76';
+/** The accent words' own peak — they are already `--sky-text`, so theirs deepens. */
+const PEAK_ACCENT = '#0d557f';
+
+/** Word-widths of scroll each word owns; the front is ~2 words wide within it. */
+const WINDOW = 4;
 
 function ManifestoWord({
   word,
@@ -54,38 +118,35 @@ function ManifestoWord({
   total: number;
   progress: MotionValue<number>;
 }) {
-  // Each word brightens over its own slice of the scroll, three words wide,
-  // so the reveal sweeps through the paragraph as you scroll.
-  //
-  // The floor was 0.18, and unlike a transient entrance this is the word's *resting*
-  // state — everything below the scroll position genuinely sits there until you reach
-  // it. At 0.18 that is 1.36:1 against the page: not a technicality, unreadable. It
-  // was the last accessibility failure on the homepage, and 50 of the 68 originally
-  // flagged nodes.
-  //
-  // 0.75 is the measured point where `--ink` still clears 4.5:1 (4.81:1). Opacity is
-  // used rather than an animated `color` because the accented words carry their own
-  // colour and would not inherit one — opacity is the only property that dims a word
-  // and its emphasis together.
-  //
-  // The honest cost: a 0.75 → 1 sweep is far subtler than 0.18 → 1 was. It still
-  // reads as a shimmer across 55 staggered words, but the drama is gone. Change
-  // FADE_FLOOR back to 0.18 to restore it, knowing the text is unreadable until
-  // scrolled to.
-  const start = index / (total + 3);
-  const end = (index + 3) / (total + 3);
-  const opacity = useTransform(progress, [start, end], [FADE_FLOOR, 1]);
+  // Each word owns its own slice of the scroll, and the slices overlap, so the
+  // front sweeps through the paragraph rather than snapping word by word. See
+  // FADE_FLOOR and the colour constants above for what the sweep is made of.
+  const span = index / (total + WINDOW);
+  const unit = 1 / (total + WINDOW);
+  const at = (offset: number) => span + offset * unit;
+
+  const opacity = useTransform(
+    progress,
+    [at(0), at(1.6)],
+    [word.accent ? FADE_FLOOR.accent : FADE_FLOOR.ink, 1]
+  );
+  const color = useTransform(
+    progress,
+    [at(1.4), at(2.4), at(WINDOW)],
+    word.accent ? [ACCENT, PEAK_ACCENT, ACCENT] : [INK, PEAK, INK]
+  );
 
   return (
     <m.span
-      style={{ opacity }}
+      style={{ opacity, color }}
       className={
         word.accent
           ? 'font-family-instrument text-sky-text font-normal italic'
           : undefined
       }
     >
-      {word.text}{' '}
+      {word.text}
+      {word.space ? ' ' : ''}
     </m.span>
   );
 }

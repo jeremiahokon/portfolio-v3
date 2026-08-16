@@ -49,5 +49,19 @@ scripts/
 # playwright mcp
 .playwright-mcp/
 
+# Prose docs and fixtures. Ignored on purpose: `docs/fixtures/` holds a private
+# client recording, and publishing a business conversation into a public
+# portfolio repo to gain a test fixture is not a defensible trade. The tests
+# that use those fixtures skip when they are absent.
 /docs
 /documentation
+
+# Debugging leftovers from the transcription tool. These are transcripts and
+# screenshots OF REAL CALLS — `q4-excerpt.txt` and `editor-1200.png` both reached
+# a public repo once already. Anything captured out of the subtitler stays local.
+/*-excerpt.txt
+/*-transcript.txt
+/editor-*.png
+/subtitler-*.png
+/crash-notice*.png
+/model-manager-*.png
