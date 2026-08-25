@@ -9,7 +9,7 @@ import { ALIGNER, ASR, VAD } from './config';
  *
  * `complete` was `files >= 3` for every model, on the premise that a model is
  * "weights plus a tokenizer and configs". Silero's entire repository is one
- * `onnx/model.onnx` — no config, no tokenizer — so the VAD could never reach
+ * `onnx/model.onnx`, no config, no tokenizer, so the VAD could never reach
  * three files and was always shown as broken while working perfectly.
  */
 
@@ -77,7 +77,7 @@ describe('readCache', () => {
 
   it('needs both Whisper weight files, not just a pile of JSON', async () => {
     // Four cached entries would have passed the old `>= 3` test with the
-    // decoder missing entirely — a cache that fails on next use, reported as
+    // decoder missing entirely: a cache that fails on next use, reported as
     // healthy.
     install([
       url(ASR.id, ASR.revision, 'config.json'),

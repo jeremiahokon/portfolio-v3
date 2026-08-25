@@ -4,7 +4,7 @@ import { ALIGNER, ASR, CACHE_KEY, VAD } from './config';
  * What is cached, how big it is, and how to get rid of it.
  *
  * M5's model manager. The tool downloads 151 MB before the first word and another
- * 189 MB if someone opts into accurate timing, and then keeps it — which is the whole
+ * 189 MB if someone opts into accurate timing, and then keeps it: which is the whole
  * point, since the second visit is instant. But storing a third of a gigabyte on
  * somebody's device without ever telling them, or giving them a way to remove it, is
  * not a defensible thing for a free tool to do. "It runs on your device, nothing is
@@ -74,7 +74,7 @@ function entriesFor(
  * Whether every weight file the model needs is present.
  *
  * Counts `.onnx` entries against the model's own `weightFiles`. The previous
- * test — "three or more cached files of any kind" — was a single constant
+ * test ("three or more cached files of any kind") was a single constant
  * applied to three models with different shapes, and Silero has exactly one file
  * in its entire repository. It could never pass, so a healthy VAD cache rendered
  * as "incomplete" and `isModelCached` re-quoted its download on every visit.
@@ -165,7 +165,7 @@ export async function readCache(): Promise<CacheReport> {
  * Whether a model's weights are already on this device.
  *
  * Deliberately not `readCache()`. That one sums real bytes, which means reading
- * every cached response and — for anything without a `content-length` — buffering
+ * every cached response and, for anything without a `content-length`, buffering
  * a 189 MB body. This question only needs the key list, so it costs one
  * `cache.keys()` and no reads. It is asked on render, by UI deciding whether to
  * quote a download size; `readCache` is asked once, by a panel the user opened.

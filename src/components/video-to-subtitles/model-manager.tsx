@@ -4,8 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { HardDrive, Loader2, Trash2 } from 'lucide-react';
 
-import { Tooltip } from '@/components/ui/tooltip';
-
 import {
   type CacheReport,
   purgeAll,
@@ -13,6 +11,8 @@ import {
 } from '@/lib/models/cache-manager';
 import { clearAllCheckpoints } from '@/lib/subtitles/checkpoint';
 import { formatBytes } from '@/lib/utils';
+
+import { Tooltip } from '@/custom/tooltip';
 
 /**
  * What this tool has stored on your device, and a button to remove it.
@@ -42,8 +42,7 @@ export function ModelManager() {
 
   const clear = async () => {
     setBusy(true);
-    // Checkpoints go with the weights: someone reclaiming space wants all of it, and
-    // a resume offer pointing at a model that is no longer cached is a trap.
+    // Checkpoints go with the weights: a resume offer pointing at an evicted model is a trap.
     await Promise.all([purgeAll(), clearAllCheckpoints()]);
     await refresh();
     setBusy(false);
@@ -95,7 +94,7 @@ export function ModelManager() {
             </p>
           )}
 
-          <Tooltip label="Deletes the cached models and any half-finished job. Nothing else is affected — your transcripts were never stored anywhere but this browser. The models re-download next time you use the tool.">
+          <Tooltip label="Deletes the cached models and any half-finished job. Nothing else is affected: your transcripts were never stored anywhere but this browser. The models re-download next time you use the tool.">
             <button
               type="button"
               onClick={() => void clear()}

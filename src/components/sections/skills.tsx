@@ -87,12 +87,8 @@ function MarqueeRow({
   skills: Skill[];
   direction: 'left' | 'right';
 }) {
-  // The loop needs three copies of the row to scroll seamlessly, but only one of
-  // them is *content*. Rendering all three bare put every tool name in the DOM three
-  // times, so a crawler read "React, React, React, Next.js, Next.js, Next.js" — a
-  // keyword-stuffing signal produced entirely by an animation detail. The clones are
-  // marked aria-hidden (and dropped under reduced motion, where the row wraps into a
-  // static grid and duplicates would just be visible repeats).
+  // Marquee needs 2 clone copies to scroll seamlessly; marked aria-hidden so
+  // crawlers don't read "React, React, React" as keyword stuffing.
   const clones = [1, 2];
 
   return (
@@ -154,7 +150,7 @@ export default function Skills() {
       {/* The "Currently leveling up: Go" badge used to live here, under the stack
           grid. Two problems: a Go logo sitting inside a row of tools I ship with
           implies I ship with Go, and the manifesto already says "currently learning
-          Go" — the honest phrasing, in the one place a reader is being told about
+          Go," the honest phrasing, in the one place a reader is being told about
           me rather than about the work. One mention, in the right section. */}
     </section>
   );

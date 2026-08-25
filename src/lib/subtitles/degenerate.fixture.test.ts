@@ -1,12 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-import {
-  buildCues,
-  normalizeCues,
-  resetIds,
-  wordsFromSegments,
-} from './cues';
+import { buildCues, normalizeCues, resetIds, wordsFromSegments } from './cues';
 import { collapseDegenerateRuns } from './degenerate';
 import type { AsrSegment, Word } from './types';
 
@@ -14,7 +9,7 @@ import type { AsrSegment, Word } from './types';
  * Replays the real 39-minute Zoom artifact through the degenerate-run guard.
  *
  * This is the M2.5 acceptance evidence, and it needs no browser, no model and no
- * audio — the pathology is visible in the SRT the user already has, so the fix is
+ * audio: the pathology is visible in the SRT the user already has, so the fix is
  * provable in Node against the exact output that motivated it.
  *
  * **Skipped when the fixture is absent, and it is absent from git on purpose.**
@@ -50,7 +45,8 @@ function baselineSegments(): AsrSegment[] {
 
 /** Longest run of identical consecutive segments. */
 function longestRun(segments: AsrSegment[]): number {
-  const key = (s: AsrSegment) => s.text.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
+  const key = (s: AsrSegment) =>
+    s.text.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
   let worst = 1;
   let current = 1;
 
@@ -91,7 +87,9 @@ describe.skipIf(!present)('the 39-minute fixture, replayed', () => {
 
   it('eliminates the 86-repeat run', () => {
     expect(longestRun(baselineSegments())).toBe(86);
-    expect(longestRun(collapseDegenerateRuns(baselineSegments()))).toBeLessThanOrEqual(2);
+    expect(
+      longestRun(collapseDegenerateRuns(baselineSegments()))
+    ).toBeLessThanOrEqual(2);
   });
 
   it('removes four fifths of the unrenderable cues', () => {
@@ -114,7 +112,9 @@ describe.skipIf(!present)('the 39-minute fixture, replayed', () => {
     expect(after.cues.length).toBeLessThan(before.cues.length);
 
     const vocabulary = (words: Word[]) =>
-      new Set(words.map((w) => w.text.toLowerCase().replaceAll(/[^a-z0-9]/g, '')));
+      new Set(
+        words.map((w) => w.text.toLowerCase().replaceAll(/[^a-z0-9]/g, ''))
+      );
     const lost = [...vocabulary(before.words)].filter(
       (w) => w !== '' && !vocabulary(after.words).has(w)
     );

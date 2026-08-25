@@ -19,7 +19,7 @@ export interface ChunkPlanOptions {
   /**
    * Hard ceiling in seconds. A window longer than this is split even if that
    * means cutting through speech, because exceeding the model's receptive field
-   * silently truncates audio — a worse failure than one bad boundary.
+   * silently truncates audio, a worse failure than one bad boundary.
    */
   max: number;
   /**
@@ -31,9 +31,7 @@ export interface ChunkPlanOptions {
 
 export const DEFAULT_CHUNK_PLAN: ChunkPlanOptions = {
   target: 28,
-  // Slightly under Whisper's 30 s receptive field: `target` plus two overlaps
-  // must still fit, or the context we add to help the model would push real
-  // audio out of the window.
+  // Slightly under Whisper's 30s receptive field, so target plus two overlaps still fits.
   max: 30,
   overlap: 1,
 };
@@ -41,7 +39,7 @@ export const DEFAULT_CHUNK_PLAN: ChunkPlanOptions = {
 /**
  * Plans windows over `duration` seconds of audio.
  *
- * With no speech regions at all — silence, or a VAD that found nothing — returns
+ * With no speech regions at all, silence, or a VAD that found nothing, returns
  * fixed windows rather than an empty plan. Returning nothing would silently
  * transcribe none of the file, and a VAD false negative should degrade to
  * "transcribe it blind", not to "produce an empty transcript".
@@ -100,9 +98,7 @@ function chooseCuts(
   options: ChunkPlanOptions
 ): number[] {
   const cuts: number[] = [];
-  // Content only: `enforceWindowCeiling` guarantees the rest, but cutting to this
-  // budget here is what lets a chunk keep its context instead of having it
-  // trimmed away later.
+  // Content only, cutting to this budget here keeps a chunk's context intact.
   const ceiling = contentCeiling(options);
   let windowStart = 0;
 
@@ -110,9 +106,7 @@ function chooseCuts(
     const region = regions[i]!;
     const next = regions[i + 1];
 
-    // A single stretch of unbroken speech longer than the ceiling has no silence
-    // to cut in. Split it at regular intervals and accept the bad boundaries —
-    // the alternative is a window the model will truncate.
+    // No silence to cut in; split at regular intervals rather than let the model truncate.
     if (region.end - windowStart > ceiling) {
       let forced = windowStart + options.target;
       while (region.end - forced > ceiling) {
@@ -155,8 +149,8 @@ function fixedChunks(duration: number, options: ChunkPlanOptions): Chunk[] {
  * The longest *content* span a chunk may cover, leaving room for its context.
  *
  * `max` is a ceiling on the window handed to the model, and the window is content
- * plus overlap on both sides. Applying `max` to the content alone — which is what
- * `chooseCuts` used to do — lets the finished window reach `max + 2 * overlap`.
+ * plus overlap on both sides. Applying `max` to the content alone, which is what
+ * `chooseCuts` used to do, lets the finished window reach `max + 2 * overlap`.
  */
 function contentCeiling(options: ChunkPlanOptions): number {
   return Math.max(1, options.max - 2 * options.overlap);
@@ -176,9 +170,7 @@ function toChunks(
     const end = bounds[i + 1]!;
     if (end <= start) continue;
 
-    // The first chunk has nothing before it and the last nothing after, so they
-    // get no overlap on those sides — clamping to the file avoids a window that
-    // starts at a negative time.
+    // Clamp so the first/last chunk's overlap can't push the window past the file.
     const overlapStart = Math.min(options.overlap, start);
     const overlapEnd = Math.min(options.overlap, duration - end);
 
@@ -205,8 +197,8 @@ function toChunks(
  * reached the model.
  *
  * Enforced here, on the materialised chunks, rather than by patching each path
- * through `chooseCuts`. The planner has several branches — forced splits inside a
- * long region, midpoint cuts between regions, the trailing window to `duration` —
+ * through `chooseCuts`. The planner has several branches, forced splits inside a
+ * long region, midpoint cuts between regions, the trailing window to `duration`,
  * and reasoning that all of them respect a bound is exactly the kind of argument
  * that was already wrong once. A single pass over the output cannot be.
  *
@@ -227,9 +219,7 @@ function enforceWindowCeiling(
       continue;
     }
 
-    // Equal parts rather than max-sized parts plus a remainder: a 31 s span
-    // becomes two 15.5 s windows, not a 30 s one and a 1 s sliver that gives the
-    // model almost no context to work with.
+    // Equal parts, not max-sized parts plus a remainder sliver with no context.
     const parts = Math.ceil(content / options.max);
     const size = content / parts;
 
@@ -278,8 +268,6 @@ export function sliceChunk(
   const from = Math.max(0, Math.floor(window.start * sampleRate));
   const to = Math.min(samples.length, Math.ceil(window.end * sampleRate));
 
-  // `slice` copies, which is required here: the result is transferred to a
-  // worker, and transferring a view would detach the whole source buffer and
-  // leave every later chunk empty.
+  // `slice` copies, a transferred view would detach the source buffer for later chunks.
   return samples.slice(from, to);
 }

@@ -16,7 +16,12 @@ import {
 import { CalendlyModal } from '@/components/calendly-modal';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
-import { BOOK_A_CALL, UPWORK_PROFILE_URL } from '@/lib/constant';
+import {
+  BOOK_A_CALL,
+  UPWORK_AVG_RATING,
+  UPWORK_PROFILE_URL,
+  UPWORK_REVIEW_COUNT,
+} from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 
 function UpworkIcon({ className }: { className?: string }) {
@@ -33,12 +38,11 @@ function UpworkIcon({ className }: { className?: string }) {
   );
 }
 
-// Overlapping collage — each card gets its own place, tilt, and depth plane
-// instead of a uniform cascade.
+// Overlapping collage: each card gets its own place, tilt, and depth plane.
 const proofShots = [
   {
     src: '/assets/webp/torrista-v2.webp',
-    alt: 'Torrista — travel platform',
+    alt: 'Torrista, travel platform',
     className: 'top-0 left-0 w-[64%]',
     rotate: -4,
     z: -140,
@@ -46,7 +50,7 @@ const proofShots = [
   },
   {
     src: '/assets/webp/dripa.webp',
-    alt: 'DriPA — driver performance platform',
+    alt: 'DriPA, driver performance platform',
     className: 'top-[4%] right-0 w-[60%]',
     rotate: 3,
     z: -70,
@@ -54,7 +58,7 @@ const proofShots = [
   },
   {
     src: '/assets/webp/dokita.webp',
-    alt: 'Dokita — telemedicine platform',
+    alt: 'Dokita, telemedicine platform',
     className: 'bottom-0 left-[6%] w-[82%]',
     rotate: -1.5,
     z: 0,
@@ -64,7 +68,7 @@ const proofShots = [
 
 /**
  * A collage of real project screenshots on staggered 3D depth planes. The
- * whole scene tilts a few degrees toward the pointer — it reads as WebGL but
+ * whole scene tilts a few degrees toward the pointer: it reads as WebGL but
  * is three transformed divs, so it costs nothing to ship.
  */
 function ProofStack({ disabled }: { disabled: boolean }) {
@@ -155,8 +159,7 @@ export default function Hero() {
     setViewportHeight(window.innerHeight);
   }, []);
 
-  // The hero is pinned (sticky) while the rest of the page slides over it,
-  // so plain document scroll drives its recede animation.
+  // The hero is pinned; plain document scroll drives its recede animation.
   const { scrollY } = useScroll();
   const scale = useTransform(scrollY, [0, viewportHeight * 0.9], [1, 0.95]);
   const opacity = useTransform(scrollY, [0, viewportHeight * 0.9], [1, 0.3]);
@@ -181,7 +184,7 @@ export default function Hero() {
    * Motion for fold content that must not delay first paint.
    *
    * The `<h1>` is the largest-contentful-paint element, and fading it in from
-   * `opacity: 0` meant LCP was not recorded until the fade finished — measured at
+   * `opacity: 0` meant LCP was not recorded until the fade finished: measured at
    * **4.2 s** on throttled mobile while first paint was already at 1.0 s. The text
    * was on screen; the browser was right not to count it.
    *
@@ -205,7 +208,7 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="bg-ink sticky top-0 z-0 -mt-[4.5rem] flex h-dvh w-full flex-col overflow-hidden md:-mt-[8.25rem]"
+      className="bg-ink sticky top-0 z-0 -mt-[75px] flex h-dvh w-full flex-col overflow-hidden md:-mt-[135px]"
     >
       {/* Depth on the dark surface: a faint paper lift over the headline and
           a soft sky wash behind the collage. */}
@@ -237,17 +240,17 @@ export default function Hero() {
                 {...enterNoFade(0)}
                 className="font-family-inter text-paper/70 text-xs font-medium tracking-[0.3em] uppercase md:text-sm"
               >
-                Jeremiah Okon — Full-Stack Product Engineer
+                Jeremiah Okon · Full-Stack Product Engineer
                 <span className="text-paper/40 hidden sm:inline">
                   {' '}
                   · React · Next.js · Node.js
                 </span>
               </m.p>
-              {/* This headline used to read "Websites that load fast — and sell
+              {/* This headline used to read "Websites that load fast, and sell
                   faster." It was well-written and it was selling the wrong thing.
                   That line bids for a marketing site with a small budget, and the
-                  reader hits Dokita and DriPA — a five-dashboard telemedicine
-                  platform and a fleet analytics product in production — about one
+                  reader hits Dokita and DriPA (a five-dashboard telemedicine
+                  platform and a fleet analytics product in production) about one
                   scroll later. The headline was pricing the work three tiers below
                   the portfolio directly underneath it.
 
@@ -260,7 +263,7 @@ export default function Hero() {
 
                   Kept deliberately short. The first draft ran 14 words over three
                   lines with a four-line subhead under it, and a hero that has to be
-                  *read* has already lost — the reader is scanning, not reading, and
+                  *read* has already lost: the reader is scanning, not reading, and
                   a long headline set large reads as a paragraph they can skip. Two
                   lines, one clause each: the offer, then the payoff. The detail that
                   got cut is not lost, it is in the subhead and the work section. */}
@@ -279,7 +282,7 @@ export default function Hero() {
                 className="font-family-inter text-paper/75 max-w-xl text-base leading-relaxed md:text-lg"
               >
                 Full-stack engineer, 4+ years. Telemedicine platforms, fleet
-                analytics, multi-role permission systems — live in production.
+                analytics, multi-role permission systems, live in production.
               </m.p>
             </div>
 
@@ -297,23 +300,20 @@ export default function Hero() {
                 });
               }}
               className="font-family-inter text-paper/70 hover:text-paper flex w-fit flex-wrap items-center gap-x-3 gap-y-1 text-sm transition-colors md:text-base"
-              // No aria-label. The visible text — rating, review count, availability —
-              // already describes this link, and an aria-label has to *contain* that
-              // text or a voice-control user saying what they can see gets no match.
-              // Keeping two strings in sync by hand is how that breaks: the label here
-              // did, silently, the moment "Available now" was added to the strip. The
-              // separators are aria-hidden so the name reads as a sentence.
+              // No aria-label: visible text already describes this link, and a
+              // hand-synced label would drift out of match (it already did once).
             >
               <span>
-                <span className="text-[#e58f2a]">4.9★</span> Upwork rating
+                <span className="text-[#e58f2a]">{UPWORK_AVG_RATING}★</span>{' '}
+                Upwork rating
               </span>
               <span aria-hidden="true" className="text-paper/30">
                 ·
               </span>
-              <span>6 client reviews</span>
+              <span>{UPWORK_REVIEW_COUNT} client reviews</span>
             </m.a>
 
-            {/* CTAs — visible fast; a 6-second visitor must see these */}
+            {/* CTAs: visible fast; a 6-second visitor must see these */}
             <m.div
               {...enter(0.3)}
               className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:gap-5"
@@ -365,7 +365,7 @@ export default function Hero() {
                   });
                 }}
                 className="inline-flex items-center gap-2.5 rounded-sm border border-[#1DB954]/40 bg-[#14A800]/15 px-5 py-3 text-sm font-semibold whitespace-nowrap text-[#3ddc74] transition-all duration-300 hover:border-[#1DB954]/60 hover:bg-[#14A800]/25 md:text-base"
-                aria-label="Hire me on Upwork — view my profile"
+                aria-label="Hire me on Upwork, view my profile"
               >
                 <UpworkIcon className="h-5 w-5" />
                 <span>Hire me on Upwork</span>

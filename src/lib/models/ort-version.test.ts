@@ -9,7 +9,7 @@ import { ORT_VERSION, ORT_WASM_PATH } from './config';
  * `wasmPaths` makes the runtime fetch its `.wasm` and `.mjs` factory from a pinned
  * version on jsdelivr, while the main ORT JavaScript is still bundled from
  * `node_modules`. Those two must be the same version. Bumping transformers.js
- * changes the installed `onnxruntime-web` — it is a transitive, prerelease pin —
+ * changes the installed `onnxruntime-web`: it is a transitive, prerelease pin,
  * and nothing else in the build would notice the skew until session creation failed
  * in a browser, on a route most people reach after a 151 MB download.
  *
@@ -22,7 +22,9 @@ function installedOrtVersion(): string {
     d.startsWith('onnxruntime-web@')
   );
 
-  expect(dirs, 'exactly one onnxruntime-web should be installed').toHaveLength(1);
+  expect(dirs, 'exactly one onnxruntime-web should be installed').toHaveLength(
+    1
+  );
 
   return dirs[0]!.slice('onnxruntime-web@'.length);
 }

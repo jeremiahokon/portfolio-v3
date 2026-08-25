@@ -8,12 +8,12 @@ import { sendGAEvent } from '@next/third-parties/google';
 
 import { AnimatePresence, m } from 'motion/react';
 
-import { LocalTimeClock } from '@/ui/local-time-clock';
-
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { EMAIL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 import { isHomePathname } from '@/lib/utils';
+
+import { LocalTimeClock } from '@/custom/local-time-clock';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,14 +21,10 @@ export default function Header() {
   const isHome = isHomePathname(pathname);
   const reduced = useReducedMotion();
 
-  // On the home page these are in-page anchors we scroll to smoothly. On any
-  // other route (e.g. /extract-audio) there is nothing to scroll to, so the
-  // links point at `/#id` and we let the browser navigate home instead.
+  // Off the home page there's nothing to scroll to, so links point at `/#id` and the browser navigates home instead.
   const hashHref = (id: string) => (isHome ? `#${id}` : `/#${id}`);
 
-  // Lock body scroll while the full-screen menu is open, and let Escape close
-  // it. Hiding overflow removes the scrollbar, so we pad the body by its width
-  // to avoid a jump. Both are tiny effects — no libraries, negligible JS cost.
+  // Lock body scroll while the menu is open; pad by the scrollbar's width so hiding it doesn't cause a layout jump.
   useEffect(() => {
     if (!isMenuOpen) return;
     const { overflow, paddingRight } = document.body.style;
@@ -82,13 +78,8 @@ export default function Header() {
   // Light over the dark home hero, dark ink on the light tool pages.
   const tone = isHome ? 'text-paper' : 'text-footer-background';
 
-  // The circle grows from the toggle button (top-right) so the overlay reads as
-  // an expansion of the hamburger itself. Reduced-motion users get a plain fade.
+  // The circle grows from the toggle button so the overlay reads as an expansion of the hamburger itself.
   const CIRCLE_ORIGIN = 'at 92% 6%';
-  // A gentle ease-in-out so the circle accelerates and settles softly rather
-  // than snapping. Opening: a faint crossfade softens the growing circle's
-  // edge. Closing: the circle stays fully opaque and contracts back into the
-  // button, so the menu retracts the same way it projected out.
   const SMOOTH = [0.33, 0, 0.15, 1] as const;
   const overlayMotion = reduced
     ? {
@@ -156,7 +147,7 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Animated hamburger — the only nav control on every breakpoint. */}
+        {/* Animated hamburger: the only nav control on every breakpoint. */}
         <button
           type="button"
           aria-label="Open menu"

@@ -7,10 +7,10 @@ import { sendGAEvent } from '@next/third-parties/google';
 
 import { m } from 'motion/react';
 
-import { Reveal } from '@/ui/reveal';
-
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { useCountUp, useReducedMotion } from '@/lib/hooks';
+
+import { Reveal } from '@/custom/reveal';
 
 interface FeaturedCase {
   name: string;
@@ -18,9 +18,7 @@ interface FeaturedCase {
   link: string;
   tag: string;
   description: string;
-  // TODO(jeremiah): swap these scope facts for real client outcomes
-  // (load-time wins, conversion lifts, revenue) as soon as you have them —
-  // measurable results are the strongest conversion device on this page.
+  // TODO(jeremiah): swap these scope facts for real client outcomes (load-time, conversion, revenue) once available.
   metric: { value: number; unit: string; label: string };
   stack: string;
 }
@@ -32,7 +30,7 @@ const featuredCases: FeaturedCase[] = [
     link: 'https://dokita-website.vercel.app/',
     tag: 'Telemedicine · Web Platform',
     description:
-      'A full-fledged telemedicine platform — online consultations, e-prescriptions, and pharmacy access, with a clinical admin dashboard behind it.',
+      'A full-fledged telemedicine platform: online consultations, e-prescriptions, and pharmacy access, with a clinical admin dashboard behind it.',
     metric: {
       value: 5,
       unit: 'apps',
@@ -46,7 +44,7 @@ const featuredCases: FeaturedCase[] = [
     link: 'https://dripa.ng/',
     tag: 'Driver Performance · Admin Platform',
     description:
-      'A driver performance and assurance platform — fleet analytics, driver scoring, and an operations admin dashboard, live in production.',
+      'A driver performance and assurance platform: fleet analytics, driver scoring, and an operations admin dashboard, live in production.',
     metric: {
       value: 3,
       unit: 'dashboards',
@@ -108,14 +106,10 @@ const projects: Project[] = [
   },
 ];
 
-// This strip is the site's main visible-keyword surface, so it is written for the
-// phrases founders actually search — problem-and-capability first, stack second.
-// "Fast sites that convert" is still here and still true; it moved down from the
-// hero, where being the first thing a reader saw was pricing every complex build
-// on the page as a marketing site.
+// Main visible-keyword surface: ordered by phrases founders actually search, problem-and-capability first, stack second.
 const capabilities = [
   'Multi-role dashboards & RBAC',
-  'Real-time features — live data, video, notifications',
+  'Real-time features: live data, video, notifications',
   'Telemedicine & healthcare platforms',
   'Fleet & operations analytics',
   'React, Next.js & Node.js',
@@ -377,7 +371,7 @@ export default function RecentWorks() {
       {/* Header */}
       <Reveal className="mb-8 flex flex-col items-center gap-4 px-4 text-center md:mb-12 md:px-10">
         <span className="font-family-inter text-xs font-medium tracking-[0.3em] text-[#2C3333]/75 uppercase">
-          [ WORK — THE PROOF ]
+          [ WORK: THE PROOF ]
         </span>
         <h2 className="text-footer-background text-4xl leading-tight font-bold tracking-tight md:text-6xl lg:text-7xl">
           Built to{' '}
@@ -385,7 +379,7 @@ export default function RecentWorks() {
           .
         </h2>
 
-        {/* Capabilities strip — what the killed services grid used to say,
+        {/* Capabilities strip: what the killed services grid used to say,
             compressed to one line */}
         <p className="font-family-inter mt-2 flex max-w-4xl flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs tracking-[0.12em] text-[#2C3333]/75 uppercase md:text-sm">
           {capabilities.map((capability, index) => (

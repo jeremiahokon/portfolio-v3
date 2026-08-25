@@ -39,7 +39,7 @@ export function BusyPanel({
         </p>
         <p className="font-family-inter text-ink/55 text-sm">
           {status === 'loading-engine'
-            ? 'One-time ~30 MB download — runs fully in your browser.'
+            ? 'One-time ~30 MB download (runs fully in your browser).'
             : (fileName ?? 'Working locally, nothing leaves your device.')}
         </p>
       </div>

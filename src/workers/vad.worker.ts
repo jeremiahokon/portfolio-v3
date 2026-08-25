@@ -15,8 +15,8 @@ import { type FromWorker, isToWorker, type ToWorker } from './protocol';
 /**
  * Silero voice activity detection.
  *
- * Used only to place chunk boundaries inside silence — it is never shown to the
- * user — but getting it right is what stops Whisper being handed half a word and
+ * Used only to place chunk boundaries inside silence, and is never shown to the
+ * user, but getting it right is what stops Whisper being handed half a word and
  * inventing a whole one from it.
  *
  * **Loading a model transformers.js has no class for.** `onnx-community/silero-vad`
@@ -24,7 +24,7 @@ import { type FromWorker, isToWorker, type ToWorker } from './protocol';
  * this supplies `model_type: 'custom'`, which the library tolerates (it skips its
  * "unknown architecture" warning for exactly that value) and falls back to a
  * plain encoder. That gives an ONNX session fetched, revision-pinned and cached
- * through the same machinery as every other model — which is the point, since
+ * through the same machinery as every other model: which is the point, since
  * pulling in `onnxruntime-web` directly would mean a second ORT copy in the page.
  *
  * The model is a stateful RNN, so `state` is threaded from each call into the
@@ -37,18 +37,18 @@ import { type FromWorker, isToWorker, type ToWorker } from './protocol';
  * huggingface.co/onnx-community/silero-vad/resolve/<sha>/config.json  404
  * ```
  *
- * It is *not* the config load — that is short-circuited by the object passed
+ * It is *not* the config load: that is short-circuited by the object passed
  * below, and was traced through `PretrainedConfig.from_pretrained`
  * (`const data = config ?? await loadConfig(...)`) to confirm it. It comes from
  * `get_model_files`, which transformers.js 4.2.0 runs **only when a
  * `progress_callback` is supplied**, to size the download bar. That function
- * opens with a hardcoded `const files = ["config.json"]` — commented "always
- * loaded" — and then probes each entry for metadata. For a repository that has
+ * opens with a hardcoded `const files = ["config.json"]` (commented "always
+ * loaded") and then probes each entry for metadata. For a repository that has
  * no `config.json`, the probe 404s and is discarded.
  *
  * Deliberately not worked around. The only lever is dropping the
  * `progress_callback`, which would silence one ignored request at the cost of
- * leaving 2.2 MB out of the download total the UI promises — a progress bar
+ * leaving 2.2 MB out of the download total the UI promises: a progress bar
  * that lies is worse than a console entry that changes nothing. The cost of
  * this 404 is that it looks alarming, so the fix is to say what it is here.
  */
@@ -85,14 +85,9 @@ async function init(message: Extract<ToWorker, { t: 'init' }>): Promise<void> {
   try {
     model = await AutoModel.from_pretrained(message.model.id, {
       revision: message.model.revision,
-      // See the note above: there is no Silero class, and 'custom' is the value
-      // the library treats as "deliberately unrecognised" rather than a bug.
-      config: { model_type: 'custom' } as never,
+      config: { model_type: 'custom' } as never, // no Silero class in the library; 'custom' is its "deliberately unrecognised" value
       model_file_name: 'model',
-      // 2 MB model, one tiny forward pass per 32 ms of audio. WASM avoids the
-      // per-dispatch GPU overhead that would dominate at that size, and keeps
-      // the GPU free for Whisper.
-      device: 'wasm',
+      device: 'wasm', // avoids per-dispatch GPU overhead on this tiny model; keeps the GPU free for Whisper
       dtype: 'fp32',
       progress_callback: (info) => {
         if (cancelled) return;
@@ -129,8 +124,7 @@ async function detect(message: Extract<ToWorker, { t: 'vad' }>): Promise<void> {
   const frameCount = Math.floor(samples.length / FRAME_SAMPLES);
   const probabilities = new Float32Array(frameCount);
 
-  // Reused across frames; only its data is rewritten.
-  let state = new Tensor(
+  let state = new Tensor( // reused across frames; only its data is rewritten
     'float32',
     new Float32Array(STATE_SHAPE[0]! * STATE_SHAPE[1]! * STATE_SHAPE[2]!),
     STATE_SHAPE
@@ -150,13 +144,10 @@ async function detect(message: Extract<ToWorker, { t: 'vad' }>): Promise<void> {
       const output = await model({ input, state, sr });
 
       probabilities[i] = Number(output.output.data[0] ?? 0);
-      // Thread the recurrent state forward. Dropping it would make every frame
-      // an independent decision and destroy the model's temporal smoothing.
-      state = output.stateN;
+      state = output.stateN; // threaded forward; dropping it would make every frame an independent decision
 
-      // Report progress occasionally rather than per frame: a 30-minute file is
-      // ~56,000 frames, and a postMessage each would cost more than the model.
       if (i % 500 === 0) {
+        // not per frame: ~56,000 frames in a 30-minute file would cost more in postMessage than the model itself
         post({
           t: 'progress',
           jobId: message.jobId,

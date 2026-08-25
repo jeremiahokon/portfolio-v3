@@ -1,5 +1,4 @@
-// Shared enter/exit motion for the extractor's three swapped panels so they
-// all transition identically inside the parent AnimatePresence.
+// Shared enter/exit motion so the extractor's three swapped panels transition identically.
 export const panelMotion = (reduced: boolean) => ({
   initial: reduced ? undefined : { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },

@@ -14,15 +14,8 @@ import {
 import { describeMp3Failure, extractMp3 } from '@/lib/media/extract-mp3';
 import { formatBytes } from '@/lib/utils';
 
-// The input is streamed into ffmpeg via a WORKERFS mount (read by reference,
-// never copied into WASM memory), and `-vn` means the video stream is never
-// decoded — only the audio is. So neither the WASM heap (2 GB ceiling, holds
-// just the small MP3 output + working buffers) nor CPU is the binding limit;
-// verified locally: a 961 MB clip extracted in ~7 s with ~40 MB peak JS heap.
-// The real constraint is client hardware — mobile browsers kill tabs that hold
-// very large files while running WASM. 1 GB is the mobile-safe sweet spot that
-// still covers essentially any realistic "extract audio from a video" input.
-export const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1 GB
+// 1 GB: neither the WASM heap nor CPU binds here (verified: a 961 MB clip extracted in ~7s). The real limit is mobile browsers killing tabs that hold large files in memory.
+export const MAX_FILE_SIZE = 1024 * 1024 * 1024;
 export const ACCEPTED_EXTENSIONS = [
   '.mp4',
   '.mov',
@@ -58,8 +51,7 @@ export function useAudioExtractor() {
   const [result, setResult] = useState<ExtractionResult | null>(null);
 
   const resultUrlRef = useRef<string | null>(null);
-  // Tail of engine output, kept so failures can be classified (e.g. "no audio
-  // stream") without logging anything in production.
+  // Tail of engine output, kept so failures can be classified without logging in production.
   const logTailRef = useRef<string[]>([]);
 
   const busy = status === 'loading-engine' || status === 'processing';
@@ -71,9 +63,7 @@ export function useAudioExtractor() {
     []
   );
 
-  // The engine itself is loaded and cached by `@/lib/ffmpeg/engine`, shared with
-  // the subtitle pipeline so the ~32 MB core is fetched once per session. Only
-  // the output handling below is extractor-specific.
+  // Engine is loaded and cached by `@/lib/ffmpeg/engine`, shared with the subtitle pipeline so the core is fetched once per session.
   useEffect(
     () =>
       subscribeEngine({
@@ -101,7 +91,7 @@ export function useAudioExtractor() {
     }
     if (file.size > MAX_FILE_SIZE) {
       setError(
-        `File is too large (${formatBytes(file.size)}). The limit is 1 GB — try a shorter clip.`
+        `File is too large (${formatBytes(file.size)}). The limit is 1 GB, try a shorter clip.`
       );
 
       return;
@@ -115,8 +105,7 @@ export function useAudioExtractor() {
     setFileName(file.name);
     setProgress(0);
 
-    // Load the engine in its own try so a network/CDN failure fetching the
-    // ~30 MB core isn't misreported as a broken video file.
+    // Own try/catch so a network/CDN failure fetching the engine isn't misreported as a broken video file.
     let ffmpeg: FFmpeg;
     try {
       if (!isEngineLoaded()) setStatus('loading-engine');
@@ -124,7 +113,7 @@ export function useAudioExtractor() {
     } catch (err) {
       console.error('[audio-extractor] engine failed to load', err);
       setError(
-        'Couldn’t load the audio engine — check your connection and try again.'
+        'Couldn’t load the audio engine, check your connection and try again.'
       );
       setStatus('idle');
 
@@ -133,17 +122,10 @@ export function useAudioExtractor() {
 
     setStatus('processing');
 
-    // Mount the source File by reference (WORKERFS reads it lazily from
-    // disk) instead of copying every byte into WASM memory with writeFile.
-    // This lets multi-gigabyte videos through — only the small MP3 output
-    // and ffmpeg's working buffers live in linear memory.
     logTailRef.current = [];
 
     try {
-      // The command, the mount and the cleanup now live in `extractMp3`, shared
-      // with the subtitles tool so both hand back an identical file from the same
-      // source. No behaviour change here: same arguments, same quality, same
-      // WORKERFS-by-reference mount.
+      // extractMp3 mounts the file by reference (WORKERFS) rather than copying it into WASM memory, shared with the subtitles tool.
       const { blob, name } = await extractMp3(ffmpeg, file);
       const url = URL.createObjectURL(blob);
       resultUrlRef.current = url;
@@ -157,8 +139,7 @@ export function useAudioExtractor() {
         event_category: 'tool_usage',
       });
     } catch (err) {
-      // Surface the real cause — the friendly copy below hides it, and this
-      // path swallowed a cross-origin-isolation failure once already.
+      // Logged because the friendly copy below once hid a cross-origin-isolation failure.
       console.error('[audio-extractor] extraction failed', err);
       const friendlyError = describeMp3Failure(logTailRef.current.join('\n'));
       setError(friendlyError);

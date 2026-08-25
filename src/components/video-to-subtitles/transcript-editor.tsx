@@ -26,31 +26,16 @@ import {
   Undo2,
 } from 'lucide-react';
 
-import { Tooltip } from '@/components/ui/tooltip';
-
 import type { QcIssue } from '@/lib/subtitles/qc';
 import type { Cue, Word } from '@/lib/subtitles/types';
+
+import { Tooltip } from '@/custom/tooltip';
 
 import { FindReplacePanel } from './find-replace-panel';
 import { useTranscriptEditor } from './use-transcript-editor';
 
-/**
- * The transcript editor.
- *
- * **A reading surface first, a timing grid second (D18).** Measured on a real
- * 39-minute call, human time goes to recurring proper nouns and scattered word
- * errors — not to cue boundaries. So the default view is continuous prose with
- * cue breaks shown as thin markers, and the familiar one-row-per-cue grid is a
- * toggle. 755 rows of seven words each is a hostile way to read anything.
- *
- * **Virtualisation.** Cue blocks use `content-visibility: auto` with an intrinsic
- * size hint rather than a virtualiser dependency: the browser skips layout and
- * paint for off-screen blocks, and unlike a virtualiser it handles variable
- * heights natively, keeps Ctrl-F working, and adds nothing to the bundle. The
- * remaining cost is React reconciliation over the block list, which `memo` on
- * `CueBlock` keeps to the blocks that actually changed. If the 10,000-word 60fps
- * gate fails on a real profile, a virtualiser goes in then — not before.
- */
+// Cue blocks use `content-visibility: auto` instead of a virtualiser: handles variable
+// heights, keeps Ctrl-F working, no bundle cost; `memo` covers the rest.
 
 interface Props {
   words: Word[];
@@ -78,14 +63,8 @@ function stamp(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-/**
- * One word.
- *
- * Four states, and they mean different things, which is why they do not share a
- * colour. `conf: 0` means **unmeasured**, not badly aligned — an un-aligned
- * transcript has conf 0 everywhere, and flagging all of it would teach the user
- * to ignore the signal entirely.
- */
+// `conf: 0` means unmeasured, not badly aligned: flagging it like low confidence
+// would teach the user to ignore the signal on every un-aligned transcript.
 const WordSpan = memo(function WordSpan({
   word,
   playing,
@@ -95,19 +74,12 @@ const WordSpan = memo(function WordSpan({
   playing: boolean;
   lowConfidence: boolean;
 }) {
-  // Derived from origText rather than read from `edited`. `edited` is the
-  // re-alignment marker and M4 clears it once a word has been measured; what the
-  // user changed is permanent, whether it still needs re-timing is not.
-  const changed = word.text !== word.origText;
+  const changed = word.text !== word.origText; // vs origText, not `edited`: that's the re-alignment marker, which clears independently
 
   return (
     <span
       className={[
-        // Negative margin cancels the padding for layout, so the highlight box
-        // still extends past the glyphs while the gap between words stays exactly
-        // one space wide. Padding alone made the prose visibly loose once a real
-        // space was added between spans.
-        '-mx-0.5 rounded-sm px-0.5 transition-colors',
+        '-mx-0.5 rounded-sm px-0.5 transition-colors', // negative margin cancels padding for layout, keeping the inter-word gap exactly one space
         playing ? 'text-ink bg-amber-200/80' : '',
         !playing && changed ? 'text-emerald-700' : '',
         !playing && !changed && lowConfidence
@@ -177,9 +149,7 @@ const CueBlock = memo(function CueBlock({
 
   return (
     <div
-      // The intrinsic-size hint is what lets the browser skip off-screen blocks
-      // without the scrollbar jumping as they render.
-      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 64px' }}
+      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 64px' }} // intrinsic-size hint avoids scrollbar jump as off-screen blocks render
       className={[
         'group relative rounded-sm border px-3 py-2 transition-colors',
         selected
@@ -215,7 +185,6 @@ const CueBlock = memo(function CueBlock({
                 e.preventDefault();
                 onCancel();
               }
-              // Enter commits; Shift-Enter is a line break inside the cue.
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 onCommit(cueIndex, draft);
@@ -227,11 +196,7 @@ const CueBlock = memo(function CueBlock({
           />
         ) : (
           <p
-            // A single click, not a double. The whole point of this view is that the
-            // text is editable, and hiding that behind a double-click meant people
-            // clicked once, heard the audio start, and concluded it was read-only.
-            // Playback moved to the timestamp button beside it, which is a clearer
-            // home for it anyway.
+            // Single click, not double: playback lives on the timestamp button now.
             onClick={(e) => {
               e.stopPropagation();
               onBeginEdit(cueIndex);
@@ -248,10 +213,7 @@ const CueBlock = memo(function CueBlock({
             className="font-family-inter text-ink/85 hover:bg-ink/[0.03] focus-visible:ring-sky-deep/40 flex-1 cursor-text rounded-sm text-[15px] leading-relaxed focus-visible:ring-2 focus-visible:outline-none"
           >
             {words.slice(cue.wordStart, cue.wordEnd + 1).map((word, i) => (
-              // The separator is a real text node, not padding. Styling the gap
-              // instead would look right and copy wrong — selecting the
-              // transcript would yield "ARCnumberAirlines" — and would read as
-              // one long word to a screen reader.
+              // Real text node, not padding: a copy/paste or screen reader would otherwise merge words.
               <Fragment key={word.id}>
                 {i > 0 ? ' ' : null}
                 <WordSpan
@@ -297,9 +259,7 @@ const CueBlock = memo(function CueBlock({
         )}
       </div>
 
-      {/* Timing controls. Only in Cue mode, and only for the selected cue —
-          showing six buttons on every one of 441 rows would bury the text this
-          view exists to display. */}
+      {/* Only for the selected cue: six buttons on every row would bury the text. */}
       {showTimes && selected && !editing && (
         <div className="mt-2 flex flex-wrap items-center gap-1 border-t border-black/5 pt-2">
           <span className="font-family-inter text-ink/30 mr-1 text-[10px] uppercase">
@@ -318,7 +278,7 @@ const CueBlock = memo(function CueBlock({
           />
 
           <span className="ml-auto flex items-center gap-1">
-            <Tooltip label="Split this cue in two at the playhead, or at its midpoint if the audio is elsewhere. Only the grouping changes — no word is re-timed.">
+            <Tooltip label="Split this cue in two at the playhead, or at its midpoint if the audio is elsewhere. Only the grouping changes: no word is re-timed.">
               <button
                 type="button"
                 onClick={(e) => {
@@ -334,7 +294,7 @@ const CueBlock = memo(function CueBlock({
             <Tooltip
               label={
                 canMerge
-                  ? 'Join this cue with the one after it. Lossless — it only rewrites the grouping.'
+                  ? 'Join this cue with the one after it. Lossless: it only rewrites the grouping.'
                   : 'Nothing to merge with: this is the last cue.'
               }
             >
@@ -358,15 +318,7 @@ const CueBlock = memo(function CueBlock({
   );
 });
 
-/**
- * A pair of nudge buttons for one cue edge.
- *
- * 100 ms a click, because subtitle timing is judged by eye against speech and that
- * is roughly the smallest step a viewer notices. Dragging was the original plan;
- * buttons are better here — they work on touch, they work from the keyboard, and
- * they are precise, whereas dragging a handle across a row that has no time axis
- * drawn on it would be guesswork.
- */
+// 100ms a click: buttons over drag-to-nudge since there's no time axis drawn to drag against.
 const NUDGE_SECONDS = 0.1;
 
 function EdgeNudge({
@@ -408,18 +360,8 @@ function EdgeNudge({
   );
 }
 
-/**
- * The scrub bar.
- *
- * A native range input, made invisible and laid over a drawn track. The drawn
- * track is what the eye needs — a 1px line with a filled portion — and the range
- * input is what everything else needs: drag, click-to-position, arrow keys, and a
- * control a screen reader already knows how to announce. Restyling the native
- * thumb gets neither, and a bare div gets only the first.
- *
- * Five seconds is the skip step: long enough to clear a sentence, short enough
- * that overshooting costs one more click rather than a re-hunt.
- */
+// A native (invisible) range input laid over a drawn track: the track is the visual,
+// the input gives drag/click/arrow-keys/screen-reader support for free.
 const SKIP_SECONDS = 5;
 
 function SeekBar({
@@ -526,7 +468,7 @@ export function TranscriptEditor(props: Props) {
     [cues.length, setSelectedCue]
   );
 
-  /** Next cue carrying a QC issue — the point of routing attention. */
+  /** Next cue carrying a QC issue: the point of routing attention. */
   const stepFlagged = useCallback(
     (delta: number) => {
       if (flagged.length === 0) return;
@@ -543,14 +485,7 @@ export function TranscriptEditor(props: Props) {
     [flagged, selectedCue, setSelectedCue, playCue]
   );
 
-  /**
-   * Splits the cue where the user is listening.
-   *
-   * `splitCue` needs a word index, and the honest answer to "which word?" is the one
-   * the playhead is on — that is where the user's attention is when they decide a cue
-   * is too long. With the audio elsewhere it falls back to the midpoint, which at
-   * least halves the cue rather than shaving a word off one end.
-   */
+  // Splits at the playhead word, falling back to the midpoint if the audio is elsewhere in the cue.
   const splitAtPlayhead = useCallback(
     (cueIndex: number) => {
       const cue = cues[cueIndex];
@@ -591,9 +526,6 @@ export function TranscriptEditor(props: Props) {
           event.preventDefault();
           togglePlay();
           break;
-        // Left and right scrub, up and down move the selection. Both are
-        // "go back a bit", and which one you want depends on whether you are
-        // re-listening or re-reading.
         case 'ArrowLeft':
           event.preventDefault();
           seekBy(-SKIP_SECONDS);
@@ -629,9 +561,7 @@ export function TranscriptEditor(props: Props) {
           event.preventDefault();
           splitAtPlayhead(selectedCue);
           break;
-        // Shifts the whole cue rather than one edge: for when the subtitle should
-        // appear earlier or later than the speech, which is a different intent from
-        // trimming it, and writes an override instead of re-timing the words.
+        // Shifts the whole cue, not one edge: for when it's early/late vs. speech, not too long.
         case ',':
           event.preventDefault();
           slideCue(selectedCue, -0.1);
@@ -725,7 +655,7 @@ export function TranscriptEditor(props: Props) {
             </span>
           </Tooltip>
 
-          <Tooltip label="Cues are the subtitle blocks that get exported. Words are the timed units underneath them — editing a word's text never moves its timing.">
+          <Tooltip label="Cues are the subtitle blocks that get exported. Words are the timed units underneath them: editing a word's text never moves its timing.">
             <span className="font-family-inter text-ink/75 cursor-help text-xs">
               {stats}
             </span>
@@ -738,13 +668,13 @@ export function TranscriptEditor(props: Props) {
               </span>
             </Tooltip>
           ) : (
-            <Tooltip label="Errors are cues a player may refuse to render — overlapping, or too short to display. Warnings are legible but uncomfortable, usually reading too fast. Click, or press Tab, to jump to the next one.">
+            <Tooltip label="Errors are cues a player may refuse to render: overlapping, or too short to display. Warnings are legible but uncomfortable, usually reading too fast. Click, or press Tab, to jump to the next one.">
               <button
                 type="button"
                 onClick={() => stepFlagged(1)}
                 className="rounded-sm bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
               >
-                {qc.errors} errors · {qc.warnings} warnings — press Tab
+                {qc.errors} errors · {qc.warnings} warnings · press Tab
               </button>
             </Tooltip>
           )}
@@ -803,9 +733,7 @@ export function TranscriptEditor(props: Props) {
           </div>
         </div>
 
-        {/* Scrub bar. Its own full-width row rather than squeezed into the
-            transport: on a 39-minute file a short track makes every drag a
-            ten-second overshoot. */}
+        {/* Own full-width row, not squeezed into the transport: a short track overshoots on a long file. */}
         <div className="border-b border-black/5 px-4 py-2">
           <SeekBar
             current={currentTime}
@@ -882,13 +810,13 @@ export function TranscriptEditor(props: Props) {
                 Back
               </button>
             </Tooltip>
-            <Tooltip label="Apply your edits and go to the download options — the exported file will match what you see here.">
+            <Tooltip label="Apply your edits and go to the download options: the exported file will match what you see here.">
               <button
                 type="button"
                 onClick={() => props.onExport(words, cues)}
                 className="bg-ink font-family-inter rounded-sm px-5 py-2 text-xs text-white"
               >
-                Done — export
+                Done · export
               </button>
             </Tooltip>
           </div>

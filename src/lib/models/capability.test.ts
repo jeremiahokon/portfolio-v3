@@ -91,10 +91,8 @@ describe('assess', () => {
   });
 
   it('warns a long WebKit job about the memory ceiling, by name', () => {
-    // The reported failure: Safari reaches the model download and the tab is
-    // killed and reloaded. Every other guard here is blind to it — deviceMemory
-    // is null so the memory refusal cannot fire, and desktop Safari is not
-    // `coarsePointer` so the long-job warning does not either.
+    // The reported failure: Safari's tab is killed and reloaded mid-download,
+    // and every other guard is blind to it (deviceMemory null, not coarsePointer).
     const out = assess({
       ...safari,
       durationSeconds: (WEBKIT_LONG_JOB_MINUTES + 5) * 60,

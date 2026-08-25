@@ -4,9 +4,8 @@ import dynamic from 'next/dynamic';
 
 import { Loader2 } from 'lucide-react';
 
-// ffmpeg.wasm and the model worker both touch Worker/window, so this must never
-// render on the server. The skeleton mirrors the idle dropzone's footprint
-// (card shell + min-height) so hydration doesn't shift the layout.
+// Never rendered server-side: ffmpeg.wasm and the model worker touch Worker/window.
+// Skeleton mirrors the idle dropzone's footprint so hydration doesn't shift the layout.
 const Subtitler = dynamic(
   () => import('./subtitler').then((module_) => module_.Subtitler),
   {

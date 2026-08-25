@@ -9,14 +9,6 @@ import { m } from 'motion/react';
 import { SuccessCheck } from '@/components/extract-audio/animated-icons';
 import { panelMotion } from '@/components/extract-audio/panel-motion';
 import { Button } from '@/components/ui/button';
-import {
-  AudioGlyph,
-  DownloadGlyph,
-  EditGlyph,
-  RestartGlyph,
-  WandGlyph,
-} from '@/components/ui/glyphs';
-import { Tooltip } from '@/components/ui/tooltip';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { isModelCached } from '@/lib/models/cache-manager';
@@ -29,6 +21,15 @@ import {
 } from '@/lib/subtitles/export';
 import type { JobSnapshot } from '@/lib/subtitles/store';
 import { baseName, cn, formatBytes } from '@/lib/utils';
+
+import {
+  AudioGlyph,
+  DownloadGlyph,
+  EditGlyph,
+  RestartGlyph,
+  WandGlyph,
+} from '@/custom/glyphs';
+import { Tooltip } from '@/custom/tooltip';
 
 interface ExportPanelProps {
   reduced: boolean;
@@ -71,7 +72,7 @@ export function ExportPanel({
    * Quoting "+180 MB download" to someone who downloaded it last week is simply
    * false, and it is false in the direction that costs the most: it talks them
    * out of the one action on this panel that makes their timings accurate. Starts
-   * `null` — unknown — so the size is neither promised nor denied for the tick
+   * `null` (unknown), so the size is neither promised nor denied for the tick
    * before the cache answers.
    */
   const [alignerCached, setAlignerCached] = useState<boolean | null>(null);
@@ -116,8 +117,6 @@ export function ExportPanel({
   const wordCount = snapshot.words.length;
   const cueCount = snapshot.cues.length;
 
-  // Serialising is cheap, but doing it on every render of a 10k-word transcript
-  // is still waste. Recompute only when the format or the transcript changes.
   const content = useMemo(
     () => serialize(format, snapshot.words, snapshot.cues),
     [format, snapshot.words, snapshot.cues]
@@ -132,9 +131,7 @@ export function ExportPanel({
     anchor.href = url;
     anchor.download = name;
     anchor.click();
-    // Revoke on the next tick rather than immediately: revoking synchronously
-    // can cancel the download in some browsers before it starts reading.
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    setTimeout(() => URL.revokeObjectURL(url), 0); // revoking synchronously can cancel the download in some browsers
 
     sendGAEvent({
       event: GA_EVENTS.SUBTITLER_EXPORTED,
@@ -163,10 +160,6 @@ export function ExportPanel({
       </span>
 
       {snapshot.timingSource === 'estimated' ? (
-        // Said plainly rather than buried: these timings come from the speech
-        // recogniser's ~1s-granular segment bounds, not from a forced aligner.
-        // The offer to fix it sits right next to the admission, with its cost
-        // stated, so the trade is the user's to make rather than a surprise.
         <div className="border-ink/10 bg-ink/[0.03] flex w-full max-w-md flex-col items-center gap-3 rounded-sm border px-5 py-4">
           <Tooltip label="The speech model reports roughly one-second granularity, so each word's start is worked out by sharing its cue's span across the words in it. Good enough to caption with; not frame-accurate.">
             <span className="font-family-inter text-ink/85 inline-flex cursor-help items-center gap-2 text-xs">
@@ -202,7 +195,7 @@ export function ExportPanel({
           </Tooltip>
         </div>
       ) : (
-        <Tooltip label="The remaining words kept their estimated timing, either because the audio did not clearly support a measurement or because the word cannot be measured at all — the aligner's vocabulary has no digits or symbols.">
+        <Tooltip label="The remaining words kept their estimated timing, either because the audio did not clearly support a measurement or because the word cannot be measured at all. The aligner's vocabulary has no digits or symbols.">
           <span className="font-family-inter inline-flex cursor-help items-center gap-2 rounded-sm border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs text-emerald-700">
             <Clock3 className="h-4 w-4" />
             Word-level timing measured for{' '}
@@ -214,9 +207,7 @@ export function ExportPanel({
 
       {snapshot.timingSource === 'aligned' &&
         snapshot.words.some((word) => word.edited) && (
-          // M4. Only offered once the aligner has run, because that is the only
-          // state where "your edits have estimated timing while everything else is
-          // measured" is true — and it is a real inconsistency worth fixing.
+          // Only offered post-alignment, the one state where edits can have estimated timing while the rest is measured.
           <Tooltip label="Re-measures word timing for the parts you edited, and only those. The aligner is already downloaded, so this takes seconds rather than another full pass. Boundaries you dragged yourself are left alone.">
             <button
               type="button"
@@ -269,7 +260,7 @@ export function ExportPanel({
           Transcribe another
         </Button>
 
-        <Tooltip label="Extracts the original audio as a high-quality MP3 — the same file the audio extractor produces. Encoded when you ask for it, so it costs nothing unless you want it.">
+        <Tooltip label="Extracts the original audio as a high-quality MP3 (the same file the audio extractor produces). Encoded when you ask for it, so it costs nothing unless you want it.">
           <button
             type="button"
             onClick={() => void downloadMp3()}
@@ -280,12 +271,12 @@ export function ExportPanel({
             {mp3 === 'working'
               ? 'Encoding MP3…'
               : mp3 === 'failed'
-                ? 'MP3 failed — retry'
+                ? 'MP3 failed · retry'
                 : 'Also get the MP3'}
           </button>
         </Tooltip>
 
-        <Tooltip label="Read the transcript alongside the audio and fix what the model misheard — names and acronyms especially. Correcting a word never moves its timing.">
+        <Tooltip label="Read the transcript alongside the audio and fix what the model misheard: names and acronyms especially. Correcting a word never moves its timing.">
           <button
             type="button"
             onClick={onEdit}

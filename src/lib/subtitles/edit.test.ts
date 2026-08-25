@@ -37,7 +37,7 @@ const words: Word[] = [
 
 const cue: Cue = { id: 'c1', wordStart: 0, wordEnd: 4, lineBreaks: [3] };
 
-describe('editWordText — the core invariant', () => {
+describe('editWordText: the core invariant', () => {
   it('leaves start and end byte-identical, not merely close', () => {
     // This is M3's stated acceptance criterion, and `toBe` rather than
     // `toBeCloseTo` is the point of it.
@@ -106,7 +106,7 @@ describe('moveWordBoundary', () => {
 
   it('refuses to cross the previous word', () => {
     // "brown" starts at 1.0 and "quick" ends there, so dragging its start back to
-    // 0 clamps at 1.0 — the previous word's END, not its start.
+    // 0 clamps at 1.0: the previous word's END, not its start.
     expect(moveWordBoundary(words, 2, 'start', 0).at(2)!.start).toBe(1);
   });
 
@@ -122,7 +122,7 @@ describe('moveWordBoundary', () => {
   });
 });
 
-describe('splitCue and mergeCues — losslessness', () => {
+describe('splitCue and mergeCues: losslessness', () => {
   it('split rewrites index ranges only', () => {
     const split = splitCue([cue], 0, 2);
 

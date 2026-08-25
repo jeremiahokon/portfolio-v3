@@ -1,15 +1,8 @@
 export const SITE_URL = 'https://jeremiahokon.online';
 
-// One name, everywhere.
-//
-// These handles used to disagree with each other on all seven platforms — a YouTube
-// name starting with `ď` (U+010F, not on any keyboard, so literally untypeable), a
-// TikTok that had nothing to do with the others, an X handle with a trailing digit
-// that reads as a spare account, and a GitHub nobody could connect to the person.
-// Search engines link profiles into one entity by matching handles and cross-links;
-// six different names meant six strangers. Change these only alongside the actual
-// platform renames — a constant pointing at a handle that has not been claimed yet
-// is a 404 in the footer.
+// Search engines link profiles into one entity via matching handles/cross-links,
+// so keep the name consistent everywhere. Change these only alongside the
+// actual platform rename: a stale handle here is a 404 in the footer.
 export const EMAIL = 'hello@jeremiahokon.online';
 
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/okon-jeremiah/';
@@ -27,6 +20,10 @@ export const FACEBOOK_URL =
 
 export const UPWORK_PROFILE_URL =
   'https://www.upwork.com/freelancers/~01f6e389825087ffcd';
+
+// Single source: the hero trust strip, stats section, and JSON-LD must move together.
+export const UPWORK_AVG_RATING = 4.9;
+export const UPWORK_REVIEW_COUNT = 6;
 
 export const BOOK_A_CALL =
   'https://calendly.com/okonjeremiahprogs/proposal-review-call';

@@ -2,7 +2,7 @@
  * The data contract for the subtitle pipeline.
  *
  * **Words are the single source of truth. Cues are a derived view.** Every
- * downstream stage — stitching, cue building, export, re-alignment — is a
+ * downstream stage, stitching, cue building, export, re-alignment, is a
  * function over `Word[]`, and cues only ever hold *indices* into that array.
  *
  * Two invariants follow, and they are the reason the tool can re-time an edit
@@ -106,7 +106,7 @@ export type ErrorCode =
   | 'engine-load-failed'
   | 'decode-failed'
   | 'no-audio-track'
-  /** An audio track exists but holds no speech — silence, or noise only. */
+  /** An audio track exists but holds no speech, silence, or noise only. */
   | 'no-speech'
   | 'model-download-failed'
   | 'quota-exceeded'
@@ -119,7 +119,7 @@ export type ErrorCode =
 
 /**
  * Broadcast-standard readability defaults, from the brief's section 2.4.
- * Configurable by design — cue building takes these as a parameter rather than
+ * Configurable by design, cue building takes these as a parameter rather than
  * reading the constant, so the editor can expose them later without a rewrite.
  */
 export interface ReadabilityRules {

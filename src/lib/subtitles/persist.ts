@@ -4,8 +4,8 @@ import type { Cue, TimingSource, Word } from './types';
  * Autosaves the transcript so a closed tab does not cost half an hour of work.
  *
  * **Moved from M5 to M3 deliberately (D19).** The editor is where the user
- * *invests* sustained attention — reading 39 minutes of audio and correcting
- * names one by one — and that investment is exactly what makes losing it
+ * *invests* sustained attention, reading 39 minutes of audio and correcting
+ * names one by one, and that investment is exactly what makes losing it
  * unacceptable. A transcription can always be re-run; an hour of corrections
  * cannot. It is also far cheaper to add now than to retrofit around an editor
  * built assuming ephemeral state.
@@ -95,8 +95,8 @@ function tx<T>(
 /**
  * Writes a draft, replacing any previous one for the same key.
  *
- * Swallows quota errors on purpose. The alternative — surfacing "could not
- * autosave" over an editor that is working perfectly well — trains people to
+ * Swallows quota errors on purpose. The alternative, surfacing "could not
+ * autosave" over an editor that is working perfectly well, trains people to
  * dismiss warnings, and the user has lost nothing they had a moment ago.
  */
 export async function saveDraft(draft: Omit<Draft, 'savedAt'>): Promise<void> {
@@ -144,7 +144,7 @@ export async function deleteDraft(key: string): Promise<void> {
  * Marks that a transcription is in flight, so a crash can be told from a visit.
  *
  * When Safari runs out of memory it kills the tab and reloads it. From the
- * user's side that is indistinguishable from arriving fresh — the page comes
+ * user's side that is indistinguishable from arriving fresh, the page comes
  * back at step one with no error and no explanation, and they watch it happen
  * again. That is the whole of the reported symptom: not that it failed, but that
  * it failed *silently*, on a loop.
@@ -153,7 +153,7 @@ export async function deleteDraft(key: string): Promise<void> {
  * before anything renders, and it must not outlive the tab. A marker that
  * survived into a genuinely new session would accuse a working browser of a
  * crash that never happened. Writes are wrapped because Safari's private mode
- * throws on `setItem` rather than failing quietly — and a diagnostic aid must
+ * throws on `setItem` rather than failing quietly, and a diagnostic aid must
  * never be the thing that breaks the tool.
  */
 const IN_FLIGHT_KEY = 'subtitles-job-in-flight';
@@ -172,7 +172,7 @@ export function markJobInFlight(job: InFlightJob): void {
   }
 }
 
-/** Called on success *and* on any handled failure — both mean "not a crash". */
+/** Called on success *and* on any handled failure, both mean "not a crash". */
 export function clearJobInFlight(): void {
   try {
     globalThis.sessionStorage?.removeItem(IN_FLIGHT_KEY);
@@ -185,7 +185,7 @@ export function clearJobInFlight(): void {
  * Reads the marker without consuming it.
  *
  * **Read-only on purpose.** The obvious shape here is read-and-clear, so the
- * notice shows once — and it is wrong, because the caller is a React effect and
+ * notice shows once, and it is wrong, because the caller is a React effect and
  * StrictMode runs effects twice on mount in development. The first pass would
  * consume the marker and the second would read `null` and render nothing, which
  * is exactly the silence this whole mechanism exists to remove. Anything that

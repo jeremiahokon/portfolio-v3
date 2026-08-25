@@ -1,9 +1,9 @@
 import { Star } from 'lucide-react';
 
-import { TrackedLink } from '@/ui/tracked-link';
-
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { UPWORK_PROFILE_URL } from '@/lib/constant';
+
+import { TrackedLink } from '@/custom/tracked-link';
 
 interface Testimonial {
   quote: string;

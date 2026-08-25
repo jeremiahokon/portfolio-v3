@@ -20,7 +20,7 @@ import type { Cue, Word } from './types';
  * Replaces a word's text.
  *
  * Sets `edited` so a later re-alignment knows which region to revisit, and
- * preserves `origText` so the change stays diffable. **Does not touch timing** —
+ * preserves `origText` so the change stays diffable. **Does not touch timing**,
  * that is the whole point, and there is a test asserting the numbers are
  * identical rather than approximately equal.
  */
@@ -131,7 +131,7 @@ export function splitCue(
  * Merges a cue with the one after it.
  *
  * Only adjacent cues can merge, and only when they are adjacent in *word* terms
- * too — merging across a gap in the index space would silently swallow the words
+ * too, merging across a gap in the index space would silently swallow the words
  * in between.
  */
 export function mergeCues(cues: Cue[], cueIndex: number): Cue[] {
@@ -195,8 +195,8 @@ export function shiftCue(
 /**
  * Which word is being spoken at `seconds`, or -1.
  *
- * Binary search, because the editor calls this on every `timeupdate` — roughly
- * four times a second — against a list that can hold tens of thousands of words.
+ * Binary search, because the editor calls this on every `timeupdate`, roughly
+ * four times a second, against a list that can hold tens of thousands of words.
  * A linear scan would be the editor's dominant cost for no reason.
  */
 export function wordAt(words: Word[], seconds: number): number {

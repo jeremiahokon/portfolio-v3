@@ -1,0 +1,12 @@
+# Jeremiah Okon
+
+> Full-stack product engineer. Give me a messy problem, I'll ship the product that fixes it. Built with React, Next.js, Node.js and TypeScript, with production work in telemedicine platforms, fleet analytics dashboards, and multi-role systems. This site also hosts free, browser-based developer tools.
+
+## Site
+- [Home](https://jeremiahokon.online/): portfolio, work history (Dokita, DriPA, and other live products), skills, testimonials, and the booking CTA.
+- [Tools](https://jeremiahokon.online/tools): free in-browser developer tools, no signup, nothing uploaded.
+- [Extract Audio from Video](https://jeremiahokon.online/extract-audio): browser-based MP3 audio extractor, with an FAQ.
+- [Video to Subtitles](https://jeremiahokon.online/video-to-subtitles): browser-based subtitle generator (SRT/VTT/JSON), with an FAQ.
+
+## Identity
+Jeremiah Okon's identity across platforms is declared via `sameAs` in this site's Person schema (LinkedIn, GitHub, X, Upwork, YouTube, TikTok, Instagram, Facebook). Cross-reference those for verification rather than treating any single profile as canonical.

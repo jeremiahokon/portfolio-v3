@@ -2,7 +2,7 @@
  * Can this device finish the job at all?
  *
  * R4 in the risk register: a phone runs out of memory partway through and the tab
- * dies. That failure is uniquely bad because of *when* it happens — after a 151 MB
+ * dies. That failure is uniquely bad because of *when* it happens: after a 151 MB
  * download and several minutes of work, with nothing to show and no explanation. The
  * user concludes the tool is broken, which is the correct conclusion from what they
  * saw.
@@ -12,7 +12,7 @@
  * an unexplained crash, and it costs the user nothing but a sentence.
  *
  * **What this deliberately is not.** It does not sniff user agents, which get the
- * answer wrong in both directions — a recent iPad outperforms plenty of laptops, and
+ * answer wrong in both directions: a recent iPad outperforms plenty of laptops, and
  * a cheap Android tablet reports the same platform string as a flagship. It reads
  * the capability signals the platform actually exposes, and where the answer is
  * genuinely unknown it lets the job proceed with a warning instead of blocking.
@@ -43,10 +43,10 @@ export interface CapabilityInput {
   webgpu: boolean;
   /** Storage the origin may use, in GB, or null when unreported. */
   storageQuotaGb: number | null;
-  /** True on touch-primary devices — a proxy for phone, not a decision on its own. */
+  /** True on touch-primary devices: a proxy for phone, not a decision on its own. */
   coarsePointer: boolean;
   /**
-   * WebKit — Safari on any platform, and every iOS browser.
+   * WebKit: Safari on any platform, and every iOS browser.
    *
    * The one engine fact this file needs, because it is the one that makes every
    * *other* signal here unreliable. It is a capability inference, not the
@@ -74,7 +74,7 @@ export const MIN_MEMORY_GB = 2;
  * Minutes of audio beyond which a memory-constrained device is asking for trouble.
  *
  * Decoded PCM is held in memory at roughly 3.8 MB per minute, so 30 minutes is about
- * 115 MB before the model is loaded at all — survivable on a desktop, as the
+ * 115 MB before the model is loaded at all: survivable on a desktop, as the
  * 39-minute run proved, and not on a phone.
  */
 export const LONG_JOB_MINUTES = 15;
@@ -86,7 +86,7 @@ export const LONG_JOB_MINUTES = 15;
  * does not implement `navigator.deviceMemory`, so `memoryGb` is null there, the
  * `< MIN_MEMORY_GB` refusal can never fire, and `constrained` is false on every
  * desktop Safari. The check designed to catch memory pressure was blind on the
- * one engine that reliably dies of it — which is how a user reached the download
+ * one engine that reliably dies of it: which is how a user reached the download
  * and watched the tab reload.
  */
 export const WEBKIT_LONG_JOB_MINUTES = 10;
@@ -136,11 +136,9 @@ export function assess(input: CapabilityInput): Capability {
     };
   }
 
-  // WebKit on a long file. Deliberately a warning and not a refusal: freeing the
-  // ffmpeg core after decode recovered 32 MB at the exact moment tabs were
-  // dying, so runs that used to fail now finish, and refusing a device that
-  // would have worked is its own kind of failure (see the note above). What was
-  // never defensible was saying nothing at all.
+  // WebKit on a long file. A warning, not a refusal: freeing the ffmpeg core
+  // after decode already recovered 32 MB, so a device that would have worked
+  // should not be refused: but saying nothing was never defensible either.
   if (
     input.webkit &&
     input.memoryGb === null &&
@@ -153,14 +151,14 @@ export function assess(input: CapabilityInput): Capability {
     };
   }
 
-  // WebGPU absent means the WASM path, which is correct but much slower — and since
+  // WebGPU absent means the WASM path, which is correct but much slower: and since
   // isolation is off it cannot even use threads. Worth saying before a long wait,
   // not worth refusing over.
   if (!input.webgpu) {
     return {
       verdict: 'warn',
       message:
-        'This browser has no GPU acceleration available, so transcription will run on the slower path. It still works — expect it to take several times longer.',
+        'This browser has no GPU acceleration available, so transcription will run on the slower path. It still works: expect it to take several times longer.',
       signals,
     };
   }
@@ -169,7 +167,7 @@ export function assess(input: CapabilityInput): Capability {
 }
 
 /**
- * Detects WebKit — Safari anywhere, and every browser on iOS.
+ * Detects WebKit: Safari anywhere, and every browser on iOS.
  *
  * There is no capability that identifies the engine, so this reads the UA
  * string, which is the only signal available. It is narrow on purpose: Chrome

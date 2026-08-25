@@ -12,7 +12,7 @@ import {
  *
  * Pure, and deliberately a *reporter* rather than a fixer. `normalizeCues` repairs
  * what can be repaired without making something else worse; whatever survives is
- * a real trade-off that only a human can settle — usually by cutting words, which
+ * a real trade-off that only a human can settle, usually by cutting words, which
  * is an editorial decision and not ours to make.
  *
  * The counterpart to that: this must not stay silent about anything. A tool that
@@ -46,7 +46,7 @@ export interface QcIssue {
  * Severity is about whether the output is *broken* or merely *suboptimal*.
  *
  * An overlap or an unrenderable cue is malformed output that a player may reject
- * outright — that is an error. A cue that reads a little fast is legible but
+ * outright, that is an error. A cue that reads a little fast is legible but
  * uncomfortable, which is a warning. The distinction matters because a wall of
  * undifferentiated red teaches the user to ignore all of it.
  */
@@ -122,7 +122,7 @@ export function checkCues(
           issue(
             'reading-speed',
             index,
-            `Reads at ${cps.toFixed(0)} characters per second — the comfortable ceiling is ${rules.maxCps}.`,
+            `Reads at ${cps.toFixed(0)} characters per second, the comfortable ceiling is ${rules.maxCps}.`,
             cps
           )
         );
@@ -132,7 +132,7 @@ export function checkCues(
           issue(
             'too-short',
             index,
-            `On screen for ${duration.toFixed(2)}s — under the ${rules.minCueDuration}s minimum.`,
+            `On screen for ${duration.toFixed(2)}s, under the ${rules.minCueDuration}s minimum.`,
             duration
           )
         );
@@ -142,7 +142,7 @@ export function checkCues(
           issue(
             'too-long',
             index,
-            `On screen for ${duration.toFixed(1)}s — over the ${rules.maxCueDuration}s maximum.`,
+            `On screen for ${duration.toFixed(1)}s, over the ${rules.maxCueDuration}s maximum.`,
             duration
           )
         );
@@ -155,7 +155,7 @@ export function checkCues(
           issue(
             'line-too-long',
             index,
-            `A line is ${line.length} characters — the limit is ${rules.maxCharsPerLine}.`,
+            `A line is ${line.length} characters, the limit is ${rules.maxCharsPerLine}.`,
             line.length
           )
         );
@@ -168,7 +168,7 @@ export function checkCues(
         issue(
           'too-many-lines',
           index,
-          `${lines.length} lines — the limit is ${rules.maxLinesPerCue}.`,
+          `${lines.length} lines, the limit is ${rules.maxLinesPerCue}.`,
           lines.length
         )
       );
@@ -214,7 +214,7 @@ export function checkCues(
           issue(
             'gap-too-small',
             index,
-            `Only ${(gap * 1000).toFixed(0)}ms before the next cue — ${(rules.minGap * 1000).toFixed(0)}ms is the minimum.`,
+            `Only ${(gap * 1000).toFixed(0)}ms before the next cue, ${(rules.minGap * 1000).toFixed(0)}ms is the minimum.`,
             gap
           )
         );

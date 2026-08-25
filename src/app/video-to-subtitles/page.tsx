@@ -3,14 +3,14 @@ import { Link as TransitionLink } from 'next-view-transitions';
 import { ShieldCheck, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 
-import { Reveal } from '@/ui/reveal';
-
 import { BookCallCta } from '@/components/book-call-cta';
 import { FaqAccordion } from '@/components/extract-audio/faq-accordion';
 import { videoToSubtitlesFaqs } from '@/components/video-to-subtitles/faqs';
 import SubtitlerLoader from '@/components/video-to-subtitles/subtitler-loader';
 
 import { SITE_URL } from '@/lib/constant';
+
+import { Reveal } from '@/custom/reveal';
 
 const TITLE = 'Free Video to Subtitles Generator';
 const DESCRIPTION =
@@ -35,10 +35,8 @@ export const metadata: Metadata = {
   },
 };
 
-// A static server component. The whole client payload — ffmpeg.wasm, the model
-// worker, transformers.js — sits behind one `next/dynamic` boundary with
-// `ssr: false` inside SubtitlerLoader, so no serverless function and no
-// server-side transcription is involved.
+// Static server component: the whole client payload (ffmpeg.wasm, model worker,
+// transformers.js) sits behind SubtitlerLoader's `ssr: false` boundary.
 export default function VideoToSubtitlesPage() {
   const webApplicationSchema = {
     '@context': 'https://schema.org',
@@ -75,7 +73,7 @@ export default function VideoToSubtitlesPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      {/* Cohesive full-viewport backdrop — sits behind the transparent global
+      {/* Cohesive full-viewport backdrop: sits behind the transparent global
           header too, so header and body share one seamless background. */}
       <div className="bg-background pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="bg-sky/20 absolute -top-1/4 -left-1/4 h-[600px] w-[600px] rounded-sm blur-[120px]" />
@@ -107,7 +105,7 @@ export default function VideoToSubtitlesPage() {
             className="font-family-inter text-ink/75 max-w-xl text-lg md:text-xl"
           >
             Drop in a clip and get timestamped SRT, VTT or JSON back. The speech
-            model runs on your own device — nothing is uploaded.
+            model runs on your own device. Nothing is uploaded.
           </Reveal>
 
           {/* Trust badges */}

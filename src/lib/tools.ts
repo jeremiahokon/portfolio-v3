@@ -21,7 +21,7 @@ export const tools: Tool[] = [
     name: 'Video to Audio Extractor',
     tagline: 'Pull crisp audio from any video.',
     description:
-      'Drop in a clip and get a high-quality MP3 back in seconds. Runs entirely in your browser — nothing is uploaded, no account needed.',
+      'Drop in a clip and get a high-quality MP3 back in seconds. Runs entirely in your browser, nothing is uploaded, no account needed.',
     icon: AudioLines,
     cta: 'Extract audio',
     perks: ['100% private', 'No sign up', 'No watermark'],
@@ -33,7 +33,7 @@ export const tools: Tool[] = [
     name: 'Video to Subtitles Generator',
     tagline: 'Turn any video into timed subtitles.',
     description:
-      'Drop in a clip and get timestamped SRT, VTT or JSON back, then correct the transcript in the browser. The speech model runs on your own device — nothing is uploaded.',
+      'Drop in a clip and get timestamped SRT, VTT or JSON back, then correct the transcript in the browser. The speech model runs on your own device, nothing is uploaded.',
     icon: Captions,
     cta: 'Generate subtitles',
     perks: ['100% private', 'No sign up', 'Editable transcript'],

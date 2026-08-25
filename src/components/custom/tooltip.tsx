@@ -8,7 +8,7 @@ import type * as React from 'react';
  *
  * Radix rather than a hand-rolled div or the native `title` attribute, and the
  * reason is the part that is easy to get wrong. `title` cannot be styled, appears
- * after a delay the user cannot predict, and never appears on touch at all — so on
+ * after a delay the user cannot predict, and never appears on touch at all, so on
  * a phone the explanation simply does not exist. A hand-rolled tooltip fixes the
  * look and usually breaks the rest: it needs to open on keyboard focus, close on
  * Escape, flip when it would run off the viewport, and be wired to its trigger with
@@ -46,7 +46,7 @@ export function Tooltip({
   align = 'center',
   asChild = true,
 }: {
-  /** The explanation. Keep it to a sentence — this is context, not documentation. */
+  /** The explanation. Keep it to a sentence: this is context, not documentation. */
   label: React.ReactNode;
   children: React.ReactNode;
   side?: 'top' | 'right' | 'bottom' | 'left';

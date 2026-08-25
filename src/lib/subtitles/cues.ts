@@ -34,7 +34,7 @@ export function resetIds(): void {
  * These timings are **estimates**, and the type system says so via
  * `TimingSource`. Whisper's segment bounds are ~1 s granular and it emits no
  * per-word timing at all, so proportional distribution is the honest best guess
- * until the CTC aligner runs — longer words do take longer to say, which makes
+ * until the CTC aligner runs, longer words do take longer to say, which makes
  * it better than an equal split, but it cannot know where a pause fell.
  *
  * `conf` is 0 deliberately: nothing has scored these, and claiming a confidence
@@ -53,16 +53,13 @@ export function wordsFromSegments(segments: AsrSegment[]): Word[] {
     let cursor = segment.start;
 
     tokens.forEach((token, index) => {
-      // A zero-length segment (Whisper occasionally emits one) would make every
-      // word start and end at the same instant; give each a nominal slice so
-      // cue durations stay orderable.
+      // Guards against a zero-length segment giving every word the same instant.
       const share =
         totalChars > 0
           ? (token.length / totalChars) * span
           : span / tokens.length;
       const start = cursor;
-      // Land the final word exactly on the segment end rather than accumulating
-      // floating-point drift across the division.
+      // Land the final word exactly on segment end to avoid float drift.
       const end = index === tokens.length - 1 ? segment.end : start + share;
       cursor = end;
 
@@ -106,7 +103,7 @@ function cueLength(words: Word[], from: number, to: number): number {
  * Greedily wraps a word range into lines no longer than `maxChars`.
  *
  * Returns the word indices at which each new line begins, excluding the first.
- * A word longer than `maxChars` gets its own line and overflows it — there is
+ * A word longer than `maxChars` gets its own line and overflows it, there is
  * nowhere else for it to go, and silently dropping it would be worse.
  */
 function wrapLines(
@@ -161,17 +158,17 @@ function fitsInCue(
  * Three limits close a cue, and they are checked in order of how badly a viewer
  * notices the violation:
  *
- * 1. **Layout** — the words must wrap into at most `maxLinesPerCue` lines of at
+ * 1. **Layout**, the words must wrap into at most `maxLinesPerCue` lines of at
  *    most `maxCharsPerLine`. Checked by actually wrapping them, not by comparing
  *    against the product of the two: see `fitsInCue` for why that distinction is
  *    load-bearing rather than pedantic.
- * 2. **Duration** — `maxCueDuration`. A cue lingering past this reads as a
+ * 2. **Duration**, `maxCueDuration`. A cue lingering past this reads as a
  *    subtitle that failed to clear.
- * 3. **Sentence end** — a word ending in `.`, `!`, `?` or `…` closes the cue,
+ * 3. **Sentence end**, a word ending in `.`, `!`, `?` or `…` closes the cue,
  *    because a break at a grammatical boundary is always more readable than one
  *    mid-clause, even when there is budget left.
  *
- * `minCueDuration` and `minGap` are deliberately *not* enforced here — they are
+ * `minCueDuration` and `minGap` are deliberately *not* enforced here, they are
  * timing repairs, not grouping decisions, and applying them during grouping
  * would let a readability rule silently rewrite aligner output. `normalizeCues`
  * does that as a separate, inspectable pass.
@@ -223,7 +220,7 @@ export function buildCues(
  * Builds one cue and chooses its line breaks.
  *
  * For the common two-line case, prefers the split leaving the lines closest in
- * length — unbalanced lines read worse than a slightly-off break point — but
+ * length, unbalanced lines read worse than a slightly-off break point, but
  * only among splits where **both** lines fit `maxCharsPerLine`.
  *
  * When no such split exists, it falls back to greedy wrapping rather than to the
@@ -273,7 +270,7 @@ function makeCue(
  * Repairs cue timing against the section 2.4 rules.
  *
  * Runs as a separate pass writing only `overrideStart`/`overrideEnd`, and
- * **never touches `Word` timing** — that is what keeps words the single source
+ * **never touches `Word` timing**, that is what keeps words the single source
  * of truth and makes every repair here inspectable and reversible.
  *
  * Three passes, in this order because each depends on the previous:
@@ -285,7 +282,7 @@ function makeCue(
  * 2. **Grow cues that are too short or read too fast**, into whatever gap
  *    follows. A cue needs `chars / maxCps` seconds to be readable at the
  *    ceiling, so reading speed and minimum duration are the same kind of
- *    problem — both want more time — and are solved together.
+ *    problem, both want more time, and are solved together.
  * 3. Never shrink a cue below where it already ended, and never cross into the
  *    next one.
  *
@@ -312,33 +309,25 @@ export function normalizeCues(
       start,
       end,
       originalEnd: end,
-      // Spaces count toward reading load; a line break merely replaces one, so
-      // this matches the rendered character count.
       chars: cueLength(words, cue.wordStart, cue.wordEnd),
     };
   });
 
-  // Pass 1 — enforce the minimum gap by trimming the earlier cue's tail.
+  // Pass 1, enforce the minimum gap by trimming the earlier cue's tail.
   for (let i = 1; i < bounds.length; i += 1) {
     const previous = bounds[i - 1]!;
     const current = bounds[i]!;
     const latestAllowedEnd = current.start - rules.minGap;
 
     if (previous.end > latestAllowedEnd) {
-      // Trimming to the full gap can collapse a cue to zero length, which is not
-      // a short cue but an unrenderable one — it reports infinite reading speed
-      // and no player can show it. Observed for real once aligner timings put two
-      // cues within a frame of each other.
-      //
-      // So the priorities are ordered: never overlap, then stay renderable, then
-      // honour the gap. A slightly short gap is a far smaller defect than a cue
-      // of zero duration, and the QC panel can surface what remains.
+      // Never overlap, then stay renderable, then honour the gap, trimming to
+      // the full gap can otherwise collapse a cue to zero duration.
       const floor = Math.min(previous.start + MIN_RENDERABLE, current.start);
       previous.end = Math.max(latestAllowedEnd, floor);
     }
   }
 
-  // Pass 2 — grow the too-short and the too-fast into the following gap.
+  // Pass 2, grow the too-short and the too-fast into the following gap.
   for (let i = 0; i < bounds.length; i += 1) {
     const current = bounds[i]!;
     const next = bounds[i + 1];
@@ -352,8 +341,7 @@ export function normalizeCues(
       wanted = Math.max(wanted, current.start + current.chars / rules.maxCps);
     }
 
-    // Grow only: `Math.max` against the current end means a ceiling that is
-    // already behind us leaves the cue alone instead of pulling it backwards.
+    // Grow only, never pull the end backwards toward a ceiling already behind it.
     current.end = Math.max(current.end, Math.min(wanted, ceiling));
   }
 
@@ -365,7 +353,7 @@ export function normalizeCues(
   });
 }
 
-/** Characters per second for a cue — the reading-speed metric QC flags on. */
+/** Characters per second for a cue, the reading-speed metric QC flags on. */
 export function cueCps(text: string, start: number, end: number): number {
   const duration = end - start;
   if (duration <= 0) return Number.POSITIVE_INFINITY;

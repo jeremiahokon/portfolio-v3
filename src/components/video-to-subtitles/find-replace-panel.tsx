@@ -4,8 +4,6 @@ import { useMemo, useState } from 'react';
 
 import { Check, Search, Sparkles, Trash2 } from 'lucide-react';
 
-import { Tooltip } from '@/components/ui/tooltip';
-
 import {
   DEFAULT_FIND,
   findMatches,
@@ -14,12 +12,14 @@ import {
 import type { Cue, Word } from '@/lib/subtitles/types';
 import { suggestCorrections } from '@/lib/subtitles/vocab';
 
+import { Tooltip } from '@/custom/tooltip';
+
 /**
  * Find and replace, plus the vocabulary that tells you what to search for.
  *
  * These belong in one panel because they are one workflow: the vocabulary list
  * finds the terms the model got wrong, and replace fixes each one everywhere at
- * once. On the 39-minute call that is 241 wrong tokens across about 79 terms —
+ * once. On the 39-minute call that is 241 wrong tokens across about 79 terms:
  * unusable as 241 individual edits, and about 79 clicks like this.
  */
 
@@ -102,7 +102,7 @@ export function FindReplacePanel({
           className="font-family-inter border-ink/10 focus:border-ink/30 min-w-[160px] flex-1 rounded-sm border bg-white px-4 py-2 text-xs outline-none"
         />
 
-        <Tooltip label="Replaces every match at once. Timings are untouched — a word keeps the moment it was spoken even when its spelling changes.">
+        <Tooltip label="Replaces every match at once. Timings are untouched: a word keeps the moment it was spoken even when its spelling changes.">
           <button
             type="button"
             disabled={matches.length === 0}
@@ -149,7 +149,7 @@ export function FindReplacePanel({
         </Tooltip>
 
         {flaggedCount > 0 && (
-          <Tooltip label="Removes every cue the quality check flagged, along with its words. Useful for clearing filler like “Okay.” in bulk — undo brings them back.">
+          <Tooltip label="Removes every cue the quality check flagged, along with its words. Useful for clearing filler like “Okay.” in bulk. Undo brings them back.">
             <button
               type="button"
               onClick={onDeleteFlagged}
@@ -177,7 +177,7 @@ export function FindReplacePanel({
         >
           <label className="font-family-inter text-ink/75 mb-1.5 flex w-fit cursor-help items-center gap-1.5 text-[11px]">
             <Sparkles className="h-3 w-3" />
-            Names and terms the model won’t know — one per line
+            Names and terms the model won’t know, one per line
           </label>
         </Tooltip>
         <textarea
@@ -219,8 +219,8 @@ export function FindReplacePanel({
 
         {vocabulary.trim() !== '' && suggestions.length === 0 && (
           <p className="font-family-inter text-ink/75 mt-2 text-[11px]">
-            Nothing in the transcript resembles those terms — they may already
-            be correct.
+            Nothing in the transcript resembles those terms. They may already be
+            correct.
           </p>
         )}
       </div>

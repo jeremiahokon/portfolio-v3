@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Jeremiah Okon — Frontend Developer',
+    name: 'Jeremiah Okon, Frontend Developer',
     short_name: 'Jeremiah Okon',
     description:
       'Experienced Frontend Developer specializing in React, Next.js, and TypeScript.',

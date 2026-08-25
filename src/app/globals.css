@@ -9,13 +9,13 @@
   /*
    * The accent, dark enough to read as text.
    *
-   * `--sky-deep` is 1.94:1 against the page background — Lighthouse flagged it on
+   * `--sky-deep` is 1.94:1 against the page background: Lighthouse flagged it on
    * links and italic emphasis, and it is genuinely hard to read, not a technicality.
    * It stays exactly as it is for borders, fills and icons, where contrast minimums do
    * not apply and the lighter tone is the brand. This is the value for anything that
    * is *text*. Measured against every surface it actually lands on, because the first
    * value I picked cleared the page background at 4.61:1 and still failed on the
-   * slightly darker #d4d4d4 panel (4.39) and on the sky/15 chip (4.33) — "passes on the
+   * slightly darker #d4d4d4 panel (4.39) and on the sky/15 chip (4.33): "passes on the
    * background I thought of" is not the same as passing:
    *   page #d9d9d9 5.27 · card #f0f0f0 6.53 · panel #d4d4d4 5.02 · sky/15 chip 4.95
    */
@@ -100,7 +100,7 @@
    * Every step of the scale is deliberately the same value rather than a
    * progression. Tailwind ships eight radius tokens and only four were overridden
    * here, so `rounded-sm` and `rounded-sm` were still resolving to the framework
-   * defaults — which is how a codebase ends up with 1rem and 1.5rem corners nobody
+   * defaults, which is how a codebase ends up with 1rem and 1.5rem corners nobody
    * chose. Pinning all eight means any `rounded-*` a component reaches for gives
    * the same corner, and a future change to the design language is one value here.
    */
@@ -135,7 +135,7 @@ body {
   display: none;
 }
 
-/* Premium scrollbar — the track blends into the page background so it reads as
+/* Premium scrollbar: the track blends into the page background so it reads as
    part of the surface, and the thumb is a slim, soft pill of the dark brand
    colour that darkens on hover. A track-coloured border insets the thumb so it
    stays thin without a hard edge. Firefox gets the `scrollbar-*` equivalents. */
@@ -231,7 +231,7 @@ body {
    * Tailwind v4 changed the preflight so `button` gets `cursor: default` rather
    * than the browser's `cursor: pointer`, which is why interactive elements across
    * this codebase stopped feeling clickable. Fixed once here rather than by adding
-   * `cursor-pointer` to a hundred-odd call sites — a utility class on every button
+   * `cursor-pointer` to a hundred-odd call sites: a utility class on every button
    * is a rule the next component will forget, whereas this cannot be forgotten.
    *
    * Disabled controls get `not-allowed` instead, because a pointer cursor on a
@@ -342,7 +342,7 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Film grain — one fixed full-viewport layer so the texture is seamless
+/* Film grain: one fixed full-viewport layer so the texture is seamless
    across header, hero, and content. High baseFrequency keeps the specks fine
    so it reads as film, not static. Sits above page content (z-30) but below
    the header (z-50), menu overlay, and dialogs, and ignores the pointer. */
@@ -389,7 +389,7 @@ body {
   }
 }
 
-/* Scroll-driven parallax for featured work images — compositor thread only,
+/* Scroll-driven parallax for featured work images: compositor thread only,
    absent (harmlessly) where animation-timeline is unsupported. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {

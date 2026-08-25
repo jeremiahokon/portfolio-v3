@@ -17,8 +17,7 @@ interface DropzoneProps {
   onDrop: React.DragEventHandler<HTMLButtonElement>;
 }
 
-// One real <button> is the whole drop target — keyboard-native, no nested
-// interactive elements. The "Choose a video" pill inside is just a styled span.
+// One real <button> is the whole drop target: keyboard-native, no nested interactive elements.
 export function Dropzone({
   reduced,
   isDragging,
@@ -31,11 +30,7 @@ export function Dropzone({
     <m.button
       {...panelMotion(reduced)}
       type="button"
-      // No aria-label. The accessible name has to contain the visible text, and the
-      // visible text here is three lines — headline, hint, accepted formats — so any
-      // label short enough to be useful fails the check, and one long enough to pass
-      // duplicates copy that will drift. The rendered text already reads as an
-      // instruction, which is what a screen reader and voice control both want.
+      // No aria-label: the visible text already reads as the instruction, and any label short enough to add would duplicate or drift from it.
       onClick={onBrowse}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
@@ -47,7 +42,6 @@ export function Dropzone({
           : 'border-ink/15 bg-ink/[0.02] hover:border-sky/50 hover:bg-sky/[0.04] focus-visible:border-sky/60'
       )}
     >
-      {/* Drag-over ripple */}
       <AnimatePresence>
         {isDragging && !reduced && (
           <m.span
@@ -61,7 +55,6 @@ export function Dropzone({
         )}
       </AnimatePresence>
 
-      {/* Icon with soft pulsing glow */}
       <span className="relative flex h-20 w-20 items-center justify-center">
         {!reduced && (
           <m.span
@@ -97,7 +90,7 @@ export function Dropzone({
       </span>
 
       <span className="font-family-inter text-ink/75 relative text-xs">
-        MP4 · MOV · MKV · AVI · WEBM · M4V — up to 1 GB
+        MP4 · MOV · MKV · AVI · WEBM · M4V · up to 1 GB
       </span>
     </m.button>
   );

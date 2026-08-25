@@ -17,10 +17,7 @@ interface DropzoneProps {
   onDrop: React.DragEventHandler<HTMLButtonElement>;
 }
 
-// One real <button> is the whole drop target — keyboard-native, no nested
-// interactive elements. The "Choose a file" pill inside is just a styled span.
-// Adapted from the extractor's dropzone; this one also accepts bare audio,
-// since a transcript does not need a video track.
+// One real <button> is the whole drop target: no nested interactive elements; also accepts bare audio.
 export function Dropzone({
   reduced,
   isDragging,
@@ -33,11 +30,7 @@ export function Dropzone({
     <m.button
       {...panelMotion(reduced)}
       type="button"
-      // No aria-label. The accessible name has to contain the visible text, and the
-      // visible text here is three lines — headline, hint, accepted formats — so any
-      // label short enough to be useful fails the check, and one long enough to pass
-      // duplicates copy that will drift. The rendered text already reads as an
-      // instruction, which is what a screen reader and voice control both want.
+      // No aria-label: the visible text (headline, hint, formats) already reads as the instruction.
       onClick={onBrowse}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
@@ -101,7 +94,7 @@ export function Dropzone({
       </span>
 
       <span className="font-family-inter text-ink/75 relative text-xs">
-        MP4 · MOV · MKV · WEBM · MP3 · WAV · M4A — up to 1 GB
+        MP4 · MOV · MKV · WEBM · MP3 · WAV · M4A · up to 1 GB
       </span>
     </m.button>
   );

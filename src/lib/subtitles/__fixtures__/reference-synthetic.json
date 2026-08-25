@@ -273,5 +273,5 @@
       "end": 45.1123
     }
   ],
-  "note": "Ground truth by construction, not by hand: each word was synthesised separately, trimmed to its speech extent, and concatenated with 0.35s silences, so every boundary is arithmetic over sample counts. Synthetic speech is easier than real conversation — passing here is necessary but not sufficient. Regenerate with scripts/make-reference-clip.mjs."
+  "note": "Ground truth by construction, not by hand: each word was synthesised separately, trimmed to its speech extent, and concatenated with 0.35s silences, so every boundary is arithmetic over sample counts. Synthetic speech is easier than real conversation, so passing here is necessary but not sufficient. Regenerate with scripts/make-reference-clip.mjs."
 }

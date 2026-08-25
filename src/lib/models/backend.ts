@@ -40,8 +40,8 @@ export async function isWebGpuAvailable(): Promise<boolean> {
  * WebGPU needs no SharedArrayBuffer and therefore no cross-origin isolation,
  * which is why it is the primary path on a site that deliberately ships without
  * COOP/COEP. The WASM fallback will run **single-threaded** here for exactly
- * that reason — ORT enables WASM threads only when `crossOriginIsolated` is
- * true — so it is materially slower, and the UI must say so before starting
+ * that reason: ORT enables WASM threads only when `crossOriginIsolated` is
+ * true, so it is materially slower, and the UI must say so before starting
  * rather than letting the user discover a 10x slowdown.
  */
 export async function selectBackend(): Promise<Backend> {
@@ -51,7 +51,7 @@ export async function selectBackend(): Promise<Backend> {
 /**
  * True when inference will run on single-threaded WASM, i.e. slowly.
  *
- * `crossOriginIsolated` is `false` on every route of this site by design — the
+ * `crossOriginIsolated` is `false` on every route of this site by design: the
  * audio extractor's single-threaded FFmpeg core needs no isolation, and adding
  * `require-corp` back would re-introduce the Vercel module-worker block that
  * hung it in production. So this is `true` whenever WebGPU is unavailable.

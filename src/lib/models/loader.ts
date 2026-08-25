@@ -9,11 +9,11 @@ import { ORT_WASM_PATH } from './config';
  * `env` singleton, so importing it on the main thread would configure a
  * different ORT instance than the one actually running inference. Backend
  * *selection* used to live here too but is now in `./backend`, because the main
- * thread needs it to size the download disclosure — see that file.
+ * thread needs it to size the download disclosure: see that file.
  *
  * **On capability detection.** transformers.js does maintain an internal `apis`
  * object with exactly the flags we want (`IS_WEBGPU_AVAILABLE`, `IS_SAFARI`,
- * `IS_WEB_CACHE_AVAILABLE`), and its docs point at them — but it is **not part
+ * `IS_WEB_CACHE_AVAILABLE`), and its docs point at them: but it is **not part
  * of the public API** in 4.2.0. The package's `exports` map declares no
  * subpaths, so a deep import is blocked, and the built `transformers.web.js`
  * exports only `env` and `LogLevel`. Verified both ways before writing the
@@ -57,18 +57,12 @@ export function configureEnv({
   env.remoteHost = host;
 
   // Namespaced so a manifest change (dtype swap, revision bump) never serves
-  // weights that no longer match what the code expects. The revision SHA is
-  // already in the request path, so entries are keyed per revision within this
-  // namespace.
+  // stale weights; entries are keyed per revision within this namespace.
   env.cacheKey = cacheKey;
   env.useBrowserCache = isCacheAvailable();
 
-  // Point ORT at the CDN explicitly. Without this the bundler resolves the
-  // binaries as build assets and ships 23.6 MB of them from our own origin — see
-  // ORT_WASM_PATH for the measurement and the version-pinning constraint.
-  //
-  // Assigned defensively: `backends.onnx.wasm` is optional in the installed
-  // types, so a runtime that has not populated it must not throw here.
+  // Points ORT at the CDN: otherwise the bundler ships 23.6 MB of WASM from our
+  // own origin. Optional-chained since `backends.onnx.wasm` may not be populated yet.
   const wasm = env.backends?.onnx?.wasm;
   if (wasm) {
     (wasm as { wasmPaths?: string }).wasmPaths = ORT_WASM_PATH;
@@ -84,7 +78,7 @@ export function configureEnv({
 /**
  * Wraps the Cache API so a full disk degrades to streaming rather than failing.
  *
- * A `QuotaExceededError` on write is not a reason to fail a transcription — the
+ * A `QuotaExceededError` on write is not a reason to fail a transcription: the
  * weights are already in memory by then. Swallowing the write means this
  * session works and the next one re-downloads, which is a far better outcome
  * than an error page. `match` failures are swallowed for the same reason: an
@@ -117,7 +111,7 @@ function installQuotaTolerantCache(): void {
         if (err instanceof DOMException && err.name === 'QuotaExceededError') {
           quotaExhausted = true;
           console.warn(
-            '[models] storage quota exhausted — weights will re-download next session'
+            '[models] storage quota exhausted: weights will re-download next session'
           );
 
           return;
@@ -145,8 +139,8 @@ function installQuotaTolerantCache(): void {
  *
  * The library emits several statuses; only `progress` carries per-file bytes.
  * `progress_total` is an aggregate the library computes itself, which we ignore
- * here so the store can aggregate against the manifest's known sizes instead —
- * that lets the UI show a real total before a single byte has been fetched.
+ * here so the store can aggregate against the manifest's known sizes instead,
+ * which lets the UI show a real total before a single byte has been fetched.
  */
 export function toDownloadProgress(info: {
   status: string;
@@ -167,7 +161,7 @@ export function toDownloadProgress(info: {
  * Asserts that a requested per-file dtype map matches the files actually loaded.
  *
  * transformers.js resolves `dtype` by **file name**, and an unrecognised key
- * does not throw — it silently falls back to the device default, which would
+ * does not throw: it silently falls back to the device default, which would
  * quietly fetch different (usually much larger) weights than the manifest
  * promised. Since the whole download-size story depends on getting fp16/q4
  * exactly, a mismatch is worth a loud warning.
@@ -187,7 +181,7 @@ export function assertDtypeApplied(
     const expected = `${fileName}${suffix}.onnx`;
     if (!loadedFiles.some((file) => file.endsWith(expected))) {
       console.warn(
-        `[models] dtype "${requested}" for "${fileName}" did not resolve to ${expected} — ` +
+        `[models] dtype "${requested}" for "${fileName}" did not resolve to ${expected}: ` +
           `transformers.js may have fallen back to the device default. Loaded: ${loadedFiles.join(', ')}`
       );
     }

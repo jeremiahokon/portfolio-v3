@@ -6,7 +6,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { m } from 'motion/react';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
-import { UPWORK_PROFILE_URL } from '@/lib/constant';
+import { UPWORK_AVG_RATING, UPWORK_PROFILE_URL } from '@/lib/constant';
 import { useCountUp, useReducedMotion } from '@/lib/hooks';
 
 interface Stat {
@@ -18,27 +18,7 @@ interface Stat {
   href?: string;
 }
 
-// Every number here is verifiable: years are backed by the work section, the live
-// product count is the work section, and the Upwork stats link to the profile.
-//
-// **"$1K+ Earned on Upwork" used to sit in the third slot and was actively working
-// against the page.** A four-figure lifetime total reads as "has barely worked"
-// however true it is, so the one stat meant to build confidence was the one costing
-// it — and revenue on a page whose job is to open a conversation invites the reader
-// to price the work before they know what it is.
-//
-// "Live In Production" replaces it because it is the strongest thing that is *also*
-// true and checkable — all seven URLs in the work section were requested and returned
-// 200 before this number was written down, since claiming a dead site is live would be
-// worse than the stat it replaced.
-//
-// It is deliberately not another count of contracts. A job is work won; a product
-// still serving traffic is work that survived, which is what a prospective client is
-// actually trying to find out. The label says "in production" rather than "products"
-// for that reason, and because it happens to equal the Upwork job count — a reader
-// who notices should read "every job shipped something that is still running", not
-// "someone pasted the same number twice". It links to the work section, not Upwork,
-// because that is where the seven live links are.
+// Every number here is verifiable against the work section or the Upwork profile.
 const stats: Stat[] = [
   { target: 4, suffix: '+', decimals: 0, label: 'Years Experience' },
   {
@@ -56,7 +36,7 @@ const stats: Stat[] = [
     href: '#work',
   },
   {
-    target: 4.9,
+    target: UPWORK_AVG_RATING,
     suffix: '★',
     decimals: 1,
     label: 'Avg. Upwork Rating',
@@ -120,20 +100,16 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
       {href ? (
         <a
           href={href}
-          // An in-page anchor must not open a tab, and must not claim to be Upwork.
-          // Deriving both from the href keeps a future stat from inheriting the wrong
-          // behaviour just because it borrowed this component.
+          // Derived from href, not hardcoded, so an in-page anchor never opens a tab or claims to be Upwork.
           {...(isInternal
             ? {}
             : { target: '_blank', rel: 'noopener noreferrer' })}
           className="group/stat flex flex-col items-center gap-2"
-          // The number is part of the visible text, so it has to be part of the
-          // accessible name too — "Jobs on Upwork" alone does not contain "7 Jobs on
-          // Upwork", which is what axe checks and what a voice-control user says.
+          // Accessible name must include the number itself: axe checks that "7 Jobs on Upwork" is contained, not just "Jobs on Upwork".
           aria-label={
             isInternal
-              ? `${displayValue}${suffix} ${label} — jump to the work section`
-              : `${displayValue}${suffix} ${label} — view on Upwork`
+              ? `${displayValue}${suffix} ${label}, jump to the work section`
+              : `${displayValue}${suffix} ${label}, view on Upwork`
           }
           onClick={() => {
             sendGAEvent({
@@ -158,7 +134,6 @@ function StatItem({ stat, index }: { stat: Stat; index: number }) {
 export default function Stats() {
   return (
     <section className="relative w-full px-4 py-20 md:px-10 md:py-32">
-      {/* Top gradient divider */}
       <div className="mx-auto mb-16 h-px max-w-5xl bg-gradient-to-r from-transparent via-[#7BB6DD]/30 to-transparent" />
 
       <div className="mx-auto grid max-w-5xl grid-cols-2 gap-10 md:grid-cols-4 md:gap-8">
@@ -167,7 +142,6 @@ export default function Stats() {
         ))}
       </div>
 
-      {/* Bottom gradient divider */}
       <div className="mx-auto mt-16 h-px max-w-5xl bg-gradient-to-r from-transparent via-[#7BB6DD]/30 to-transparent" />
     </section>
   );

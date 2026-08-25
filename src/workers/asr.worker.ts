@@ -18,7 +18,7 @@ import { type FromWorker, isToWorker, type ToWorker } from './protocol';
 /**
  * Whisper host.
  *
- * Owns one pipeline for the worker's lifetime and reuses it across chunks —
+ * Owns one pipeline for the worker's lifetime and reuses it across chunks:
  * building a session per chunk would re-upload weights to the GPU every time
  * and is the usual cause of memory growth across a long job.
  *
@@ -62,8 +62,7 @@ async function init(message: Extract<ToWorker, { t: 'init' }>): Promise<void> {
       device: backend,
       progress_callback: (info) => {
         if (cancelled) return;
-        // Record which weight files actually resolved, so the dtype the
-        // manifest promised can be checked against what was fetched.
+        // Recorded so assertDtypeApplied can check what was actually fetched against the manifest's promise.
         if (
           (info.status === 'download' || info.status === 'progress') &&
           'file' in info &&
@@ -109,27 +108,22 @@ async function transcribe(
     return;
   }
 
-  // `pcm` arrived as a transferred ArrayBuffer, so this view costs no copy.
-  const samples = new Float32Array(message.pcm);
+  const samples = new Float32Array(message.pcm); // transferred ArrayBuffer, so this view costs no copy
 
   if (process.env.NODE_ENV === 'development') {
-    // Now that the pipeline no longer chunks for us, a window longer than
-    // Whisper's receptive field is truncated *silently* — audio would vanish
-    // with no error. `planChunks` caps windows at 30 s, so this can only fire if
-    // that guarantee is broken, which is exactly when it needs to be loud.
+    // A window over Whisper's 30s field is truncated silently (no error); planChunks caps at
+    // 30s, so this firing means that guarantee broke.
     const field = 30 * message.sampleRate;
     if (samples.length > field) {
       console.error(
-        `[asr] window is ${(samples.length / message.sampleRate).toFixed(1)}s, over Whisper's 30s field — audio past 30s will be dropped`
+        `[asr] window is ${(samples.length / message.sampleRate).toFixed(1)}s, over Whisper's 30s field: audio past 30s will be dropped`
       );
     }
   }
 
   if (process.env.NODE_ENV === 'development') {
-    // Kept deliberately: a silent or mis-scaled buffer and a broken model dtype
-    // both present as a nonsense transcript, and these three numbers separate
-    // the two in one glance. Diagnosing the fp16-encoder failure without them
-    // meant guessing.
+    // A silent/mis-scaled buffer and a broken model dtype both present as a nonsense
+    // transcript; these three numbers tell the two apart at a glance.
     let sum = 0;
     let peak = 0;
     for (const value of samples) {
@@ -143,31 +137,12 @@ async function transcribe(
 
   try {
     const output = await asr(samples, {
-      // Word-level timestamps would need the aligner; chunk-level is all
-      // Whisper can honestly provide and all this stage claims.
-      return_timestamps: true,
-      // No `chunk_length_s` / `stride_length_s`. `planChunks` already cut this
-      // audio into ≤30 s windows on silence boundaries (`chunk-plan.ts:37`), and
-      // passing them here made the pipeline re-chunk each window and apply its
-      // own stride merge *underneath* our seam dedupe in `stitch.ts`. Two
-      // independent overlap-resolution schemes stacked on one another is the
-      // likeliest source of the 136 residual duplicate cues measured on the
-      // 39-minute fixture. The option defaults to 0, meaning no chunking, which
-      // is the native Whisper path for an input already inside its 30 s field.
-      //
-      // Reduces the chance of a degenerate repetition loop: the loop re-emits a
-      // token sequence it has already produced, and this makes each repeat
-      // progressively less likely. Kept mild — this processor penalises *every*
-      // previously-seen token, so a large value would start suppressing the
-      // ordinary recurrence of common words and flatten real speech. It is a
-      // probabilistic reduction, not a guarantee, which is why
-      // `collapseDegenerateRuns` bounds the damage deterministically downstream.
-      //
-      // `no_repeat_ngram_size` was considered and rejected: it is a hard ban on
-      // any repeated n-gram, so it cannot distinguish 86 spurious repeats from
-      // someone genuinely saying "thank you" twice. Both parameters are verified
-      // present and wired in transformers.js 4.2.0
-      // (`models/modeling_utils.js:420-426`).
+      return_timestamps: true, // chunk-level only; word-level needs the aligner
+      // No chunk_length_s/stride_length_s: planChunks already windowed this audio, and passing
+      // them re-chunks under our own seam dedupe in stitch.ts, which caused most residual
+      // duplicate cues in testing. repetition_penalty kept mild (a probabilistic nudge, not a
+      // hard ban like no_repeat_ngram_size, which can't tell a repeat loop from "thank you" x2);
+      // collapseDegenerateRuns bounds the rest deterministically downstream.
       repetition_penalty: 1.1,
     });
 

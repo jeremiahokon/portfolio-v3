@@ -115,25 +115,27 @@ describe('planChunks', () => {
 
     for (const chunk of chunks) {
       const window = chunkWindow(chunk);
-      // Was `max + 2 * overlap`, which was the wrong invariant: it permitted a
-      // 32 s window against Whisper's 30 s field. That was survivable only while
-      // the pipeline re-chunked internally. It no longer does, so anything past
-      // 30 s is now silently truncated audio — `max` means the window, not the
-      // content.
+      // `max` means the window, not the content: a `max + 2*overlap` window
+      // exceeds Whisper's 30s receptive field and gets silently truncated.
       expect(window.end - window.start).toBeLessThanOrEqual(P.max);
     }
   });
 
   it('never emits a window longer than the receptive field, on any shape', () => {
-    // The bug this guards was found on a real 39-minute file, where windows of
-    // 30.8 s and 33.8 s reached the model. Several region shapes, because the
-    // planner has several branches and the failing one was not the obvious one.
+    // Several region shapes, since the planner has multiple branches and a real
+    // 39-minute file once produced 30.8s/33.8s windows from the non-obvious one.
     const shapes: Array<[SpeechRegion[], number]> = [
       [burstyRegions(30, 3, 1), 120],
       [burstyRegions(5, 40, 0.2), 300],
       [[{ start: 0, end: 240 }], 250],
       [[{ start: 200, end: 205 }], 400],
-      [[{ start: 0, end: 29 }, { start: 29.5, end: 61 }], 90],
+      [
+        [
+          { start: 0, end: 29 },
+          { start: 29.5, end: 61 },
+        ],
+        90,
+      ],
       [[], 200],
       [[{ start: 10, end: 12 }], 2400],
     ];
@@ -144,7 +146,7 @@ describe('planChunks', () => {
         const window = chunkWindow(chunk);
         expect(window.end - window.start).toBeLessThanOrEqual(P.max + 1e-9);
       }
-      // And the plan must still cover the whole file — trimming a window must
+      // And the plan must still cover the whole file: trimming a window must
       // never be achieved by dropping audio.
       if (chunks.length > 0) {
         expect(chunks[0]!.start).toBe(0);
@@ -290,7 +292,7 @@ describe('stitch', () => {
     const results = chunks.map((c) => ({
       chunk: c,
       // Each chunk reports one segment per second of its window, overlap
-      // included — so the overlap seconds genuinely appear twice.
+      // included: so the overlap seconds genuinely appear twice.
       segments: Array.from(
         { length: Math.round(chunkWindow(c).end - chunkWindow(c).start) },
         (_, i) => {

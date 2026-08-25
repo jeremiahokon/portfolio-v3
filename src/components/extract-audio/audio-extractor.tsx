@@ -13,8 +13,7 @@ import { Dropzone } from './dropzone';
 import { ResultPanel } from './result-panel';
 import { ACCEPTED_EXTENSIONS, useAudioExtractor } from './use-audio-extractor';
 
-// Thin container: state lives in useAudioExtractor, the three swapped panels
-// are purely presentational.
+// Thin container: state lives in useAudioExtractor, the three swapped panels are purely presentational.
 export default function AudioExtractor() {
   const reduced = useReducedMotion();
   const { status, error, progress, fileName, result, busy, extract, reset } =
@@ -96,7 +95,6 @@ export default function AudioExtractor() {
         aria-hidden="true"
       />
 
-      {/* Error */}
       <AnimatePresence>
         {error && (
           <m.p

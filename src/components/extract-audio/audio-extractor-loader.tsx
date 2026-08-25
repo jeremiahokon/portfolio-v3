@@ -4,9 +4,7 @@ import dynamic from 'next/dynamic';
 
 import { Loader2 } from 'lucide-react';
 
-// ffmpeg.wasm touches Worker/window, so it must never render on the server.
-// The skeleton mirrors the idle dropzone's footprint (card shell + min-height)
-// so hydration doesn't shift the layout.
+// ffmpeg.wasm touches Worker/window, so this must never render on the server; the skeleton mirrors the dropzone's footprint to avoid a hydration layout shift.
 const AudioExtractor = dynamic(() => import('./audio-extractor'), {
   ssr: false,
   loading: () => (

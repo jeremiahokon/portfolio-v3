@@ -7,9 +7,9 @@ import { m } from 'motion/react';
 
 import { Button } from '@/ui/button';
 
-import { DownloadGlyph, RestartGlyph } from '@/components/ui/glyphs';
-
 import { GA_EVENTS } from '@/lib/analytics-events';
+
+import { DownloadGlyph, RestartGlyph } from '@/custom/glyphs';
 
 import { SuccessCheck } from './animated-icons';
 import { panelMotion } from './panel-motion';

@@ -71,9 +71,6 @@ export default function Footer() {
     { name: 'Linkedin', url: LINKEDIN_URL },
     { name: 'Github', url: GITHUB_URL },
     { name: 'Youtube', url: YOUTUBE_CHANNEL_URL },
-    // X was missing entirely — the account existed but nothing on the site pointed
-    // at it, so it could never accumulate the cross-links that tie the profiles
-    // together.
     { name: 'X', url: X_URL },
     { name: 'Tiktok', url: TIKTOK_URL },
     { name: 'Instagram', url: INSTAGRAM_URL },
@@ -85,7 +82,6 @@ export default function Footer() {
       ref={ref}
       className="bg-footer-background text-background relative flex w-full flex-col items-center justify-center gap-20 px-4 py-10 md:px-10 md:py-20"
     >
-      {/* Main Heading with Gradient Animation */}
       <div className="flex w-full flex-col items-center gap-8">
         <m.span
           className="bg-gradient-to-r from-white via-gray-100 to-white bg-clip-text text-center text-[75px] leading-[100%] font-bold tracking-tighter md:text-[125px] lg:text-[164px]"
@@ -97,7 +93,6 @@ export default function Footer() {
           <span className="font-family-instrument italic">hard part.</span>
         </m.span>
 
-        {/* CTA Button */}
         <m.button
           onClick={() => {
             sendGAEvent({
@@ -114,7 +109,6 @@ export default function Footer() {
           whileHover={{ scale: 1.05, y: -4 }}
           whileTap={{ scale: 0.95 }}
         >
-          {/* Animated gradient background */}
           <m.div
             className="absolute inset-0 bg-gradient-to-r from-white via-gray-100 to-white"
             animate={{
@@ -147,7 +141,6 @@ export default function Footer() {
             Book a Free Call
           </span>
 
-          {/* Ripple effect on hover */}
           <m.div
             className="absolute inset-0 rounded-sm bg-white/50"
             initial={{ scale: 0, opacity: 0.5 }}
@@ -166,7 +159,6 @@ export default function Footer() {
         initial="hidden"
         animate={isInView ? 'visible' : 'hidden'}
       >
-        {/* Scroll to Top - Enhanced with Icon */}
         <m.div
           className="text-xl font-medium lg:absolute lg:top-0 lg:right-0"
           variants={itemVariants}
@@ -194,7 +186,6 @@ export default function Footer() {
         </m.div>
 
         <div className="flex flex-col items-center justify-center gap-6">
-          {/* Email with Magnetic Effect */}
           <m.div variants={itemVariants}>
             <m.a
               href={`mailto:${EMAIL}`}
@@ -233,7 +224,6 @@ export default function Footer() {
             </m.a>
           </m.div>
 
-          {/* Social Links with Stagger Animation */}
           <m.ul
             className="flex flex-col items-center gap-3"
             variants={containerVariants}
@@ -266,7 +256,6 @@ export default function Footer() {
         </div>
       </m.div>
 
-      {/* Copyright with Fade In */}
       <m.span
         className="text-center text-xs leading-[100%] font-medium uppercase opacity-60 md:text-base"
         variants={itemVariants}

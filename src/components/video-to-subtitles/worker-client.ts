@@ -1,17 +1,8 @@
 import type { FromWorker, ToWorker } from '@/workers/protocol';
 
-/**
- * A request/response wrapper around one pipeline worker.
- *
- * The workers speak a message protocol rather than exposing functions, which is
- * correct for the transport but awkward to orchestrate: a pipeline of
- * decode → VAD → plan → N × ASR reads as a state machine spread across one
- * listener when written directly. This turns each exchange into an awaitable,
- * so the pipeline can be written as sequential code.
- *
- * Out-of-band messages — download progress, stage progress — are not responses
- * to anything, so they go to callbacks instead of resolving a promise.
- */
+// Turns each worker message exchange into an awaitable, so a decode → VAD → plan → N×ASR
+// pipeline reads as sequential code instead of one listener acting as a state machine.
+// Out-of-band messages (download/stage progress) go to callbacks instead.
 
 export interface WorkerClientHandlers {
   onDownload?: (file: string, loaded: number, total: number | null) => void;
@@ -61,9 +52,7 @@ export class WorkerClient {
     }
 
     if (message.t === 'error') {
-      // A worker-side failure aborts whatever is waiting. Rejecting every
-      // pending request rather than only the first avoids leaving a promise
-      // that can never settle once the worker has given up.
+      // Rejects every pending request, not just the first, so none is left unsettled once the worker gives up.
       const failures = this.#pending.splice(0);
       const error = new WorkerError(message.code, message.message);
       for (const entry of failures) entry.reject(error);
@@ -78,9 +67,7 @@ export class WorkerClient {
   };
 
   #onError = (event: ErrorEvent): void => {
-    // A worker that fails while its modules are still evaluating fires an
-    // ErrorEvent with an empty `message`, so the friendly fallback alone leaves
-    // nothing to debug. Log every field the event carries before replacing it.
+    // A worker crashing mid-module-evaluation fires an ErrorEvent with an empty `message`, so log every field.
     console.error('[worker] crashed', {
       message: event.message,
       filename: event.filename,
@@ -118,12 +105,7 @@ export class WorkerClient {
     this.#worker.postMessage(message);
   }
 
-  /**
-   * Terminates the worker and rejects anything still waiting.
-   *
-   * Terminating is not optional: a live worker holds a model session and, on the
-   * WebGPU path, GPU buffers that outlive the page otherwise.
-   */
+  /** Terminates the worker and rejects anything still waiting: a live worker holds a model session and, on WebGPU, GPU buffers that outlive the page otherwise. */
   terminate(): void {
     this.#worker.removeEventListener('message', this.#onMessage);
     this.#worker.removeEventListener('error', this.#onError);

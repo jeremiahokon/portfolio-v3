@@ -71,21 +71,10 @@ import type { ToWorker } from '@/workers/protocol';
 
 import { WorkerClient, WorkerError } from './worker-client';
 
-/**
- * Owns one transcription job: decode → VAD → chunk plan → ASR per chunk →
- * stitch → cues.
- *
- * FFmpeg orchestration stays on the main thread, matching the audio extractor:
- * its WASM already runs in the worker `@ffmpeg/ffmpeg` spawns, so decode is off
- * the main thread either way, and wrapping it in our own worker would nest one
- * worker inside another and depend on unverified bundler behaviour.
- *
- * The two model workers are separate because they hold separate sessions on
- * separate backends — VAD on WASM, Whisper on WebGPU where available — and
- * because terminating one after its stage frees its memory immediately.
- */
+// Owns one transcription job: decode → VAD → chunk plan → ASR per chunk → stitch → cues.
+// VAD and ASR run in separate workers (different backends, freed independently).
 
-/** 1 GB, matching the extractor — the mobile-safe ceiling for a WASM tool. */
+/** 1 GB, matching the extractor: the mobile-safe ceiling for a WASM tool. */
 export const MAX_FILE_SIZE = 1024 * 1024 * 1024;
 
 export const ACCEPTED_EXTENSIONS = [
@@ -126,14 +115,10 @@ export function useSubtitler() {
   const jobIdRef = useRef<string | null>(null);
   // Held after a job finishes so the opt-in aligner needs no second decode.
   const decodedRef = useRef<DecodedAudio | null>(null);
-  // The source file, kept so the MP3 export can run without asking for it again.
-  // Deliberately the original rather than the decoded PCM: what the pipeline
-  // decoded is 16 kHz mono for Whisper, which is not a file to hand anyone.
+  // Kept as the original file (not the 16kHz mono PCM) so MP3 export can re-run without asking again.
   const sourceRef = useRef<File | null>(null);
   const mp3LogRef = useRef<string[]>([]);
 
-  // Decode progress comes from the shared engine. Subscribing here rather than
-  // inside decodeToPcm leaves the extractor's own handlers untouched.
   useEffect(
     () =>
       subscribeEngine({
@@ -156,17 +141,7 @@ export function useSubtitler() {
 
   useEffect(() => teardown, [teardown]);
 
-  /**
-   * Wraps an already-constructed Worker and tracks it for teardown.
-   *
-   * Takes the `Worker`, **not** a URL, and that is load-bearing. Bundlers detect
-   * `new Worker(new URL('./x.worker.ts', import.meta.url))` by matching the
-   * syntax at the call site; passing the URL through a parameter defeats the
-   * static analysis, so no worker chunk is emitted and the script silently
-   * fails to load. The failure is invisible — an `error` event whose every
-   * field, `message` included, is `undefined`. So each `new Worker(new URL(…))`
-   * must stay written out inline below.
-   */
+  // Takes a constructed Worker, not a URL: bundlers only detect `new Worker(new URL(...))` inline at the call site.
   const track = useCallback(
     (
       worker: Worker,
@@ -203,7 +178,7 @@ export function useSubtitler() {
           status: 'error',
           error: {
             code: 'decode-failed',
-            message: 'File is too large — the limit is 1 GB.',
+            message: 'File is too large, the limit is 1 GB.',
           },
         });
 
@@ -212,9 +187,7 @@ export function useSubtitler() {
 
       teardown();
       store.reset();
-      // Ids are only required to be unique, but restarting the counter keeps
-      // them short and readable across jobs.
-      resetIds();
+      resetIds(); // restart the counter so ids stay short and readable per job
 
       const jobId = `job-${Date.now()}`;
       jobIdRef.current = jobId;
@@ -225,26 +198,16 @@ export function useSubtitler() {
 
       const fail = (code: ErrorCode, message: string) => {
         if (isStale()) return;
-        // A handled failure is not a crash, and the notice on next load must not
-        // claim it was one.
-        clearJobInFlight();
+        clearJobInFlight(); // a handled failure is not a crash
         store.set({ status: 'error', error: { code, message } });
         teardown();
       };
 
-      // Read once per job rather than per stage, so a mid-job URL change cannot
-      // switch backends between chunks.
+      // Read once per job (not per stage) so a mid-job URL change can't switch backends between chunks.
       const override = currentBackendOverride();
-      // Resolved once here rather than again inside each worker. The workers
-      // used to probe for a WebGPU adapter themselves, which meant asking the
-      // same question twice per job and leaving the main thread unable to say
-      // which path it was on. `ModelInit.device` exists to carry a resolved
-      // answer; what it must never carry is a hardcoded one.
       const backend = override ?? (await selectBackend());
 
-      // `?decoder=int8` etc., for the D17 measurement. Same read-once discipline:
-      // two dtypes inside one transcript would make the result meaningless.
-      const decoder = currentDecoderOverride();
+      const decoder = currentDecoderOverride(); // `?decoder=int8` etc., for the D17 measurement
       const dtype = decoder
         ? { ...ASR.dtype, decoder_model_merged: decoder }
         : ASR.dtype;
@@ -264,7 +227,6 @@ export function useSubtitler() {
       sourceRef.current = file;
 
       try {
-        // ---- Decode -------------------------------------------------------
         let decoded;
         try {
           decoded = await decodeToPcm(file, controller.signal);
@@ -275,36 +237,24 @@ export function useSubtitler() {
 
             return;
           }
-          // Surface the real cause: the friendly copy hides it, and the
-          // equivalent path in the extractor swallowed a cross-origin-isolation
-          // failure once already.
-          console.error('[subtitler] decode failed', err);
+          console.error('[subtitler] decode failed', err); // surface the real cause; the friendly copy below hides it
           fail(
             'decode-failed',
-            'Couldn’t read that file — it may be corrupted or in an unsupported format.'
+            'Couldn’t read that file, it may be corrupted or in an unsupported format.'
           );
 
           return;
         }
         if (isStale()) return;
 
-        // The 32 MB ffmpeg core and its worker have done their job, and nothing
-        // downstream touches them — the PCM is already a plain Float32Array. On
-        // Chrome this is tidiness; on Safari it is 32 MB of headroom at exactly
-        // the moment the tab was dying, since the model download used to begin
-        // with the core still resident. `getEngine()` rebuilds on demand if the
-        // user starts another file.
+        // Frees the ffmpeg core/worker now decode is done: matters on Safari, where the model download follows immediately.
         terminateEngine();
 
         store.set({ duration: decoded.duration });
 
-        // From here the job holds enough memory that the tab can be killed
-        // outright rather than throwing. If that happens the page reloads and
-        // this marker is the only evidence it was ever running — see
-        // `markJobInFlight`.
+        // Marker survives a tab kill; its presence after reload tells the UI a job was running.
         markJobInFlight({ fileName: file.name, duration: decoded.duration });
 
-        // ---- Voice activity detection --------------------------------------
         store.set({ status: 'loading-model', stage: 'vad', stageProgress: 0 });
 
         const vad = track(
@@ -334,8 +284,7 @@ export function useSubtitler() {
 
         store.set({ status: 'transcribing', stage: 'vad', stageProgress: 0 });
 
-        // A copy, because the buffer is transferred away and the samples are
-        // still needed afterwards for the ASR chunks.
+        // Copy, not the original buffer: it gets transferred away, and the samples are still needed for ASR.
         const vadPcm = decoded.samples.slice().buffer;
         const vadResult = await vad.request(
           { t: 'vad', jobId, pcm: vadPcm, sampleRate: decoded.sampleRate },
@@ -344,51 +293,32 @@ export function useSubtitler() {
         );
         if (isStale()) return;
 
-        // The VAD's session is no longer needed; free it before Whisper's
-        // weights arrive rather than holding both.
-        vad.terminate();
+        vad.terminate(); // free the VAD session before Whisper's weights arrive
         clientsRef.current = clientsRef.current.filter(
           (client) => client !== vad
         );
 
-        // The VAD classifies speech, it does not measure energy, so it admits the
-        // occasional region of room tone or a join chime — and Whisper hallucinates
-        // a word out of it. On the 39-minute fixture that produced cue #1, "you",
-        // over 2 seconds of a silent Zoom waiting room. Screened before chunking,
-        // so that audio is never transcribed at all.
-        //
-        // Must run *before* the no-speech check below, and that check must read
-        // these regions rather than the raw ones. Otherwise a file whose only
-        // regions are silence passes the check on region count, gets emptied here,
-        // and `planChunks` falls back to fixed windows — transcribing the whole
-        // silent file blind, which is worse than what this fixes.
+        // VAD classifies speech but not energy, so it can admit room tone/chime that Whisper
+        // hallucinates a word from, must run before the no-speech check, which must read
+        // these filtered regions or a silent file falls through to a blind transcription.
         const regions = dropSilentRegions(
           vadResult.regions,
           decoded.samples,
           decoded.sampleRate
         );
 
-        // Nothing to transcribe. Checked here, after the 2 MB VAD but before the
-        // ~151 MB ASR download, so a silent file costs almost nothing.
-        //
-        // Both conditions are required. No regions alone is not enough — a false
-        // negative on real speech should fall through to transcribing blind rather
-        // than refusing. Silence *and* no regions is conclusive, and stopping here
-        // is what prevents Whisper hallucinating a word or two out of noise and
-        // the UI presenting that as a transcript.
+        // Checked before the ~151MB ASR download so a silent file costs almost nothing.
+        // Both conditions required: no regions alone could be a false negative on real speech.
         if (regions.length === 0 && isEffectivelySilent(decoded.samples)) {
           fail(
             'no-speech',
-            'We couldn’t find any speech in this file — it sounds silent.'
+            'We couldn’t find any speech in this file, it sounds silent.'
           );
 
           return;
         }
 
-        // Can this device actually finish? Checked here — after decode, so the
-        // duration is known, and before the ~151 MB download, so a device that
-        // cannot cope is told immediately rather than after several minutes and a
-        // tab crash. R4's failure mode is bad mostly because of when it happens.
+        // Checked before the ~151MB download so an incapable device is told immediately.
         const capability = assess(await probeDevice(decoded.duration));
         if (capability.verdict === 'refuse') {
           fail('unsupported-device', capability.message);
@@ -401,7 +331,6 @@ export function useSubtitler() {
 
         const chunks = planChunks(regions, decoded.duration);
 
-        // ---- Speech recognition -------------------------------------------
         store.set({ status: 'loading-model', stage: 'asr', stageProgress: 0 });
 
         const asr = track(
@@ -419,12 +348,7 @@ export function useSubtitler() {
               id: ASR.id,
               revision: ASR.revision,
               dtype,
-              // A *resolved* backend, not a hardcoded one — see `backend`
-              // above. Hardcoding `'webgpu'` would hand a device to browsers
-              // that cannot provide one; resolving it on the main thread and
-              // passing it down is what lets the UI name the path it is on
-              // before the worker has loaded anything.
-              device: backend,
+              device: backend, // resolved on the main thread, not hardcoded, see `backend` above
             },
           },
           'ready'
@@ -440,10 +364,8 @@ export function useSubtitler() {
           chunkIndex: 0,
         });
 
-        // Resume where a previous attempt stopped. Keyed by file identity plus
-        // model revision, and rejected outright if the window count differs —
-        // results are indexed by chunk id, so resuming against a different plan
-        // would attribute one window's transcript to another window's audio.
+        // Rejected if window count differs: resuming against a different plan would
+        // attribute one window's transcript to another's audio.
         const checkpointKey = draftKey(file, ASR.revision);
         const resumed = await loadCheckpoint(checkpointKey, chunks.length);
         const done0 = new Map(
@@ -451,20 +373,16 @@ export function useSubtitler() {
         );
         if (done0.size > 0) {
           store.set({
-            notice: `Resuming — ${done0.size} of ${chunks.length} sections were already transcribed.`,
+            notice: `Resuming: ${done0.size} of ${chunks.length} sections were already transcribed.`,
           });
         }
 
-        // Sequential, not parallel: one session on one device, so concurrent
-        // requests would queue inside ORT anyway while multiplying peak memory.
+        // Sequential, not parallel: concurrent requests would queue inside ORT anyway while multiplying peak memory.
         const results: ChunkResult[] = [];
         for (const chunk of chunks) {
           if (isStale()) return;
 
-          // Already transcribed on a previous run: reuse it. Whisper on a 30-second
-          // window is the expensive, irreproducible step; everything before it
-          // reproduces identically from the same file.
-          const cached = done0.get(chunk.id);
+          const cached = done0.get(chunk.id); // reuse if a previous run already transcribed this chunk
           if (cached) {
             results.push(cached);
             store.set({
@@ -483,15 +401,10 @@ export function useSubtitler() {
             chunkId: chunk.id,
             pcm,
             sampleRate: decoded.sampleRate,
-            // Bounds come back absolute, so stitching needs no per-chunk offset
-            // bookkeeping of its own.
-            offset: chunk.start - chunk.overlapStart,
+            offset: chunk.start - chunk.overlapStart, // absolute, so stitching needs no per-chunk offset bookkeeping
           };
 
-          // Announce the chunk *before* awaiting it, so the UI can say which
-          // one is in flight. Whisper reports nothing during inference, so a
-          // 30-second window would otherwise look like a stall.
-          store.set({ chunkIndex: results.length + 1 });
+          store.set({ chunkIndex: results.length + 1 }); // announced before awaiting, since Whisper reports no progress mid-inference
 
           const done = await asr.request(request, 'asr:done', [pcm]);
           if (isStale()) return;
@@ -501,36 +414,22 @@ export function useSubtitler() {
             stage: 'asr',
             stageProgress: results.length / chunks.length,
           });
-          // After every window, so a crash costs one window rather than the job.
-          // Awaited rather than fired and forgotten: the write is small and a
-          // checkpoint that races the next window is worse than a slower loop.
-          await saveCheckpoint(checkpointKey, chunks.length, results);
+          await saveCheckpoint(checkpointKey, chunks.length, results); // awaited: a checkpoint racing the next window is worse than a slower loop
         }
 
-        // The expensive part is banked; the rest is cheap and deterministic, so the
-        // checkpoint has no further value and holding it would leave a stale resume
-        // offer on a job that finished.
-        await clearCheckpoint(checkpointKey);
+        await clearCheckpoint(checkpointKey); // expensive part is banked; a stale resume offer on a finished job would mislead
 
         asr.terminate();
         clientsRef.current = clientsRef.current.filter(
           (client) => client !== asr
         );
 
-        // ---- Stitch and build cues -----------------------------------------
         store.set({ status: 'building', stage: 'cues', stageProgress: 0.5 });
 
-        // A failed decode can emit the same phrase dozens of times over a couple
-        // of seconds — 86 consecutive "Thank you." cues on the 39-minute fixture.
-        // Collapsed after stitching, where the run is still contiguous, and
-        // before words exist, so nothing downstream ever sees the junk.
+        // Collapsed right after stitching, while the run is still contiguous: a bad decode
+        // can emit the same phrase dozens of times in a row.
         const stitched = stitch(results);
-        // Collapse first, then repair: a repeated phrase is junk to discard, and
-        // only what survives is real speech whose timing is worth fixing.
-        const collapsed = collapseDegenerateRuns(stitched);
-        // Then drop stock phrases invented from non-speech noise, before the spans
-        // are repaired — repairing the timing of a word nobody said would only make
-        // the invention more convincing.
+        const collapsed = collapseDegenerateRuns(stitched); // collapse repeats before repairing timing, since a repeat is junk to discard
         const real = dropHallucinations(collapsed, {
           rmsAt: rmsProbe(decoded.samples, decoded.sampleRate),
         });
@@ -550,9 +449,7 @@ export function useSubtitler() {
 
         if (isStale()) return;
 
-        // Reachable when the VAD found regions in something that turned out not
-        // to be speech — music, room tone, applause. Offering an empty download
-        // would be worse than saying so.
+        // Reachable when the VAD found regions that turned out not to be speech (music, applause).
         if (words.length === 0) {
           fail(
             'no-speech',
@@ -562,10 +459,7 @@ export function useSubtitler() {
           return;
         }
 
-        // Retained so the opt-in aligner can run without decoding again. This is
-        // the one place the pipeline deliberately holds onto the full PCM after
-        // its stage is over; `reset` drops it.
-        decodedRef.current = decoded;
+        decodedRef.current = decoded; // retained so the opt-in aligner can run without decoding again; `reset` drops it
 
         clearJobInFlight();
         store.set({
@@ -590,23 +484,8 @@ export function useSubtitler() {
     [track, store, teardown]
   );
 
-  /**
-   * The opt-in second stage: replace estimated timings with measured ones.
-   *
-   * A separate user action rather than part of the job, because it costs another
-   * ~189 MB download. Everything before this point produced a usable transcript;
-   * this is the upgrade, and it is only worth offering once the user has seen
-   * that the words are right.
-   */
-  /**
-   * Runs the aligner over a chosen set of windows.
-   *
-   * `refineTiming` (whole transcript) and `realignEdits` (M4, just the stale
-   * windows) differ only in which windows they ask for and what they say while
-   * running. Sharing the body keeps one implementation of the parts that are easy to
-   * get wrong — cancellation, worker teardown, and never destroying a good
-   * transcript when the upgrade fails.
-   */
+  // Opt-in second stage: replace estimated timings with measured ones (~189MB extra
+  // download). Shared by refineTiming/realignEdits: only the windows requested differ.
   const runAligner = useCallback(
     async (mode: 'all' | 'edits') => {
       const decoded = decodedRef.current;
@@ -659,17 +538,14 @@ export function useSubtitler() {
           backend: ready.backend,
         });
 
-        // Align over the same windows the transcript was built from, so each
-        // request carries a bounded number of words and a bounded amount of audio.
         const words = store.getSnapshot().words;
         const plan =
           mode === 'all'
             ? planAlignmentWindows(words, decoded.duration)
             : windowsNeedingRealignment(words, decoded.duration);
 
-        // Nothing stale: say so and stop rather than tearing the transcript down and
-        // rebuilding it identically, which would look like something went wrong.
         if (plan.length === 0) {
+          // stop rather than rebuild an identical transcript, which would look like something went wrong
           align.terminate();
           clientsRef.current = clientsRef.current.filter((c) => c !== align);
           store.set({
@@ -677,7 +553,7 @@ export function useSubtitler() {
             stage: 'done',
             stageProgress: 1,
             notice:
-              'Every edit already has measured timing — nothing to re-time.',
+              'Every edit already has measured timing, nothing to re-time.',
           });
 
           return;
@@ -724,16 +600,10 @@ export function useSubtitler() {
         clientsRef.current = clientsRef.current.filter((c) => c !== align);
 
         const applied = applyAlignment(words, indexAlignments(results));
-        // Clear the stale markers for the windows this pass covered, or the next run
-        // would redo exactly the same work forever.
-        const marked = clearRealignmentMarks(applied.words, plan);
+        const marked = clearRealignmentMarks(applied.words, plan); // clear covered windows' stale markers
         const ordered = enforceWordOrder(marked);
 
-        // A full pass re-derives the grouping, because every timing moved and the
-        // old grouping was built from estimates. A partial pass must NOT: rebuilding
-        // would throw away every split and merge the user made by hand in order to
-        // fix the timing of one phrase. Re-normalising the cues they already have
-        // keeps those decisions and still enforces the readability rules.
+        // Full pass re-derives grouping; partial pass must not, or it discards manual split/merge edits.
         const rebuilt =
           mode === 'all'
             ? normalizeCues(ordered, buildCues(ordered))
@@ -741,9 +611,7 @@ export function useSubtitler() {
 
         if (isStale()) return;
 
-        // conf is only ever written by the aligner, so it is the durable record of
-        // which words carry a measured timing, however many passes produced them.
-        const measured = ordered.filter((word) => word.conf > 0).length;
+        const measured = ordered.filter((word) => word.conf > 0).length; // conf is only ever written by the aligner
 
         store.set({
           status: 'done',
@@ -751,25 +619,20 @@ export function useSubtitler() {
           stageProgress: 1,
           words: ordered,
           cues: rebuilt,
-          // Counted over the whole transcript, never from this pass alone.
-          // `applied.aligned` is what *this run* measured — right for a full pass and
-          // badly wrong for a partial one: re-timing a single edited phrase reported
-          // "27 of 160 measured" and looked like it had destroyed the alignment it
-          // had in fact preserved.
+          // Counted over the whole transcript, not this pass alone, or a partial re-time reads as data loss.
           timingSource: measured > 0 ? 'aligned' : 'estimated',
           alignedWords: measured,
         });
       } catch (err) {
         if (isStale()) return;
         if (err instanceof WorkerError) {
-          // A failed refinement must not destroy a good transcript: keep the words
-          // and say the upgrade failed.
+          // failed refinement must not destroy a good transcript: keep the words, say the upgrade failed
           store.set({
             status: 'done',
             stage: 'done',
             error: {
               code: err.code as ErrorCode,
-              message: `Couldn’t improve the timings — ${err.message}. Your transcript is unchanged.`,
+              message: `Couldn’t improve the timings: ${err.message}. Your transcript is unchanged.`,
             },
           });
 
@@ -793,14 +656,12 @@ export function useSubtitler() {
   const cancel = useCallback(() => {
     const jobId = jobIdRef.current;
     if (jobId) {
-      // Ask politely first so a worker mid-inference stops looping, then
-      // terminate — a cancel message alone cannot interrupt a running frame.
+      // Ask politely first (a cancel message can't interrupt a running frame), then terminate.
       for (const client of clientsRef.current) {
         client.send({ t: 'cancel', jobId });
       }
     }
-    // A deliberate stop is not a crash.
-    clearJobInFlight();
+    clearJobInFlight(); // a deliberate stop is not a crash
     teardown();
     store.reset();
   }, [store, teardown]);
@@ -811,43 +672,13 @@ export function useSubtitler() {
     snapshot.status === 'transcribing' ||
     snapshot.status === 'building';
 
-  /**
-   * Commits the editor's transcript back into the job.
-   *
-   * The editor owns its own history while it is open, so the job store has to be
-   * told the result or the export panel keeps serialising the transcript as it was
-   * *before* editing — which silently hands the user back the file they just spent
-   * an hour correcting.
-   *
-   * `timingSource` is left alone deliberately: an edit does not turn estimated
-   * timings into measured ones, and words inserted by `retextCue` carry `conf: 0`
-   * so the QC panel already reports them as unmeasured.
-   */
-  /** The opt-in full pass: every window, first time the aligner is used. */
+  /** Opt-in full pass: every window, first time the aligner is used. */
   const refineTiming = useCallback(() => runAligner('all'), [runAligner]);
 
-  /**
-   * M4: re-time only what an edit made stale.
-   *
-   * The aligner is one forward pass per window, so this is roughly free next to a
-   * full pass — the property the two-model split was chosen for. Nothing outside the
-   * affected windows is touched, and `timeLocked` words are skipped entirely.
-   */
+  /** Re-times only what an edit made stale: one forward pass per window, so roughly free next to a full pass. */
   const realignEdits = useCallback(() => runAligner('edits'), [runAligner]);
 
-  /**
-   * Produces the MP3 for the same file, on demand.
-   *
-   * **On demand, not automatically**, and that is the whole design. Most people
-   * dropping a file into a subtitles tool want subtitles; encoding an MP3 nobody
-   * asked for would spend time and memory on every single job to serve a minority.
-   * Clicked, it costs one FFmpeg pass on an engine that is already loaded and warm
-   * from the decode — seconds, against the minutes transcription already took.
-   *
-   * Returns null on failure rather than throwing, and never touches the transcript:
-   * losing a finished transcript because a bonus download failed would be
-   * indefensible.
-   */
+  // On demand only. Returns null rather than throwing; never touches the transcript.
   const exportMp3 = useCallback(async (): Promise<Blob | null> => {
     const file = sourceRef.current;
     if (!file) return null;
@@ -875,6 +706,7 @@ export function useSubtitler() {
     }
   }, [store]);
 
+  // Job store must get the result or the export panel keeps serializing the pre-edit transcript.
   const applyEdits = useCallback(
     (words: Word[], cues: Cue[]) => {
       store.set({ words, cues });

@@ -2,7 +2,7 @@
  * Reads a deliberate Whisper **decoder** dtype from the URL: `?decoder=int8`.
  *
  * This exists to settle D17. D15 measured the *encoder* across three dtypes in
- * detail and found the result was not predictable from reasoning — fp16 collapsed
+ * detail and found the result was not predictable from reasoning: fp16 collapsed
  * a clear utterance to the single word `" I."` while int8, the smallest of the
  * three, was indistinguishable from fp32. The **decoder** was never measured. It
  * was left at `q4` (`config.ts:82`), and it is the component that actually
@@ -35,7 +35,7 @@
  * assumed: the weights fetch and then ORT 1.26-dev refuses to build the session
  * with `TransposeDQWeightsForMatMulNBits Missing required scale`. It is left in
  * the list because reproducing that failure in one URL is the point of this
- * file, but it cannot be the shipped default — see the table in `config.ts`.
+ * file, but it cannot be the shipped default: see the table in `config.ts`.
  */
 
 /** Decoder dtypes confirmed present at `ASR.revision` by HTTP HEAD. */

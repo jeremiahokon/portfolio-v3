@@ -120,7 +120,7 @@ describe('alignTokens', () => {
     const emissions = emissionsFrom([2, 2, 2, 2], 3);
     const [span] = alignTokens(emissions, [1], BLANK);
 
-    // It still has to place it somewhere — that is what forced alignment means —
+    // It still has to place it somewhere (that is what forced alignment means),
     // but the score must reveal that the acoustics did not support it.
     expect(span!.score).toBeLessThan(0.1);
   });
@@ -234,7 +234,7 @@ describe('the alignment as a whole', () => {
   });
 });
 
-describe('mergeTokensToWords — the word delimiter must not extend a word', () => {
+describe('mergeTokensToWords: the word delimiter must not extend a word', () => {
   /** Two characters, a delimiter in the silence between, then two more. */
   const spans = [
     { tokenIndex: 0, token: 1, startFrame: 0, endFrame: 5, score: 0.9 },
@@ -254,7 +254,7 @@ describe('mergeTokensToWords — the word delimiter must not extend a word', () 
   });
 
   it('reproduces the measured defect when the delimiter is included', () => {
-    // Without the skip — the behaviour the M2 gate scored at 0.375 recall.
+    // Without the skip: the behaviour the M2 gate scored at 0.375 recall.
     const words = mergeTokensToWords(spans, [2, 3]);
 
     expect(words[1]!.startFrame).toBe(10);

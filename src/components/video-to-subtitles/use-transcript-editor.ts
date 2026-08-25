@@ -57,18 +57,11 @@ export interface EditorOptions {
 /** Debounce for autosave: long enough to coalesce a burst of typing. */
 const AUTOSAVE_MS = 1500;
 
-/**
- * Starts playback, ignoring the abort that a rapid pause causes.
- *
- * `play()` returns a promise that *rejects* when something pauses before it
- * resolves, and a click-then-double-click — select the cue, then open it for
- * editing — does exactly that. The rejection is expected and means nothing went
- * wrong, but left unhandled it logs an error on an ordinary interaction and
- * would train anyone reading the console to ignore real ones.
- */
+// `play()` rejects if paused before it resolves (an ordinary click-then-edit does that), so the
+// rejection is swallowed rather than logged as an error.
 function play(audio: HTMLAudioElement | null): void {
   audio?.play().catch(() => {
-    // Swallowed on purpose — see above.
+    // swallowed, see comment above
   });
 }
 
@@ -88,15 +81,10 @@ export function useTranscriptEditor(options: EditorOptions) {
     setHistory((h) => commit(h, next));
   }, []);
 
-  // ---- Operations -------------------------------------------------------
-
   /**
-   * Rewrites a cue's text.
-   *
-   * Re-wraps afterwards because `retextCue` clears the edited cue's line breaks —
-   * a break chosen for the old wording is rarely right for the new one — and
-   * re-normalises because a longer line may now breach the duration or gap rules.
-   * Both are the same functions the pipeline uses, so an edited transcript obeys
+   * Rewrites a cue's text, then re-wraps (old line breaks rarely fit new wording) and
+   * re-normalizes (a longer line may now breach duration/gap rules) with the same
+   * functions the pipeline uses, so an edited transcript obeys
    * exactly the rules a fresh one does.
    */
   const retext = useCallback(
@@ -130,13 +118,7 @@ export function useTranscriptEditor(options: EditorOptions) {
     [words, cues, apply]
   );
 
-  /**
-   * Replaces every occurrence of `query` in one action.
-   *
-   * Returns how many were replaced so the UI can say so — "replaced 11
-   * occurrences" is the feedback that makes a bulk operation trustworthy, and
-   * silence after clicking is what makes people click twice.
-   */
+  /** Replaces every occurrence of `query`; returns the count so the UI can confirm the bulk edit. */
   const replace = useCallback(
     (query: string, replacement: string, options: FindOptions) => {
       const matches = findMatches(words, cues, query, options);
@@ -150,13 +132,8 @@ export function useTranscriptEditor(options: EditorOptions) {
     [words, cues, apply]
   );
 
-  /**
-   * Moves one edge of a cue by moving the underlying word's boundary.
-   *
-   * Writes to the *word*, not to the cue, because words own timing — so the change
-   * survives re-segmenting, and `moveWordBoundary` marks it `timeLocked` so a later
-   * alignment pass cannot quietly undo the human.
-   */
+  // Writes to the word, not the cue: words own timing, so this survives re-segmenting, and
+  // `moveWordBoundary` marks it `timeLocked` so a later alignment pass can't undo it.
   const nudgeEdge = useCallback(
     (cueIndex: number, edge: 'start' | 'end', delta: number) => {
       const cue = cues[cueIndex];
@@ -173,13 +150,8 @@ export function useTranscriptEditor(options: EditorOptions) {
     [words, cues, apply]
   );
 
-  /**
-   * Shifts a cue's displayed timing without touching its words.
-   *
-   * Distinct from `nudgeEdge` on purpose: this is for when the subtitle should
-   * appear earlier or later than the speech — compensating for a hard cut — and the
-   * words should keep describing when the audio actually happened.
-   */
+  // Distinct from nudgeEdge: shifts displayed timing without touching the words, for when
+  // the subtitle should lead/lag the speech rather than the words being mistimed.
   const slideCue = useCallback(
     (cueIndex: number, seconds: number) => {
       const next = shiftCue(words, cues, cueIndex, seconds);
@@ -189,7 +161,7 @@ export function useTranscriptEditor(options: EditorOptions) {
     [words, cues, apply]
   );
 
-  /** Drops a cue's words entirely — the bulk-cleanup primitive. */
+  /** Drops a cue's words entirely: the bulk-cleanup primitive. */
   const removeCues = useCallback(
     (indices: number[]) => {
       const doomed = new Set(indices);
@@ -204,9 +176,7 @@ export function useTranscriptEditor(options: EditorOptions) {
       const nextWords = words.filter((_, index) => keep.has(index));
       if (nextWords.length === 0) return;
 
-      // Rebuilt rather than reindexed: removing whole cues can leave the
-      // remaining words wanting a different grouping, and buildCues already
-      // knows the rules.
+      // Rebuilt, not reindexed: removing whole cues can change the ideal grouping.
       apply({
         words: nextWords,
         cues: normalizeCues(nextWords, buildCues(nextWords)),
@@ -215,20 +185,12 @@ export function useTranscriptEditor(options: EditorOptions) {
     [words, cues, apply]
   );
 
-  // ---- Playback ---------------------------------------------------------
-
   const playingWord = useMemo(
     () => (playing || currentTime > 0 ? wordAt(words, currentTime) : -1),
     [words, currentTime, playing]
   );
 
-  /**
-   * Moves the playhead, without changing whether it is playing.
-   *
-   * Clamped here rather than at each call site: an audio element silently ignores
-   * a negative or past-the-end `currentTime`, so an unclamped seek would leave the
-   * displayed time and the actual playhead disagreeing.
-   */
+  // Clamped here (not per call site): an audio element silently ignores an out-of-range `currentTime`.
   const duration = options.duration;
   const seekTo = useCallback(
     (seconds: number) => {
@@ -244,7 +206,7 @@ export function useTranscriptEditor(options: EditorOptions) {
     [duration]
   );
 
-  /** Jumps relative to where the audio is now — what the skip buttons do. */
+  /** Jumps relative to where the audio is now: what the skip buttons do. */
   const seekBy = useCallback(
     (delta: number) => {
       const audio = audioRef.current;
@@ -298,12 +260,10 @@ export function useTranscriptEditor(options: EditorOptions) {
     if (index >= 0) setSelectedCue(index);
   }, [playingWord, cues, editingCue]);
 
-  // ---- Quality report ---------------------------------------------------
-
   const issues = useMemo(() => checkCues(words, cues), [words, cues]);
   const qc = useMemo(() => summarize(issues), [issues]);
 
-  /** Cue indices carrying at least one issue — what Tab steps through. */
+  /** Cue indices carrying at least one issue: what Tab steps through. */
   const flagged = useMemo(
     () => [...new Set(issues.map((i) => i.cueIndex))].sort((a, b) => a - b),
     [issues]
@@ -321,12 +281,10 @@ export function useTranscriptEditor(options: EditorOptions) {
     return map;
   }, [issues]);
 
-  // ---- Autosave ---------------------------------------------------------
-
   const key = options.draftKey;
   useEffect(() => {
     if (!key) return;
-    if (!canUndo(history)) return; // Nothing has been edited yet.
+    if (!canUndo(history)) return; // nothing edited yet
 
     const timer = setTimeout(() => {
       void saveDraft({

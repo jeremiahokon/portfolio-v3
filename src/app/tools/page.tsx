@@ -3,23 +3,29 @@ import { Link as TransitionLink } from 'next-view-transitions';
 import { Check } from 'lucide-react';
 import type { Metadata } from 'next';
 
-import { TrackedTransitionLink } from '@/ui/tracked-transition-link';
-
 import { BookCallCta } from '@/components/book-call-cta';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { tools } from '@/lib/tools';
 
+import { TrackedTransitionLink } from '@/custom/tracked-transition-link';
+
 export const metadata: Metadata = {
   title: 'Free Tools',
   description:
-    'Free, privacy-first web tools built by Jeremiah Okon — everything runs locally in your browser. No uploads, no accounts.',
+    'Free, privacy-first web tools built by Jeremiah Okon. Everything runs locally in your browser. No uploads, no accounts.',
   alternates: { canonical: '/tools' },
   openGraph: {
     title: 'Free Tools | Jeremiah Okon',
     description:
       'Free, privacy-first web tools that run entirely in your browser. No uploads, no accounts.',
     url: '/tools',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Free Tools | Jeremiah Okon',
+    description:
+      'Free, privacy-first web tools that run entirely in your browser. No uploads, no accounts.',
   },
 };
 
@@ -37,12 +43,12 @@ export default function ToolsPage() {
           .
         </h1>
         <p className="font-family-inter text-ink/75 max-w-xl text-lg md:text-xl">
-          No uploads, no accounts. Everything runs locally — the same
-          engineering I bring to client work.
+          No uploads, no accounts. Everything runs locally: the same engineering
+          I bring to client work.
         </p>
       </div>
 
-      {/* Tool cards — only live tools are listed */}
+      {/* Tool cards: only live tools are listed */}
       <div className="flex w-full max-w-6xl flex-wrap justify-center gap-6">
         {tools.map((tool) => {
           const Icon = tool.icon;

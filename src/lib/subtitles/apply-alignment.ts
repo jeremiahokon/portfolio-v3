@@ -88,7 +88,7 @@ export function applyAlignment(
  * Repairs ordering after a partial alignment.
  *
  * Mixing aligned and estimated timings can leave a word starting before the one
- * before it ended — the two came from different sources with different ideas about
+ * before it ended, the two came from different sources with different ideas about
  * where the audio was. Enforced forward-only, and **aligned words win**: a
  * conflicting *estimate* is pushed, never a measurement, because the estimate was
  * the weaker number to begin with.
@@ -228,13 +228,13 @@ export function indexAlignments(
 }
 
 /**
- * The windows an edit made stale — M4's whole point.
+ * The windows an edit made stale, M4's whole point.
  *
  * Re-transcribing after a text edit would be absurd, and re-aligning the entire file
  * is nearly as wasteful: on a 39-minute transcript that is 90-odd forward passes to
  * fix the timing of one corrected phrase. The aligner is a single non-autoregressive
  * pass per window, so re-running *only* the windows containing edited words is
- * roughly free — which is the property the two-model architecture was chosen for in
+ * roughly free, which is the property the two-model architecture was chosen for in
  * the first place.
  *
  * A window qualifies when it holds a word marked `edited` that is not `timeLocked`.
@@ -261,7 +261,7 @@ export function windowsNeedingRealignment(
  *
  * `edited` is documented as "marks the region for re-alignment", so leaving it set
  * after re-aligning would make every later pass redo the same windows forever. It is
- * not the record of *what the user changed* — `origText` is, and `text !== origText`
+ * not the record of *what the user changed*, `origText` is, and `text !== origText`
  * survives this untouched, which is what the editor highlights from.
  */
 export function clearRealignmentMarks(

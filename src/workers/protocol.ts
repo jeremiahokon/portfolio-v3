@@ -18,7 +18,7 @@ import type {
  *    next job's transcript.
  * 2. Every worker honours `cancel`.
  * 3. PCM moves as a **transferred** `ArrayBuffer`, never a structured-cloned
- *    copy — a 30-minute mono 16 kHz Int16 buffer is ~58 MB and copying it per
+ *    copy: a 30-minute mono 16 kHz Int16 buffer is ~58 MB and copying it per
  *    stage would be the dominant memory cost.
  */
 
@@ -35,7 +35,7 @@ export interface ModelInit {
   /**
    * Force a backend. **Normally omitted**, and that matters: the worker resolves
    * it by actually asking for a WebGPU adapter, which is the only reliable test.
-   * Passing `'webgpu'` unconditionally — as this originally did — means a browser
+   * Passing `'webgpu'` unconditionally (as this originally did) means a browser
    * without WebGPU gets handed a device it cannot provide and errors instead of
    * falling back to WASM.
    *
@@ -101,7 +101,7 @@ export type FromWorker =
  * Narrows an unknown `MessageEvent.data` to our protocol.
  *
  * Workers receive messages from whoever holds a reference to them, so a shape
- * check beats trusting the cast — a malformed message should be dropped, not
+ * check beats trusting the cast: a malformed message should be dropped, not
  * crash the worker mid-job.
  */
 export function isToWorker(value: unknown): value is ToWorker {

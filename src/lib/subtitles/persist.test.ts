@@ -40,7 +40,7 @@ describe('in-flight job marker', () => {
   it('survives being read twice', () => {
     // React StrictMode runs mount effects twice in development. A destructive
     // read consumed the marker on the first pass and rendered nothing on the
-    // second — silently reintroducing the exact silence this exists to remove.
+    // second: silently reintroducing the exact silence this exists to remove.
     markJobInFlight({ fileName: 'zoom-call.mp4', duration: 2340 });
 
     expect(peekInterruptedJob()).toEqual({

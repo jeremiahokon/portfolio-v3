@@ -1,3 +1,5 @@
+import type { Metadata } from 'next';
+
 import Contact from '@/components/sections/contact';
 import ContentCreation from '@/components/sections/content-creation';
 import Hero from '@/components/sections/hero';
@@ -9,7 +11,30 @@ import Testimonials from '@/components/sections/testimonials';
 import Tools from '@/components/sections/tools';
 import YouTubeVideo from '@/components/sections/youtube-video';
 
+import { SITE_URL } from '@/lib/constant';
 import { getShortsData } from '@/lib/youtube';
+
+// No `title` here on purpose: the layout's `template` would double the
+// "| Jeremiah Okon" suffix onto the already-complete default title.
+export const metadata: Metadata = {
+  description:
+    "Full-stack product engineer's portfolio, available for remote hire by teams in the UK, Ireland & Netherlands: production web platforms, free browser tools.",
+  alternates: { canonical: '/' },
+  openGraph: {
+    title:
+      'Jeremiah Okon - Full-Stack Product Engineer | React, Next.js & Node.js',
+    description:
+      "Full-stack product engineer's portfolio, available for remote hire by teams in the UK, Ireland & Netherlands: production web platforms, free browser tools.",
+    url: SITE_URL,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title:
+      'Jeremiah Okon - Full-Stack Product Engineer | React, Next.js & Node.js',
+    description:
+      "Full-stack product engineer's portfolio, available for remote hire by teams in the UK, Ireland & Netherlands: production web platforms, free browser tools.",
+  },
+};
 
 export default async function Home() {
   const shortsData = await getShortsData();
@@ -23,8 +48,7 @@ export default async function Home() {
             '@type': 'VideoObject',
             position: index + 1,
             name: video.title,
-            // Google Search Console flags VideoObjects without a description;
-            // Shorts often have empty ones, so fall back to the title.
+            // GSC flags VideoObjects without a description; Shorts often lack one.
             description: (video.description ?? video.title).slice(0, 300),
             thumbnailUrl:
               video.thumbnailUrl ??
@@ -44,17 +68,11 @@ export default async function Home() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(videoSchema) }}
         />
       )}
-      {/* The hero is pinned (sticky, z-0); everything below lives in this
-          opaque z-10 sheet that slides up over it — the "sheet overlap". */}
+      {/* Hero is pinned (z-0); this opaque z-10 sheet slides up over it. */}
       <Hero />
       <div className="bg-background relative z-10 rounded-t-sm shadow-[0_-28px_70px_rgba(0,0,0,0.45)] md:rounded-t-sm">
         <RecentWorks />
-        {/* Tools sat below the testimonials, seven sections deep — most visitors
-            never scrolled far enough to learn they existed. They are free, need no
-            signup, and run on the visitor's own machine, which makes them the
-            cheapest possible reason to interact with this site before deciding
-            anything. Directly after the work section: proof of what I build, then
-            something you can use immediately. */}
+        {/* Right after proof of work, since the tools are free/no-signup and the cheapest way to get someone to interact. */}
         <Tools />
         <Manifesto />
         <Skills />

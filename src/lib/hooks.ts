@@ -4,10 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 
 import { useReducedMotion as useFramerReducedMotion } from 'motion/react';
 
-// Hydration-safe: the server always renders the animated branch, so the first
-// client render must match it; the real preference applies right after mount.
-// Components can therefore swap DOM structure on this flag without tripping
-// React hydration mismatches.
+// Starts false so the first client render matches the server's animated branch;
+// the real preference applies right after mount.
 export function useReducedMotion(): boolean {
   const prefersReducedMotion = useFramerReducedMotion() ?? false;
   const [mounted, setMounted] = useState(false);
@@ -19,19 +17,10 @@ export function useReducedMotion(): boolean {
   return mounted && prefersReducedMotion;
 }
 
-// The count starts *at* the target, not at zero.
-//
-// This looks backwards for a count-up, and it is the whole point. The previous
-// version initialised to 0 and animated upward, which meant the server-rendered
-// HTML — the only thing a crawler, a link-preview bot, or a JS-off reader ever
-// sees — said "0.0★ Avg. Upwork Rating" and "0 Jobs on Upwork". The animation was
-// publishing the opposite of every claim on the page to exactly the audiences that
-// cannot run it.
-//
-// So the real value is the initial state and the animation is a purely visual
-// overlay: once the element scrolls into view on a hydrated client, we drop to zero
-// and count back up. Markup is always truthful; motion is decoration layered on top.
-// If `duration` is 0 (what callers pass for reduced motion) nothing ever resets.
+// Starts *at* the target, not zero, so the server-rendered HTML a crawler or
+// JS-off reader sees is never "0.0★ Avg. Upwork Rating". The animation drops to
+// zero and counts back up only once hydrated and in view: markup stays
+// truthful, motion is decoration on top. `duration: 0` (reduced motion) never resets.
 export function useCountUp(
   target: number,
   duration: number = 2000,
