@@ -203,9 +203,15 @@ export default function RootLayout({
         <body
           className={`${neueMontreal.variable} ${GeistSans.variable} ${instrumentSerif.variable} overflow-x-hidden antialiased`}
         >
+          <a
+            href="#main-content"
+            className="focus:bg-background focus:text-foreground sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:rounded-sm focus:px-4 focus:py-2 focus:outline-2 focus:outline-offset-2"
+          >
+            Skip to content
+          </a>
           <MotionProvider>
             <Header />
-            <main>{children}</main>
+            <main id="main-content">{children}</main>
             <Footer />
           </MotionProvider>
 

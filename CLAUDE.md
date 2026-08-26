@@ -1,3 +1,7 @@
+# Tooling
+
+- Always use `pnpm` for package management and running scripts in this repo (`pnpm install`, `pnpm dev`, `pnpm build`, `pnpm vitest run`, etc.), never `npm` or `yarn`.
+
 # Writing style
 
 - Never use em dashes ("—") anywhere in this codebase: not in code comments, not in visible copy/UI text, not in commit messages. Use a comma, period, colon, or parentheses instead, whichever reads most naturally.

@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Link as TransitionLink } from 'next-view-transitions';
 import { sendGAEvent } from '@next/third-parties/google';
 
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AnimatePresence, m } from 'motion/react';
 
 import { GA_EVENTS } from '@/lib/analytics-events';
@@ -23,28 +24,6 @@ export default function Header() {
 
   // Off the home page there's nothing to scroll to, so links point at `/#id` and the browser navigates home instead.
   const hashHref = (id: string) => (isHome ? `#${id}` : `/#${id}`);
-
-  // Lock body scroll while the menu is open; pad by the scrollbar's width so hiding it doesn't cause a layout jump.
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const { overflow, paddingRight } = document.body.style;
-    const scrollbarWidth =
-      window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.overflow = 'hidden';
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    }
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsMenuOpen(false);
-    };
-    window.addEventListener('keydown', onKey);
-
-    return () => {
-      document.body.style.overflow = overflow;
-      document.body.style.paddingRight = paddingRight;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [isMenuOpen]);
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -105,7 +84,7 @@ export default function Header() {
       };
 
   return (
-    <>
+    <DialogPrimitive.Root open={isMenuOpen} onOpenChange={setIsMenuOpen}>
       <header className="relative z-50 flex w-full items-center justify-between px-4 py-4 md:items-start md:px-10 md:pt-10 md:pb-5">
         <m.a
           href={hashHref('home')}
@@ -147,132 +126,148 @@ export default function Header() {
           </Link>
         </div>
 
-        {/* Animated hamburger: the only nav control on every breakpoint. */}
-        <button
-          type="button"
-          aria-label="Open menu"
-          aria-expanded={isMenuOpen}
-          aria-controls="site-menu"
-          onClick={() => setIsMenuOpen(true)}
-          className={`group ${tone} relative flex h-8 w-9 cursor-pointer items-center justify-center`}
-        >
-          <span className="sr-only">Menu</span>
-          <span className="relative block h-[14px] w-7" aria-hidden="true">
-            <span className="absolute top-0 left-0 h-0.5 w-full origin-center rounded-sm bg-current transition-all duration-300 group-hover:w-5" />
-            <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-sm bg-current transition-all duration-300 group-hover:w-full" />
-          </span>
-        </button>
+        {/* Animated hamburger: the only nav control on every breakpoint. Radix wires
+            aria-expanded/aria-haspopup/aria-controls onto this trigger automatically. */}
+        <DialogPrimitive.Trigger asChild>
+          <button
+            type="button"
+            aria-label="Open menu"
+            className={`group ${tone} relative flex h-8 w-9 cursor-pointer items-center justify-center`}
+          >
+            <span className="sr-only">Menu</span>
+            <span className="relative block h-[14px] w-7" aria-hidden="true">
+              <span className="absolute top-0 left-0 h-0.5 w-full origin-center rounded-sm bg-current transition-all duration-300 group-hover:w-5" />
+              <span className="absolute bottom-0 left-0 h-0.5 w-full rounded-sm bg-current transition-all duration-300 group-hover:w-full" />
+            </span>
+          </button>
+        </DialogPrimitive.Trigger>
       </header>
 
-      {/* Full-screen menu with a circular reveal that grows from the button. */}
+      {/* Full-screen menu with a circular reveal that grows from the button. Radix
+          traps focus inside while open, moves focus in on open, and restores it to
+          the hamburger on close; Escape-to-close and the body scroll lock are also
+          native to Dialog, so none of that is hand-rolled here anymore. */}
       <AnimatePresence>
         {isMenuOpen && (
-          <m.div
-            id="site-menu"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Site navigation"
-            className="bg-footer-background fixed inset-0 z-[100] flex flex-col items-center justify-center"
-            {...overlayMotion}
-          >
-            <button
-              type="button"
-              aria-label="Close menu"
-              onClick={() => setIsMenuOpen(false)}
-              className="group absolute top-4 right-4 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 md:top-9 md:right-9"
-            >
-              <span className="relative block h-5 w-5" aria-hidden="true">
-                <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 rotate-45 rounded-sm bg-current transition-transform duration-300 group-hover:rotate-[135deg]" />
-                <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 -rotate-45 rounded-sm bg-current transition-transform duration-300 group-hover:rotate-[-135deg]" />
-              </span>
-            </button>
+          <DialogPrimitive.Portal forceMount>
+            <DialogPrimitive.Content forceMount asChild>
+              <m.div
+                id="site-menu"
+                className="bg-footer-background fixed inset-0 z-[100] flex flex-col items-center justify-center"
+                {...overlayMotion}
+              >
+                <DialogPrimitive.Title className="sr-only">
+                  Site navigation
+                </DialogPrimitive.Title>
+                <DialogPrimitive.Description className="sr-only">
+                  Links to sections of the site and other pages.
+                </DialogPrimitive.Description>
 
-            <m.nav
-              className="flex flex-col items-center gap-4 md:gap-5"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.05,
-                    delayChildren: reduced ? 0 : 0.25,
-                  },
-                },
-              }}
-            >
-              {navLinks.map((link) => {
-                const itemVariants = {
-                  hidden: { opacity: 0, y: reduced ? 0 : 24 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      duration: 0.7,
-                      ease: [0.16, 1, 0.3, 1] as const,
+                <DialogPrimitive.Close asChild>
+                  <button
+                    type="button"
+                    aria-label="Close menu"
+                    className="group absolute top-4 right-4 flex h-11 w-11 cursor-pointer items-center justify-center rounded-sm text-white transition-colors hover:bg-white/10 md:top-9 md:right-9"
+                  >
+                    <span className="relative block h-5 w-5" aria-hidden="true">
+                      <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 rotate-45 rounded-sm bg-current transition-transform duration-300 group-hover:rotate-[135deg]" />
+                      <span className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 -rotate-45 rounded-sm bg-current transition-transform duration-300 group-hover:rotate-[-135deg]" />
+                    </span>
+                  </button>
+                </DialogPrimitive.Close>
+
+                <m.nav
+                  className="flex flex-col items-center gap-4 md:gap-5"
+                  initial="hidden"
+                  animate="visible"
+                  variants={{
+                    hidden: { opacity: 0 },
+                    visible: {
+                      opacity: 1,
+                      transition: {
+                        staggerChildren: 0.05,
+                        delayChildren: reduced ? 0 : 0.25,
+                      },
                     },
-                  },
-                };
+                  }}
+                >
+                  {navLinks.map((link) => {
+                    const itemVariants = {
+                      hidden: { opacity: 0, y: reduced ? 0 : 24 },
+                      visible: {
+                        opacity: 1,
+                        y: 0,
+                        transition: {
+                          duration: 0.7,
+                          ease: [0.16, 1, 0.3, 1] as const,
+                        },
+                      },
+                    };
 
-                if (link.href) {
-                  return (
-                    <m.span
-                      key={link.id}
-                      variants={itemVariants}
-                      whileHover={reduced ? undefined : { x: 10 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 260,
-                        damping: 24,
-                      }}
-                    >
-                      <TransitionLink
-                        href={link.href}
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          sendGAEvent({
-                            event: GA_EVENTS.NAV_LINK_ON_MOBILE_MENU,
-                            value: link.id,
-                            link_id: link.id,
-                            event_category: 'engagement',
-                          });
-                        }}
+                    if (link.href) {
+                      return (
+                        <m.span
+                          key={link.id}
+                          variants={itemVariants}
+                          whileHover={reduced ? undefined : { x: 10 }}
+                          transition={{
+                            type: 'spring',
+                            stiffness: 260,
+                            damping: 24,
+                          }}
+                        >
+                          <TransitionLink
+                            href={link.href}
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              sendGAEvent({
+                                event: GA_EVENTS.NAV_LINK_ON_MOBILE_MENU,
+                                value: link.id,
+                                link_id: link.id,
+                                event_category: 'engagement',
+                              });
+                            }}
+                            className="cursor-pointer text-3xl font-bold tracking-tighter text-white transition-colors hover:text-gray-300 md:text-4xl"
+                          >
+                            {link.label}
+                          </TransitionLink>
+                        </m.span>
+                      );
+                    }
+
+                    return (
+                      <m.a
+                        key={link.id}
+                        href={hashHref(link.id)}
+                        onClick={(e) => handleNavClick(e, link.id)}
                         className="cursor-pointer text-3xl font-bold tracking-tighter text-white transition-colors hover:text-gray-300 md:text-4xl"
+                        variants={itemVariants}
+                        whileHover={reduced ? undefined : { x: 10 }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 260,
+                          damping: 24,
+                        }}
                       >
                         {link.label}
-                      </TransitionLink>
-                    </m.span>
-                  );
-                }
+                      </m.a>
+                    );
+                  })}
+                </m.nav>
 
-                return (
-                  <m.a
-                    key={link.id}
-                    href={hashHref(link.id)}
-                    onClick={(e) => handleNavClick(e, link.id)}
-                    className="cursor-pointer text-3xl font-bold tracking-tighter text-white transition-colors hover:text-gray-300 md:text-4xl"
-                    variants={itemVariants}
-                    whileHover={reduced ? undefined : { x: 10 }}
-                    transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                  >
-                    {link.label}
-                  </m.a>
-                );
-              })}
-            </m.nav>
-
-            <m.div
-              className="absolute bottom-8 text-sm text-white/60"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: reduced ? 0 : 0.5 }}
-            >
-              Tap a link to navigate
-            </m.div>
-          </m.div>
+                <m.div
+                  className="absolute bottom-8 text-sm text-white/60"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: reduced ? 0 : 0.5 }}
+                >
+                  Tap a link to navigate
+                </m.div>
+              </m.div>
+            </DialogPrimitive.Content>
+          </DialogPrimitive.Portal>
         )}
       </AnimatePresence>
-    </>
+    </DialogPrimitive.Root>
   );
 }

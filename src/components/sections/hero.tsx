@@ -241,7 +241,7 @@ export default function Hero() {
                 className="font-family-inter text-paper/70 text-xs font-medium tracking-[0.3em] uppercase md:text-sm"
               >
                 Jeremiah Okon · Full-Stack Product Engineer
-                <span className="text-paper/40 hidden sm:inline">
+                <span className="text-paper/70 hidden sm:inline">
                   {' '}
                   · React · Next.js · Node.js
                 </span>
@@ -385,7 +385,7 @@ export default function Hero() {
         {/* Scroll cue */}
         <m.div
           {...enter(0.5)}
-          className="font-family-inter text-paper/50 flex items-center gap-3 text-xs tracking-[0.25em] uppercase"
+          className="font-family-inter text-paper/70 flex items-center gap-3 text-xs tracking-[0.25em] uppercase"
         >
           <span>Scroll</span>
           <m.span
@@ -396,7 +396,7 @@ export default function Hero() {
             }
             transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
           />
-          <span className="text-paper/40">The work is right below</span>
+          <span className="text-paper/70">The work is right below</span>
         </m.div>
       </m.div>
 

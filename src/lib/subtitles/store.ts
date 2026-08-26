@@ -19,6 +19,7 @@ import type { Cue, ErrorCode, Stage, TimingSource, Word } from './types';
 
 export type JobStatus =
   | 'idle'
+  | 'checking-device'
   | 'decoding'
   | 'loading-model'
   | 'transcribing'

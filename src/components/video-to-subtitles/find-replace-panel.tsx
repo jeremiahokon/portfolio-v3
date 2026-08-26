@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 
 import { Check, Search, Sparkles, Trash2 } from 'lucide-react';
 
@@ -49,6 +49,7 @@ export function FindReplacePanel({
   const [options, setOptions] = useState<FindOptions>(DEFAULT_FIND);
   const [vocabulary, setVocabulary] = useState('');
   const [done, setDone] = useState<string | null>(null);
+  const vocabularyId = useId();
 
   const matches = useMemo(
     () => (query.trim() ? findMatches(words, cues, query, options) : []),
@@ -175,12 +176,16 @@ export function FindReplacePanel({
           label="The speech model has never seen your client's name, your product, or your industry's acronyms, so it guesses at them. List them here and it will point out the spellings in the transcript that sound like each one."
           side="right"
         >
-          <label className="font-family-inter text-ink/75 mb-1.5 flex w-fit cursor-help items-center gap-1.5 text-[11px]">
+          <label
+            htmlFor={vocabularyId}
+            className="font-family-inter text-ink/75 mb-1.5 flex w-fit cursor-help items-center gap-1.5 text-[11px]"
+          >
             <Sparkles className="h-3 w-3" />
             Names and terms the model won’t know, one per line
           </label>
         </Tooltip>
         <textarea
+          id={vocabularyId}
           value={vocabulary}
           onChange={(e) => setVocabulary(e.target.value)}
           rows={2}

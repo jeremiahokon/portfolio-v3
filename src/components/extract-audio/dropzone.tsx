@@ -89,7 +89,7 @@ export function Dropzone({
         Choose a video
       </span>
 
-      <span className="font-family-inter text-ink/75 relative text-xs">
+      <span className="font-family-inter text-ink/85 relative text-xs">
         MP4 · MOV · MKV · AVI · WEBM · M4V · up to 1 GB
       </span>
     </m.button>

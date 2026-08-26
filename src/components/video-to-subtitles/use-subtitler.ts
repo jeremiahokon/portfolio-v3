@@ -102,8 +102,15 @@ function isAcceptedFile(file: File): boolean {
 }
 
 export function useSubtitler() {
-  // One store per mount, created lazily so it survives re-renders.
-  const store = useMemo(() => createJobStore(), []);
+  // One store per mount, created lazily so it survives re-renders. Starts in
+  // 'checking-device' (not 'idle') so the first paint already shows the
+  // preflight panel instead of flashing the dropzone before it's checked.
+  const store = useMemo(() => {
+    const jobStore = createJobStore();
+    jobStore.set({ status: 'checking-device' });
+
+    return jobStore;
+  }, []);
   const snapshot = useSyncExternalStore(
     store.subscribe,
     store.getSnapshot,
@@ -130,6 +137,31 @@ export function useSubtitler() {
       }),
     [store]
   );
+
+  // Runs once, before the user has picked a file: a device that's going to be
+  // refused shouldn't need to upload anything first to find that out. Duration
+  // isn't known yet, so this only ever resolves to 'refuse' or the unconditional
+  // WebGPU 'warn'; the duration-aware warnings still wait for decode.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const capability = assess(await probeDevice());
+      if (cancelled) return;
+      if (capability.verdict === 'refuse') {
+        store.set({
+          status: 'error',
+          error: { code: 'unsupported-device', message: capability.message },
+        });
+
+        return;
+      }
+      store.set({ status: 'idle' });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [store]);
 
   const teardown = useCallback(() => {
     abortRef.current?.abort();
@@ -202,6 +234,16 @@ export function useSubtitler() {
         store.set({ status: 'error', error: { code, message } });
         teardown();
       };
+
+      // Checked before ffmpeg decode + VAD even start: a device that's going to be
+      // refused shouldn't sit through both first only to be told no afterward. Covers
+      // a user who uploads anyway despite the mount-time refusal, or races it.
+      const capability = assess(await probeDevice());
+      if (capability.verdict === 'refuse') {
+        fail('unsupported-device', capability.message);
+
+        return;
+      }
 
       // Read once per job (not per stage) so a mid-job URL change can't switch backends between chunks.
       const override = currentBackendOverride();
@@ -667,6 +709,7 @@ export function useSubtitler() {
   }, [store, teardown]);
 
   const busy =
+    snapshot.status === 'checking-device' ||
     snapshot.status === 'decoding' ||
     snapshot.status === 'loading-model' ||
     snapshot.status === 'transcribing' ||

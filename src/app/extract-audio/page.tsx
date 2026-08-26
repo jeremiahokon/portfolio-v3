@@ -149,7 +149,7 @@ export default function ExtractAudioPage() {
               MP3, ready to use.
             </li>
           </ol>
-          <p className="font-family-inter text-ink/70 mt-8 text-sm leading-relaxed md:text-base">
+          <p className="font-family-inter text-ink/80 mt-8 text-sm leading-relaxed md:text-base">
             <span className="text-footer-background font-semibold">
               Supported formats:
             </span>{' '}

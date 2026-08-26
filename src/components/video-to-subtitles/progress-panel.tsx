@@ -91,6 +91,12 @@ function describe(
   ratio: number | null
 ): { headline: string; detail: string; value: number } {
   switch (snapshot.status) {
+    case 'checking-device':
+      return {
+        headline: 'Checking your device',
+        detail: 'Making sure your browser can handle this before you upload.',
+        value: 0,
+      };
     case 'decoding':
       return {
         headline: 'Reading your file',

@@ -172,12 +172,17 @@ const config = [
   },
 
   // Accessibility config
+  // `flatConfigs.recommended.rules` was previously never spread in here, so
+  // registering the plugin below did nothing: only the 3 explicit overrides
+  // ran, and they were overriding rules that were never on. Extending the
+  // recommended set is the actual fix; the 3 overrides stay, now meaningfully.
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     plugins: {
       'jsx-a11y': a11yPlugin,
     },
     rules: {
+      ...a11yPlugin.flatConfigs.recommended.rules,
       'jsx-a11y/alt-text': 'off', // Handled by Next.js Image component
       'jsx-a11y/heading-has-content': 'off', // Allow empty headings
       'jsx-a11y/no-noninteractive-element-interactions': 'off',

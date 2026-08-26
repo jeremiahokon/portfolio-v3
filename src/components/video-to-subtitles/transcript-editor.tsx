@@ -148,6 +148,11 @@ const CueBlock = memo(function CueBlock({
   const hasError = issues?.some((i) => i.severity === 'error');
 
   return (
+    // Row-level click-to-select is a mouse-only convenience layered on top of
+    // already-keyboard-accessible descendants (timestamp button, edit-line div,
+    // and Up/Down at the list level, which already moves selection); it doesn't
+    // need its own keyboard handler.
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
       style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 64px' }} // intrinsic-size hint avoids scrollbar jump as off-screen blocks render
       className={[
@@ -195,7 +200,12 @@ const CueBlock = memo(function CueBlock({
             className="font-family-inter text-ink w-full resize-none rounded-sm border border-amber-300 bg-white px-2 py-1 text-[15px] leading-relaxed outline-none"
           />
         ) : (
-          <p
+          // A div, not a <p>: jsx-a11y treats <p> as an inherently non-interactive
+          // element that can't take an interactive role. A real <button> would work
+          // too, but its native Space-activates-click behavior would double-fire
+          // alongside the list-level Space shortcut (which already toggles playback
+          // from anywhere in the transcript), so this stays a manually-wired div.
+          <div
             // Single click, not double: playback lives on the timestamp button now.
             onClick={(e) => {
               e.stopPropagation();
@@ -223,7 +233,7 @@ const CueBlock = memo(function CueBlock({
                 />
               </Fragment>
             ))}
-          </p>
+          </div>
         )}
 
         {showTimes && !editing && (
@@ -521,6 +531,18 @@ export function TranscriptEditor(props: Props) {
         return;
       }
 
+      // Alt, not Tab: Tab must keep doing its native job of moving focus, or a
+      // keyboard-only user gets stuck inside the transcript list.
+      if (
+        event.altKey &&
+        (event.key === 'ArrowDown' || event.key === 'ArrowUp')
+      ) {
+        event.preventDefault();
+        stepFlagged(event.key === 'ArrowDown' ? 1 : -1);
+
+        return;
+      }
+
       switch (event.key) {
         case ' ':
           event.preventDefault();
@@ -545,10 +567,6 @@ export function TranscriptEditor(props: Props) {
         case 'ArrowUp':
           event.preventDefault();
           step(-1);
-          break;
-        case 'Tab':
-          event.preventDefault();
-          stepFlagged(event.shiftKey ? -1 : 1);
           break;
         case 'Enter':
           event.preventDefault();
@@ -668,13 +686,13 @@ export function TranscriptEditor(props: Props) {
               </span>
             </Tooltip>
           ) : (
-            <Tooltip label="Errors are cues a player may refuse to render: overlapping, or too short to display. Warnings are legible but uncomfortable, usually reading too fast. Click, or press Tab, to jump to the next one.">
+            <Tooltip label="Errors are cues a player may refuse to render: overlapping, or too short to display. Warnings are legible but uncomfortable, usually reading too fast. Click, or press Alt + ↓, to jump to the next one.">
               <button
                 type="button"
                 onClick={() => stepFlagged(1)}
                 className="rounded-sm bg-amber-100 px-2 py-0.5 text-[10px] text-amber-800"
               >
-                {qc.errors} errors · {qc.warnings} warnings · press Tab
+                {qc.errors} errors · {qc.warnings} warnings · press Alt + ↓
               </button>
             </Tooltip>
           )}
@@ -753,9 +771,15 @@ export function TranscriptEditor(props: Props) {
           />
         )}
 
-        {/* Transcript */}
+        {/* Transcript: a composite widget that manages selection/focus itself
+            (arrow keys move `selectedCue`) rather than moving DOM focus between
+            rows, so the single tabIndex sits on this container. `role="list"` is
+            structural, not a widget role, which is what jsx-a11y's tabindex rule
+            is really guarding against; there's no listbox/grid role that fits a
+            list of rows that each also contain their own interactive controls. */}
         <div
           ref={listRef}
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           tabIndex={0}
           onKeyDown={onKeyDown}
           role="list"
@@ -797,8 +821,8 @@ export function TranscriptEditor(props: Props) {
         <div className="flex flex-wrap items-center gap-3 border-t border-black/5 px-4 py-3">
           <p className="font-family-inter text-ink/75 text-[11px]">
             Click any line to edit it · Space plays · ← / → scrub 5s · R replays
-            the line · Tab jumps to the next issue · ⌘F to replace everywhere ·
-            K splits, J merges, , / . shift
+            the line · Alt + ↓ / ↑ jumps to the next issue · ⌘F to replace
+            everywhere · K splits, J merges, , / . shift
           </p>
           <div className="ml-auto flex gap-2">
             <Tooltip label="Return to the download options. Your edits are kept.">
@@ -824,6 +848,10 @@ export function TranscriptEditor(props: Props) {
       </div>
 
       {props.mediaUrl && (
+        // Hidden playback engine for the custom transport UI above, not a
+        // media element presented to an audience: this tool IS the captioning
+        // step, so there's no separate caption track to attach yet.
+        // eslint-disable-next-line jsx-a11y/media-has-caption
         <audio
           ref={audioRef}
           src={props.mediaUrl}

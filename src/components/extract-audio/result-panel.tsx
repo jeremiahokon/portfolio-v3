@@ -40,6 +40,9 @@ export function ResultPanel({ reduced, result, onReset }: ResultPanelProps) {
         </p>
       </div>
 
+      {/* Audio-only preview of the user's own just-extracted file, not a published
+          program with dialogue: a caption track has nothing to synchronize against. */}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <audio controls src={result.url} className="w-full max-w-sm" />
 
       <div className="flex flex-col items-center gap-3 sm:flex-row">
