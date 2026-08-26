@@ -1,10 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 
 import { HardDrive, Loader2, Trash2 } from 'lucide-react';
-
-import { Tooltip } from '@/components/ui/tooltip';
 
 import {
   type CacheReport,
@@ -13,6 +11,8 @@ import {
 } from '@/lib/models/cache-manager';
 import { clearAllCheckpoints } from '@/lib/subtitles/checkpoint';
 import { formatBytes } from '@/lib/utils';
+
+import { Tooltip } from '@/custom/tooltip';
 
 /**
  * What this tool has stored on your device, and a button to remove it.
@@ -31,6 +31,7 @@ export function ModelManager() {
   const [report, setReport] = useState<CacheReport | null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const panelId = useId();
 
   const refresh = useCallback(async () => {
     setReport(await readCache());
@@ -42,8 +43,7 @@ export function ModelManager() {
 
   const clear = async () => {
     setBusy(true);
-    // Checkpoints go with the weights: someone reclaiming space wants all of it, and
-    // a resume offer pointing at a model that is no longer cached is a trap.
+    // Checkpoints go with the weights: a resume offer pointing at an evicted model is a trap.
     await Promise.all([purgeAll(), clearAllCheckpoints()]);
     await refresh();
     setBusy(false);
@@ -58,7 +58,8 @@ export function ModelManager() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="font-family-inter text-ink/80 hover:text-ink flex w-full items-center gap-2 text-xs whitespace-nowrap"
+        aria-controls={panelId}
+        className="font-family-inter text-ink/80 hover:text-ink focus-ring flex w-full items-center gap-2 text-xs whitespace-nowrap"
       >
         <HardDrive className="h-3.5 w-3.5" />
         <span>
@@ -68,7 +69,10 @@ export function ModelManager() {
       </button>
 
       {open && (
-        <div className="mt-3 flex flex-col gap-2 border-t border-black/5 pt-3">
+        <div
+          id={panelId}
+          className="mt-3 flex flex-col gap-2 border-t border-black/5 pt-3"
+        >
           {cached.map((model) => (
             <div
               key={model.id}
@@ -95,7 +99,7 @@ export function ModelManager() {
             </p>
           )}
 
-          <Tooltip label="Deletes the cached models and any half-finished job. Nothing else is affected — your transcripts were never stored anywhere but this browser. The models re-download next time you use the tool.">
+          <Tooltip label="Deletes the cached models and any half-finished job. Nothing else is affected: your transcripts were never stored anywhere but this browser. The models re-download next time you use the tool.">
             <button
               type="button"
               onClick={() => void clear()}

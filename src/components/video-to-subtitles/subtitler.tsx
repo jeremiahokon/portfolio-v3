@@ -6,8 +6,6 @@ import { sendGAEvent } from '@next/third-parties/google';
 import { AlertCircle } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
-import { TooltipProvider } from '@/components/ui/tooltip';
-
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { useReducedMotion } from '@/lib/hooks';
 import { ASR } from '@/lib/models/config';
@@ -18,6 +16,8 @@ import {
   peekInterruptedJob,
 } from '@/lib/subtitles/persist';
 
+import { TooltipProvider } from '@/custom/tooltip';
+
 import { Dropzone } from './dropzone';
 import { ExportPanel } from './export-panel';
 import { ModelManager } from './model-manager';
@@ -25,13 +25,7 @@ import { ProgressPanel } from './progress-panel';
 import { TranscriptEditor } from './transcript-editor';
 import { useSubtitler } from './use-subtitler';
 
-/**
- * The glass shell and its panel machine.
- *
- * Exactly one keyed panel is rendered at a time inside a single
- * `AnimatePresence mode="wait"`, matching the extractor so both tools read as
- * the same object.
- */
+// Exactly one keyed panel rendered at a time via AnimatePresence mode="wait", matching the extractor.
 export function Subtitler() {
   const reduced = useReducedMotion();
   const {
@@ -49,9 +43,8 @@ export function Subtitler() {
   const [file, setFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // The editor needs the original media to play against. Held here rather than
-  // in the job store because the store carries the decoded PCM's *derivatives*,
-  // not the file, and an object URL has a lifetime the store should not own.
+  // Held here, not in the job store: the store carries the decoded PCM's derivatives, not
+  // the file, and an object URL's lifetime shouldn't be owned by the store.
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   useEffect(() => {
     if (!file) return;
@@ -64,27 +57,15 @@ export function Subtitler() {
     };
   }, [file]);
 
-  // Opened automatically the first time a job finishes, because the transcript is
-  // the thing the user came for — landing on a row of download buttons hides it
-  // behind a click. Tracked with a ref rather than keyed on `status` alone: the
-  // aligner and the M4 re-time both return to 'done', and being thrown back into the
-  // editor after deliberately choosing an action from the export panel would fight
-  // the user rather than help them.
-  /**
-   * Did the last run die with the tab?
-   *
-   * A browser that runs out of memory kills the tab and reloads it, so the page
-   * comes back at step one having said nothing — and the user, watching it
-   * happen twice, concludes the tool is broken rather than that their file is
-   * too big for this browser. Reading the marker here turns a silent loop into
-   * something actionable. The read is deliberately non-destructive — see
-   * `peekInterruptedJob` — and `begin` clears it when a new job starts.
-   */
+  // Non-destructive read (see peekInterruptedJob) of whether the last run died with the tab:
+  // a memory-killed tab reloads silently otherwise, and the user just thinks the tool is broken.
   const [interrupted, setInterrupted] = useState<InFlightJob | null>(null);
   useEffect(() => {
     setInterrupted(peekInterruptedJob());
   }, []);
 
+  // Ref, not `status`, because the aligner and M4 re-time both also land on 'done': this
+  // must fire only once, the first time a job finishes.
   const autoOpenedRef = useRef(false);
   useEffect(() => {
     if (snapshot.status !== 'done' || autoOpenedRef.current) return;
@@ -101,9 +82,7 @@ export function Subtitler() {
     });
     setFile(file);
     setEditing(false);
-    // The previous run's marker has been shown and is now history; a new job
-    // writes its own once it gets past decode.
-    clearJobInFlight();
+    clearJobInFlight(); // previous run's marker has been shown; a new job writes its own past decode
     setInterrupted(null);
     autoOpenedRef.current = false;
     void start(file);
@@ -111,8 +90,7 @@ export function Subtitler() {
 
   const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     begin(event.target.files?.[0]);
-    // Reset so picking the same file twice in a row still fires a change event.
-    event.target.value = '';
+    event.target.value = ''; // so picking the same file twice in a row still fires a change event
   };
 
   const onDrop = (event: React.DragEvent<HTMLButtonElement>) => {
@@ -134,9 +112,7 @@ export function Subtitler() {
           duration={snapshot.duration ?? 0}
           mediaUrl={mediaUrl}
           draftKey={file ? draftKey(file, ASR.revision) : null}
-          // Both paths commit. "Back" means "return to the export view", not
-          // "discard an hour of corrections", and there is no other way out of the
-          // editor — so a discarding path here would be a trap rather than a choice.
+          // Both paths commit: "Back" means return to the export view, never discard edits.
           onBack={(words, cues) => {
             applyEdits(words, cues);
             setEditing(false);
@@ -210,8 +186,8 @@ export function Subtitler() {
               <span className="font-family-inter text-sm text-amber-800">
                 Transcribing “{interrupted.fileName}” stopped before it
                 finished, most likely because this browser ran out of memory.
-                Safari is the strictest about this — a shorter clip, or Chrome
-                or Edge, will usually get through it.
+                Safari is the strictest about this. A shorter clip, or Chrome or
+                Edge, will usually get through it.
               </span>
             </div>
           )}
@@ -234,9 +210,7 @@ export function Subtitler() {
           to a server.
         </p>
 
-        {/* Renders nothing until something is actually cached, so a first visit
-            is unchanged and the row appears only once there is something to
-            manage. */}
+        {/* Renders nothing until something is actually cached. */}
         <ModelManager />
       </div>
     </TooltipProvider>

@@ -46,7 +46,7 @@ export interface ChunkResult {
  *
  * Segments are assigned to a chunk by their **midpoint**, not their start. A
  * segment straddling a boundary would otherwise be claimed by whichever chunk
- * saw its first instant, which is the chunk that only had it as context — so the
+ * saw its first instant, which is the chunk that only had it as context, so the
  * copy transcribed with the *least* surrounding audio would win.
  */
 export function stitch(
@@ -86,14 +86,14 @@ function normalizeWord(word: string): string {
  * Whisper's segments are multi-second and routinely straddle a boundary, so the
  * same words can appear inside two segments that each legitimately belong to a
  * different chunk. Observed in a real transcript as
- * `"…the change was" / "permanent." / "was permanent, anyone with a computer…"`
- * — "was permanent" transcribed once as chunk N's trailing context and again as
+ * `"…the change was" / "permanent." / "was permanent, anyone with a computer…"`:
+ * "was permanent" transcribed once as chunk N's trailing context and again as
  * chunk N+1's opening content.
  *
  * The later segment's leading duplicate is the one trimmed. Its copy sits in
  * that chunk's leading overlap, meaning the model saw little audio *before* it,
  * whereas the earlier chunk transcribed the same words with full preceding
- * context — so the earlier copy is the better-informed one.
+ * context, so the earlier copy is the better-informed one.
  *
  * Only compares across a chunk change, never within one chunk, so real
  * repetition inside a single window is left alone.
@@ -177,7 +177,7 @@ export function enforceMonotonic(
     if (end < start) end = start;
 
     // A segment squeezed to zero length carries no timing information, but its
-    // text still matters — keep it rather than dropping words from the
+    // text still matters, keep it rather than dropping words from the
     // transcript, and let cue normalisation give it a duration.
     out.push({ ...segment, start, end });
   }

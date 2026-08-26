@@ -1,13 +1,13 @@
 /**
  * CTC forced alignment: a trellis and a Viterbi backtrack.
  *
- * Pure — takes log-probabilities in, gives frame spans out. No model, no worker,
+ * Pure, takes log-probabilities in, gives frame spans out. No model, no worker,
  * no DOM, which is what lets the mathematics be tested against hand-built
  * emissions where the right answer is known by construction.
  *
  * **What this is doing.** The acoustic model emits, per frame, a distribution
- * over its character vocabulary plus a blank. We already know *what* was said —
- * the transcript comes from Whisper — so the task is not recognition but
+ * over its character vocabulary plus a blank. We already know *what* was said,
+ * the transcript comes from Whisper, so the task is not recognition but
  * *alignment*: find the single highest-probability path through the frames that
  * spells the known transcript, allowing each character to occupy one or more
  * frames and allowing blanks anywhere between them. That path assigns every
@@ -58,7 +58,7 @@ function at(emissions: Emissions, frame: number, token: number): number {
  * (consume a frame as that token). Taking the max of the two is what makes this
  * Viterbi rather than a sum.
  *
- * Scores are log-probabilities, so they add rather than multiply — which is the
+ * Scores are log-probabilities, so they add rather than multiply, which is the
  * whole reason to work in log space: a product of thousands of probabilities
  * underflows to zero in float32, a sum of thousands of logs does not.
  */
@@ -144,7 +144,7 @@ export function backtrack(
     const probs = logProbs[tokenIndex]!;
 
     if (owned.length === 0) {
-      // The path never emitted this token — possible when the transcript does
+      // The path never emitted this token, possible when the transcript does
       // not match the audio. Report an empty span rather than inventing one; the
       // caller decides whether that fails the window.
       return { tokenIndex, token, startFrame: 0, endFrame: 0, score: 0 };
@@ -182,7 +182,7 @@ export function alignTokens(
  * Merges token spans into word spans.
  *
  * `wordTokenCounts` says how many tokens each word contributed, in order, so this
- * needs no knowledge of the vocabulary or of how words were split — the caller
+ * needs no knowledge of the vocabulary or of how words were split, the caller
  * owns tokenisation and this owns arithmetic.
  *
  * A word whose tokens were all skipped by the path gets a zero-length span at the
@@ -203,11 +203,8 @@ export function mergeTokensToWords(
   let lastEnd = 0;
 
   for (const [index, count] of wordTokenCounts.entries()) {
-    // The cursor advances over the whole group, including any leading word
-    // delimiter, or every later word would be off by one. But the delimiter is
-    // excluded from the span itself: its frames *are* the pause before the word, so
-    // including them made every word start at the end of the previous one — measured
-    // at 350–450 ms early by the M2 gate.
+    // Cursor advances over the leading delimiter, but its frames are excluded from
+    // the span, they're the pause before the word, not the word itself.
     const skip = Math.min(leadingSkips[index] ?? 0, count);
     const owned = spans
       .slice(cursor + skip, cursor + count)
@@ -238,7 +235,7 @@ export function mergeTokensToWords(
 /**
  * Converts a frame span to seconds.
  *
- * `frameSeconds` is the model's stride — 20 ms for wav2vec2 at 16 kHz, since it
+ * `frameSeconds` is the model's stride, 20 ms for wav2vec2 at 16 kHz, since it
  * downsamples by 320 samples. `offset` shifts the window back into absolute
  * time. `calibration` is a constant added to both ends: CTC assigns a character
  * to the frames where the model is most confident about it, which tends to sit

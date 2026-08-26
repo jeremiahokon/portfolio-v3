@@ -5,14 +5,14 @@ import type { ChunkResult } from './stitch';
  *
  * The 39-minute file took 94 windows and about 25 minutes. Losing all of it to a
  * closed tab, a crash, or a phone deciding to reclaim the page is the single worst
- * outcome this tool can produce — the user has spent 151 MB of download and half an
+ * outcome this tool can produce, the user has spent 151 MB of download and half an
  * hour and has nothing. Checkpointing turns that into "pick up at window 71".
  *
  * **OPFS, not IndexedDB**, and for once not out of preference: this writes after
  * every window, ninety-odd times, while a model is resident and the main thread is
  * busy. OPFS gives a plain file per job with cheap appends and no transaction
  * machinery in the way. Drafts of a *finished* transcript go to IndexedDB
- * (`persist.ts`) because that is a single structured record read once — a different
+ * (`persist.ts`) because that is a single structured record read once, a different
  * problem deserving a different store.
  *
  * **Only ASR results are checkpointed, deliberately.** Decode and VAD are minutes at
@@ -28,7 +28,7 @@ const DIR = 'subtitle-checkpoints';
 
 interface Checkpoint {
   format: number;
-  /** File identity plus model revision — see `draftKey`. */
+  /** File identity plus model revision, see `draftKey`. */
   key: string;
   /** How many windows the plan had, so a changed plan invalidates the resume. */
   chunkCount: number;

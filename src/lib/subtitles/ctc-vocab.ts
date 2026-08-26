@@ -11,8 +11,8 @@
  * digits and acronyms. Reading the actual vocabulary sharpens that: digits are not
  * aligned badly, they are unalignable, and the only honest handling is to detect
  * it and keep the estimated timing for those words rather than emit a confident
- * number that came from nowhere. Acronyms are fine — "API" is three letters the
- * model knows — provided the speaker says the letters.
+ * number that came from nowhere. Acronyms are fine, "API" is three letters the
+ * model knows, provided the speaker says the letters.
  *
  * Pure and vocabulary-driven: the map is loaded from the model's own `vocab.json`
  * rather than hardcoded, so a different CTC checkpoint needs no code change.
@@ -58,7 +58,7 @@ export interface Tokenized {
   /** One entry per word that could be represented at all, in order. */
   words: WordTokens[];
   /**
-   * Indices of words with no representable characters — digits, emoji, CJK.
+   * Indices of words with no representable characters, digits, emoji, CJK.
    * These keep whatever timing they already had; see the note at the top.
    */
   unalignable: number[];
@@ -112,7 +112,7 @@ export function tokenizeForCtc(
  * accounted to some word or every span after the first would be off by one. It is
  * counted against the word that follows purely so that bookkeeping works.
  *
- * **It must not contribute to that word's time span** — see
+ * **It must not contribute to that word's time span**, see
  * `leadingDelimitersPerWord`. An earlier version of this comment argued the opposite,
  * that "the silence before a word belongs to that word's approach", and the M2 gate
  * measured what that cost: word *starts* landed 350–450 ms early because the
@@ -131,7 +131,7 @@ export function tokenCountsPerWord(tokenized: Tokenized): number[] {
  * How many tokens at the head of each word's group are delimiters, not characters.
  *
  * Always 0 for the first word and 1 for the rest, given how `tokenizeForCtc` emits
- * them — but derived rather than assumed, so a change to the tokenisation cannot
+ * them, but derived rather than assumed, so a change to the tokenisation cannot
  * silently reintroduce the 350 ms error this exists to prevent.
  */
 export function leadingDelimitersPerWord(tokenized: Tokenized): number[] {

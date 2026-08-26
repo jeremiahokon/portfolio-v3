@@ -9,11 +9,9 @@ import { cn } from '@/lib/utils';
 
 type IconProps = { className?: string };
 
-// Idle: a soft cloud with an up-arrow that gently bobs, inviting a drop.
 export function UploadCloudAnim({ className }: IconProps) {
   const reduced = useReducedMotion();
-  // useId keeps gradient ids unique per instance — hardcoded ids collide when
-  // two icons mount at once.
+  // useId keeps gradient ids unique per instance: hardcoded ids collide when two icons mount at once.
   const gradId = useId();
 
   return (
@@ -29,7 +27,6 @@ export function UploadCloudAnim({ className }: IconProps) {
           <stop offset="100%" stopColor="#5BA4D1" />
         </linearGradient>
       </defs>
-      {/* Cloud */}
       <path
         d="M20 44a10 10 0 0 1-1.5-19.9A14 14 0 0 1 45 26.5 9 9 0 0 1 45 44H20Z"
         fill={`url(#${gradId})`}
@@ -38,7 +35,6 @@ export function UploadCloudAnim({ className }: IconProps) {
         strokeWidth={2}
         strokeLinejoin="round"
       />
-      {/* Bobbing arrow */}
       <m.g
         animate={reduced ? undefined : { y: [0, -4, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -61,7 +57,6 @@ export function UploadCloudAnim({ className }: IconProps) {
   );
 }
 
-// Loading / processing: an equalizer of bars pulsing like a soundwave.
 export function EqualizerBars({ className }: IconProps) {
   const reduced = useReducedMotion();
   const gradId = useId();
@@ -118,7 +113,6 @@ export function EqualizerBars({ className }: IconProps) {
   );
 }
 
-// Success: a ring plus a checkmark drawn on via pathLength.
 export function SuccessCheck({ className }: IconProps) {
   const reduced = useReducedMotion();
 

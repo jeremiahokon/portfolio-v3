@@ -43,7 +43,7 @@ export class DecodeFailedError extends Error {
  * Root-mean-square amplitude of the samples, in the same [-1, 1] scale.
  *
  * One pass over the buffer, which is cheap next to everything else the pipeline
- * does — a 30-minute file is ~29 M samples.
+ * does: a 30-minute file is ~29 M samples.
  */
 export function rms(samples: Float32Array): number {
   if (samples.length === 0) return 0;
@@ -60,7 +60,7 @@ export function rms(samples: Float32Array): number {
  * 0.002 is about −54 dBFS. For scale, the real speech measured here sits around
  * 0.15 (−16 dBFS) and a screen recording with a muted microphone measured
  * −91 dBFS. The gap between those is enormous, so this threshold does not need
- * to be finely tuned — it only needs to separate "silence" from "quiet".
+ * to be finely tuned: it only needs to separate "silence" from "quiet".
  */
 export const SILENCE_RMS = 0.002;
 
@@ -82,7 +82,7 @@ export function isEffectivelySilent(samples: Float32Array): boolean {
  * Converts interleaved little-endian signed 16-bit PCM to normalised floats.
  *
  * Divides by 32768 rather than 32767 so the mapping is exact for the negative
- * extreme and no value can exceed 1.0 — the asymmetry of two's complement means
+ * extreme and no value can exceed 1.0: the asymmetry of two's complement means
  * the other choice would clip -32768 to slightly beyond -1.
  */
 export function int16ToFloat32(bytes: Uint8Array): Float32Array {
@@ -102,7 +102,7 @@ export function int16ToFloat32(bytes: Uint8Array): Float32Array {
  * Decodes `file` to mono 16 kHz float samples.
  *
  * `onProgress` receives 0..1 from FFmpeg's own progress events, which callers
- * subscribe to via `subscribeEngine` — this function does not attach handlers,
+ * subscribe to via `subscribeEngine`: this function does not attach handlers,
  * so it does not fight the extractor over the shared engine's listeners.
  */
 export async function decodeToPcm(
@@ -129,13 +129,9 @@ export async function decodeToPcm(
 
     signal?.throwIfAborted();
 
-    // `-vn` drops video without decoding it. `-f s16le` forces raw output with
-    // no container, so what comes back is exactly sampleCount * 2 bytes.
-    //
-    // The signal goes in the third argument; the second is a timeout, left at
-    // the library's unbounded default because a legitimate hour-long decode
-    // must not be killed by an arbitrary deadline. Cancellation is the user's
-    // to trigger, which is what the signal is for.
+    // `-vn` drops video without decoding it; `-f s16le` forces raw output with no
+    // container. Timeout left at the library's unbounded default: an hour-long
+    // decode is legitimate and cancellation is via the signal, not a deadline.
     await ffmpeg.exec(
       [
         '-i',

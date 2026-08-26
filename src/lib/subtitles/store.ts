@@ -7,7 +7,7 @@ import type { Cue, ErrorCode, Stage, TimingSource, Word } from './types';
  *
  * Deliberately not `useState` inside a component: a transcription runs for
  * minutes, drives an editor over thousands of words, and must survive a
- * re-render without restarting. Deliberately not a state library either — this
+ * re-render without restarting. Deliberately not a state library either, this
  * repo has consistently avoided one, and a subscribable read through
  * `useSyncExternalStore` is all that is needed.
  *
@@ -19,6 +19,7 @@ import type { Cue, ErrorCode, Stage, TimingSource, Word } from './types';
 
 export type JobStatus =
   | 'idle'
+  | 'checking-device'
   | 'decoding'
   | 'loading-model'
   | 'transcribing'

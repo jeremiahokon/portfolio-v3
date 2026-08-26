@@ -6,7 +6,7 @@ import type { SpeechRegion } from './types';
  * Turns a per-frame speech-probability series into speech regions.
  *
  * Pure and model-agnostic: the probabilities can come from Silero or from
- * anything else. Separated from the worker on purpose — the thresholding is the
+ * anything else. Separated from the worker on purpose, the thresholding is the
  * part with the subtle bugs, and it is worth testing without a 2 MB download and
  * an ONNX session in the loop.
  */
@@ -58,9 +58,7 @@ export function regionsFromProbabilities(
   const regions: SpeechRegion[] = [];
 
   let start: number | null = null;
-  // Where the current run of sub-threshold frames began, or null if the last
-  // frame was speech. Tracked rather than counted so the closed region ends at
-  // the last *speech* frame instead of at the end of the trailing silence.
+  // Tracked rather than counted so a closed region ends at the last speech frame.
   let quietSince: number | null = null;
 
   for (let i = 0; i < probabilities.length; i += 1) {
@@ -110,14 +108,14 @@ export function regionsFromProbabilities(
  * Drops regions whose audio carries no meaningful energy.
  *
  * The VAD is a speech *classifier*, not an energy gate, so it produces occasional
- * false positives on near-silence — room tone, a Zoom join chime, line noise. The
+ * false positives on near-silence, room tone, a Zoom join chime, line noise. The
  * 39-minute fixture shows the consequence exactly: the detector correctly skipped
  * 5.5 minutes of waiting-room silence but admitted about 2 seconds at the very
  * start, and Whisper hallucinated the word "you" out of it. That reached the user
  * as cue #1 of their transcript.
  *
  * The existing whole-file check (`isEffectivelySilent`) cannot catch this, because
- * the file as a whole is not silent — only this region is. Screening per region is
+ * the file as a whole is not silent, only this region is. Screening per region is
  * the same test applied at the right granularity, and it is strictly better than
  * filtering the resulting text: it prevents the hallucination rather than trying to
  * recognise one afterwards, so it can never delete a genuine quiet word.

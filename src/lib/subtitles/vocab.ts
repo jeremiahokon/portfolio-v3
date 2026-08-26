@@ -3,20 +3,20 @@ import type { Word } from './types';
 /**
  * Custom vocabulary: finding the words the model could not have known.
  *
- * The user supplies the terms — names, companies, industry vocabulary — and this
+ * The user supplies the terms, names, companies, industry vocabulary, and this
  * finds the places the transcript probably got them wrong, so they can be corrected
  * with find and replace instead of by reading 5,791 words looking for them.
  *
  * **Why phonetic rather than edit distance.** The real failures from the 39-minute
  * call, all of which are the word "Amadeus": `Amadius`, `Amadie's`, `ahmadiyya`.
  * Normalised edit distance puts "ahmadiyya" more than half a word away from
- * "Amadeus" — far outside any threshold that would not also match unrelated words.
+ * "Amadeus", far outside any threshold that would not also match unrelated words.
  * But the speaker *said* Amadeus every time; the model heard the sounds and spelled
  * them differently. Comparing sound is the operation that matches the mistake.
  *
  * Soundex specifically because it is about thirty lines and its behaviour is
- * inspectable. It is not the best phonetic algorithm — Double Metaphone would do
- * better on exactly this class of word — but a suggester the user confirms one term
+ * inspectable. It is not the best phonetic algorithm, Double Metaphone would do
+ * better on exactly this class of word, but a suggester the user confirms one term
  * at a time can afford to be approximate, and an opaque dependency for this would
  * be a poor trade. Both signals are used, since they fail in different places:
  * `Amadius` and `Amadie's` share Amadeus's Soundex key, `ahmadiyya` does not, and
@@ -53,10 +53,12 @@ const SOUNDEX_CODES: Record<string, string> = {
  * Soundex key: first letter, then three consonant codes.
  *
  * Vowels and `h`/`w`/`y` are dropped after the first letter, and repeated codes
- * collapse — which is what makes different spellings of the same sound converge.
+ * collapse, which is what makes different spellings of the same sound converge.
  */
 export function soundex(text: string): string {
-  const letters = core(text).toLowerCase().replaceAll(/[^a-z]/g, '');
+  const letters = core(text)
+    .toLowerCase()
+    .replaceAll(/[^a-z]/g, '');
   if (letters === '') return '';
 
   const first = letters[0]!;

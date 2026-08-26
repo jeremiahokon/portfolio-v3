@@ -14,13 +14,13 @@ import { baseName } from '@/lib/utils';
  *
  * **Why the subtitles pipeline cannot just reuse what it already decoded.** It
  * decodes to 16 kHz mono `pcm_s16le` for Whisper (`decode-pcm.ts`), which is
- * speech-recognition grade and not something to hand a person as "your audio" —
+ * speech-recognition grade and not something to hand a person as "your audio":
  * mono, badly undersampled for music, and uncompressed. So this is a genuinely
  * separate pass. It is cheap rather than free: the ~32 MB FFmpeg core is shared
  * between both tools (D8) and already warm by the time a transcription finishes, so
  * the cost is one `exec` rather than a fresh engine load.
  *
- * `-q:a 2` is libmp3lame's VBR quality 2 — roughly 190 kbps — chosen when the
+ * `-q:a 2` is libmp3lame's VBR quality 2 (roughly 190 kbps), chosen when the
  * extractor shipped and kept here verbatim so its output does not change.
  */
 
@@ -43,9 +43,8 @@ export async function extractMp3(
   ffmpeg: FFmpeg,
   file: File
 ): Promise<Mp3Result> {
-  // Mounted by reference: WORKERFS reads the File lazily from disk, so a
-  // multi-gigabyte video never enters WASM memory. Only the MP3 output and
-  // FFmpeg's working buffers live in linear memory.
+  // Mounted by reference (WORKERFS reads the File lazily) so a multi-gigabyte
+  // video never enters WASM memory: only the MP3 output and working buffers do.
   const dir = '/mount';
   const inputPath = `${dir}/${file.name}`;
   const outputName = `${baseName(file.name)}.mp3`;
@@ -96,5 +95,5 @@ export function describeMp3Failure(logTail: string): string {
   return logTail.includes('does not contain any stream') ||
     logTail.includes('Output file is empty')
     ? 'This file doesn’t seem to have an audio track.'
-    : 'Extraction failed — the file may be corrupted or in an unsupported format.';
+    : 'Extraction failed: the file may be corrupted or in an unsupported format.';
 }

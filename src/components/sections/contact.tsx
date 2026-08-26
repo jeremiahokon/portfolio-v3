@@ -40,7 +40,7 @@ export default function Contact() {
         />
       </div>
 
-      {/* Proof at the moment of decision — verbatim Upwork review */}
+      {/* Proof at the moment of decision: verbatim Upwork review */}
       <m.figure
         className="mb-10 flex max-w-2xl flex-col items-center gap-3 text-center"
         initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}

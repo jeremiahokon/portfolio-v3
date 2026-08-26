@@ -17,16 +17,8 @@ interface ProgressPanelProps {
   onCancel: () => void;
 }
 
-/**
- * The one busy panel, covering every stage of a job.
- *
- * A single panel rather than one per stage: the stages differ only in their
- * label and which number is meaningful, and swapping panels mid-job would make
- * the layout jump on every transition.
- *
- * Cancelling is always available. Jobs here run for minutes, so a UI with no
- * way out is not acceptable — unlike the extractor, where a job is seconds long.
- */
+// One panel for every stage, not one per stage, so the layout doesn't jump on transitions.
+// Cancel is always available: jobs here run for minutes, unlike the extractor's.
 export function ProgressPanel({
   reduced,
   snapshot,
@@ -68,12 +60,8 @@ export function ProgressPanel({
       </div>
 
       {snapshot.backend === 'wasm' && (
-        // Disclosed rather than discovered: without WebGPU the runtime falls
-        // back to WASM, which is single-threaded here because the site ships
-        // without cross-origin isolation, so it is several times slower.
-        //
-        // Worded without blaming the browser, because this state is also
-        // reachable deliberately via ?backend=wasm.
+        // Single-threaded WASM fallback (no cross-origin isolation here) is several times slower;
+        // also reachable deliberately via ?backend=wasm, so worded without blaming the browser.
         <span className="font-family-inter text-ink/75 max-w-sm text-xs">
           Running without GPU acceleration, so this will take noticeably longer.
           It will still finish.
@@ -81,9 +69,7 @@ export function ProgressPanel({
       )}
 
       {snapshot.notice && (
-        // A capability warning, not an error. It sits next to a job that is still
-        // running, because the user may know their device better than a heuristic
-        // does — the alternative was refusing outright on a guess.
+        // Capability warning, not an error: the job keeps running rather than refusing outright on a guess.
         <span className="font-family-inter max-w-sm rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
           {snapshot.notice}
         </span>
@@ -105,6 +91,12 @@ function describe(
   ratio: number | null
 ): { headline: string; detail: string; value: number } {
   switch (snapshot.status) {
+    case 'checking-device':
+      return {
+        headline: 'Checking your device',
+        detail: 'Making sure your browser can handle this before you upload.',
+        value: 0,
+      };
     case 'decoding':
       return {
         headline: 'Reading your file',
@@ -119,9 +111,7 @@ function describe(
         value: ratio ?? 0,
       };
     case 'transcribing':
-      // Two very different stages share this status. Saying "Transcribing"
-      // during voice detection would be a lie, and a visibly wrong label makes
-      // a long job feel stuck.
+      // Voice detection and transcription share this status; labeling both "Transcribing" would be a lie.
       if (snapshot.stage === 'vad') {
         return {
           headline: 'Finding the speech',
@@ -132,8 +122,7 @@ function describe(
 
       return {
         headline: 'Transcribing',
-        // Naming the current window gives the user something that visibly moves
-        // during a stage where the model itself reports no progress at all.
+        // names the current window since Whisper itself reports no progress mid-inference
         detail:
           snapshot.chunkCount > 1
             ? `Section ${snapshot.chunkIndex} of ${snapshot.chunkCount}, entirely on your device.`

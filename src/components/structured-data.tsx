@@ -6,7 +6,9 @@ import {
   LINKEDIN_URL,
   SITE_URL,
   TIKTOK_URL,
+  UPWORK_AVG_RATING,
   UPWORK_PROFILE_URL,
+  UPWORK_REVIEW_COUNT,
   X_URL,
   YOUTUBE_CHANNEL_URL,
 } from '@/lib/constant';
@@ -18,15 +20,19 @@ export default function StructuredData() {
     name: 'Jeremiah Okon',
     jobTitle: 'Full-Stack Product Engineer',
     description:
-      'Full-stack product engineer building production web platforms — telemedicine, fleet analytics, multi-role dashboards — with React, Next.js, TypeScript, and Node.js',
+      'Full-stack product engineer building production web platforms (telemedicine, fleet analytics, multi-role dashboards) with React, Next.js, TypeScript, and Node.js',
     url: SITE_URL,
     image: `${SITE_URL}/assets/profile.jpg`,
     email: EMAIL,
-    // The street-level PostalAddress that used to sit here (Ilorin, Kwara State)
-    // is the strongest local-business signal in the whole schema, and it pointed at
-    // exactly the market this site is not selling into. The work is remote contract
-    // work for clients anywhere, which is what `areaServed: Worldwide` on the service
-    // schema now says instead.
+    // Home base, matching the location shown in the site header. Not a claim of
+    // local presence for clients: the work itself stays remote/worldwide, see
+    // `areaServed` on professionalServiceSchema below for who this reaches.
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Ilorin',
+      addressRegion: 'Kwara State',
+      addressCountry: 'NG',
+    },
     sameAs: [
       LINKEDIN_URL,
       GITHUB_URL,
@@ -91,14 +97,20 @@ export default function StructuredData() {
     url: SITE_URL,
     telephone: '',
     email: EMAIL,
-    areaServed: 'Worldwide',
+    // Worldwide stays first (this is genuinely remote, open to any client); the
+    // named countries are the regions actively targeted for search visibility.
+    areaServed: [
+      { '@type': 'Place', name: 'Worldwide' },
+      { '@type': 'Country', name: 'United Kingdom' },
+      { '@type': 'Country', name: 'Ireland' },
+      { '@type': 'Country', name: 'Netherlands' },
+    ],
     priceRange: '$$',
-    // Mirrors the visible Upwork proof: rating in the hero/stats band,
-    // review count in the testimonials marquee. Keep all three in sync.
+    // Single-sourced from lib/constant.ts, mirroring the visible Upwork proof elsewhere on the page.
     aggregateRating: {
       '@type': 'AggregateRating',
-      ratingValue: 4.9,
-      reviewCount: 6,
+      ratingValue: UPWORK_AVG_RATING,
+      reviewCount: UPWORK_REVIEW_COUNT,
       bestRating: 5,
     },
     serviceType: [

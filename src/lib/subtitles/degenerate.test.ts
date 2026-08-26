@@ -40,7 +40,9 @@ describe('collapseDegenerateRuns', () => {
   });
 
   it('collapses the fixture’s 44-repeat run', () => {
-    const out = collapseDegenerateRuns(run('Yeah, you can be...', 44, 1181, 1189));
+    const out = collapseDegenerateRuns(
+      run('Yeah, you can be...', 44, 1181, 1189)
+    );
 
     expect(out).toHaveLength(1);
     expect(out[0]!.end - out[0]!.start).toBeCloseTo(8, 5);
@@ -125,12 +127,14 @@ describe('collapseDegenerateRuns', () => {
     // "Thank you." is 9 non-whitespace characters, so 2 repeats is 18.
     const chars = 18;
     const safe = chars / (MAX_ARTICULATION_CPS - 1);
-    expect(collapseDegenerateRuns(run('Thank you.', 2, 0, safe))).toHaveLength(2);
+    expect(collapseDegenerateRuns(run('Thank you.', 2, 0, safe))).toHaveLength(
+      2
+    );
 
     const unsafe = chars / (MAX_ARTICULATION_CPS + 1);
-    expect(collapseDegenerateRuns(run('Thank you.', 2, 0, unsafe))).toHaveLength(
-      1
-    );
+    expect(
+      collapseDegenerateRuns(run('Thank you.', 2, 0, unsafe))
+    ).toHaveLength(1);
   });
 
   it('passes short inputs straight through', () => {
@@ -147,7 +151,7 @@ describe('countDegenerateSegments', () => {
       ...run('Yeah, you can be...', 44, 1181, 1189),
     ];
 
-    // 86 + 44 segments become 2, so 128 were junk — the measured figure.
+    // 86 + 44 segments become 2, so 128 were junk: the measured figure.
     expect(countDegenerateSegments(segments)).toBe(128);
   });
 
@@ -171,10 +175,13 @@ describe('repairImpossibleSpans', () => {
 
     expect(out[1]!.text).toBe('after a sub-up period.');
     // 19 non-whitespace characters need 19/25 = 0.76s to be articulable.
-    expect(out[1]!.end - out[1]!.start).toBeCloseTo(19 / MAX_ARTICULATION_CPS, 5);
+    expect(out[1]!.end - out[1]!.start).toBeCloseTo(
+      19 / MAX_ARTICULATION_CPS,
+      5
+    );
   });
 
-  it('keeps the text — a badly timed segment is not a fake one', () => {
+  it('keeps the text: a badly timed segment is not a fake one', () => {
     const segments: AsrSegment[] = [
       { text: 'a real sentence somebody said', start: 10, end: 10.01 },
       { text: 'and the next one', start: 20, end: 21 },

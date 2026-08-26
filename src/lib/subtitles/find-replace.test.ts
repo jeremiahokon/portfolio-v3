@@ -1,10 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import {
-  DEFAULT_FIND,
-  findMatches,
-  replaceAll,
-} from './find-replace';
+import { DEFAULT_FIND, findMatches, replaceAll } from './find-replace';
 import { resetRetextIds } from './retext';
 import type { Cue, Word } from './types';
 
@@ -66,7 +62,9 @@ describe('findMatches', () => {
     const { words, cues } = fixture();
 
     // "arrc," at index 5 must match the query "arrc".
-    expect(findMatches(words, cues, 'arrc').some((m) => m.from === 5)).toBe(true);
+    expect(findMatches(words, cues, 'arrc').some((m) => m.from === 5)).toBe(
+      true
+    );
   });
 
   it('respects case sensitivity', () => {
@@ -127,7 +125,12 @@ describe('replaceAll', () => {
   it('replaces every occurrence in one action', () => {
     const { words, cues } = fixture();
 
-    const out = replaceAll(words, cues, findMatches(words, cues, 'arrc'), 'ARC');
+    const out = replaceAll(
+      words,
+      cues,
+      findMatches(words, cues, 'arrc'),
+      'ARC'
+    );
 
     expect(out.replaced).toBe(3);
     expect(render(out.words)).toBe(
@@ -138,16 +141,26 @@ describe('replaceAll', () => {
   it('keeps the punctuation around a replaced word', () => {
     const { words, cues } = fixture();
 
-    const out = replaceAll(words, cues, findMatches(words, cues, 'arrc'), 'ARC');
+    const out = replaceAll(
+      words,
+      cues,
+      findMatches(words, cues, 'arrc'),
+      'ARC'
+    );
 
-    // "arrc," became "ARC," — not "ARC".
+    // "arrc," became "ARC,": not "ARC".
     expect(out.words[5]!.text).toBe('ARC,');
   });
 
   it('leaves untouched words’ timings byte-identical', () => {
     const { words, cues } = fixture();
 
-    const out = replaceAll(words, cues, findMatches(words, cues, 'arrc'), 'ARC');
+    const out = replaceAll(
+      words,
+      cues,
+      findMatches(words, cues, 'arrc'),
+      'ARC'
+    );
 
     for (const index of [0, 2, 3, 4, 6, 7, 9]) {
       expect(out.words[index]!.start).toBe(words[index]!.start);
@@ -158,7 +171,12 @@ describe('replaceAll', () => {
   it('preserves the timing of the replaced words too, when the count is unchanged', () => {
     const { words, cues } = fixture();
 
-    const out = replaceAll(words, cues, findMatches(words, cues, 'arrc'), 'ARC');
+    const out = replaceAll(
+      words,
+      cues,
+      findMatches(words, cues, 'arrc'),
+      'ARC'
+    );
 
     // One word for one word is a substitution, so the span still describes the
     // audio it always described.
@@ -216,7 +234,12 @@ describe('replaceAll', () => {
     );
     const cues: Cue[] = [{ id: 'c', wordStart: 0, wordEnd: 4, lineBreaks: [] }];
 
-    const out = replaceAll(words, cues, findMatches(words, cues, 'arrc'), 'ARC');
+    const out = replaceAll(
+      words,
+      cues,
+      findMatches(words, cues, 'arrc'),
+      'ARC'
+    );
 
     expect(out.replaced).toBe(2);
     expect(render(out.words)).toBe('x ARC and ARC y');
@@ -232,7 +255,7 @@ describe('replaceAll', () => {
     expect(out.replaced).toBe(0);
   });
 
-  it('is idempotent — replacing the result again finds nothing', () => {
+  it('is idempotent: replacing the result again finds nothing', () => {
     const { words, cues } = fixture();
 
     const once = replaceAll(
@@ -243,7 +266,7 @@ describe('replaceAll', () => {
     );
     const again = findMatches(once.words, once.cues, 'arrc');
 
-    // "ARC" is not "arrc", so a second pass has no work — the operation converged.
+    // "ARC" is not "arrc", so a second pass has no work: the operation converged.
     expect(again).toHaveLength(0);
   });
 });

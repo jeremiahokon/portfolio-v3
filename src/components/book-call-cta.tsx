@@ -12,18 +12,58 @@ import { type BookCallCtaLocation, GA_EVENTS } from '@/lib/analytics-events';
 import { BOOK_A_CALL } from '@/lib/constant';
 import { useReducedMotion } from '@/lib/hooks';
 
-// Conversion band for pages that pull outside traffic (tools, extractor).
-// Booking a call is the site's conversion point — every page needs a path
-// to it, not just the homepage. Styled to mirror the homepage free-tools
-// banner so the two read as one system.
+// Contextual copy per page, so a visitor sees a claim tied to the tool they just used rather than a generic line repeated across pages.
+const COPY: Record<
+  BookCallCtaLocation,
+  { heading: React.ReactNode; body: string }
+> = {
+  tools_page: {
+    heading: (
+      <>
+        I build fast web tools like this{' '}
+        <em className="font-family-instrument font-normal italic">
+          for clients
+        </em>
+        .
+      </>
+    ),
+    body: "Need a web app, a landing page that converts, or a tool for your team? Let's talk about it. The call is free.",
+  },
+  extract_audio: {
+    heading: (
+      <>
+        I build{' '}
+        <em className="font-family-instrument font-normal italic">
+          browser-based tools
+        </em>{' '}
+        like this, and production web apps.
+      </>
+    ),
+    body: "Need a web app, a landing page that converts, or a custom media tool for your team? Let's talk about it. The call is free.",
+  },
+  video_to_subtitles: {
+    heading: (
+      <>
+        I build{' '}
+        <em className="font-family-instrument font-normal italic">
+          browser-based tools
+        </em>{' '}
+        like this, and production web apps.
+      </>
+    ),
+    body: 'Need a custom workflow like this inside your product? I build production-ready web applications with React, Next.js and Node.js.',
+  },
+};
+
+// Conversion band for pages that pull outside traffic (tools, extractor): booking a call is the site's conversion point, not just on the homepage.
 export function BookCallCta({ location }: { location: BookCallCtaLocation }) {
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const copy = COPY[location];
 
   return (
     <div className="mx-auto mt-20 w-full max-w-6xl">
       <div className="border-ink/10 bg-ink/[0.03] relative flex flex-col gap-8 overflow-hidden rounded-sm border p-8 md:flex-row md:items-center md:justify-between md:p-10">
-        {/* Ambient glow */}
         <div className="bg-sky/15 pointer-events-none absolute -top-1/3 -right-1/4 h-[300px] w-[300px] rounded-sm blur-[110px]" />
 
         <div className="relative z-10 flex max-w-xl flex-col gap-4">
@@ -37,16 +77,11 @@ export function BookCallCta({ location }: { location: BookCallCtaLocation }) {
           </div>
 
           <h2 className="text-footer-background text-3xl leading-tight font-bold tracking-tight md:text-4xl">
-            I build fast web tools like this{' '}
-            <em className="font-family-instrument font-normal italic">
-              for clients
-            </em>
-            .
+            {copy.heading}
           </h2>
 
           <p className="font-family-inter text-ink/85 text-base leading-relaxed">
-            Need a web app, a landing page that converts, or a tool for your
-            team? Let&apos;s talk about it — the call is free.
+            {copy.body}
           </p>
         </div>
 

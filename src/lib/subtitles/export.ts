@@ -1,8 +1,8 @@
 import type { Cue, Word } from './types';
 
 /**
- * Subtitle serialisation. A pure function of `(Word[], Cue[])` — no DOM, no
- * worker, no model — which is what makes it testable in Node.
+ * Subtitle serialisation. A pure function of `(Word[], Cue[])`, no DOM, no
+ * worker, no model, which is what makes it testable in Node.
  */
 
 export type ExportFormat = 'srt' | 'vtt' | 'json';
@@ -44,7 +44,7 @@ export function cueText(cue: Cue, words: Word[]): string {
 /**
  * Formats seconds as a subtitle timestamp.
  *
- * SRT uses a comma before the milliseconds, WebVTT a period — the only
+ * SRT uses a comma before the milliseconds, WebVTT a period, the only
  * difference between the two timestamp forms. Negative input is clamped to zero
  * rather than producing a `-00:00:01,000` that no player accepts.
  */
@@ -100,7 +100,7 @@ export function toVtt(words: Word[], cues: Cue[]): string {
 
 /**
  * Lossless JSON. Exports words *and* cues, so a transcript can round-trip back
- * into the editor with per-word timing, confidence and lock state intact —
+ * into the editor with per-word timing, confidence and lock state intact,
  * which neither SRT nor VTT can carry.
  */
 export function toJson(words: Word[], cues: Cue[]): string {

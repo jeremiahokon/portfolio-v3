@@ -112,10 +112,7 @@ describe('buildCues', () => {
     }
   });
 
-  // Regression. Uniform-length words always split evenly, so the test above
-  // passed while real prose produced a 43-character line in a shipped SRT: the
-  // cue measured 81 characters, inside the 84 budget, but no split of it left
-  // both lines under 42. Grouping now gates on wrapping, not on the total.
+  // Regression: a shipped SRT had an 81-char cue under the 84 budget with no split under 42.
   it('respects the per-line limit even when the total is inside the budget', () => {
     const sentence =
       'Hello, this is a test of the subtitle generator, it should produce three separate';
@@ -123,8 +120,6 @@ describe('buildCues', () => {
       .split(' ')
       .map((t, i) => word(t, i * 0.34, i * 0.34 + 0.34));
 
-    // Precondition: the whole run is under the 2 x 42 budget, which is exactly
-    // what made the old check pass it through.
     expect(sentence.length).toBeLessThanOrEqual(
       R.maxCharsPerLine * R.maxLinesPerCue
     );
@@ -268,12 +263,9 @@ describe('normalizeCues against the section 2.4 timing rules', () => {
     });
   }
 
-  // Regression: a real 6-minute transcript had 81 of 137 adjacencies at exactly
-  // zero gap. normalizeCues only applied minGap while extending a short cue, so
-  // two cues that merely touched were left touching.
+  // Regression: normalizeCues only applied minGap while extending a short cue,
+  // so cues that merely touched were left touching.
   it('separates every pair of touching cues by at least minGap', () => {
-    // Back-to-back words with no silence between sentences: every cue boundary
-    // lands exactly where the next begins.
     const words = [
       word('One.', 0, 2),
       word('Two.', 2, 4),
@@ -413,7 +405,7 @@ describe('the core data-model invariant', () => {
 
 describe('degenerate cue protection', () => {
   // Regression: aligner timings put two cues within a frame of each other, and
-  // trimming the full gap out of the first collapsed it to zero duration — which
+  // trimming the full gap out of the first collapsed it to zero duration: which
   // reports infinite CPS and cannot be rendered at all.
   it('never emits a zero-duration cue, even when neighbours nearly coincide', () => {
     const words = [word('One.', 0, 0.5), word('Two.', 0.52, 2)];
@@ -432,7 +424,7 @@ describe('degenerate cue protection', () => {
     const first = cueBounds(normalized[0]!, words);
     const second = cueBounds(normalized[1]!, words);
 
-    // Overlap is still forbidden — that priority does not yield.
+    // Overlap is still forbidden: that priority does not yield.
     expect(first.end).toBeLessThanOrEqual(second.start);
     expect(first.end - first.start).toBeGreaterThan(0);
   });

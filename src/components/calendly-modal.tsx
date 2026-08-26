@@ -49,10 +49,8 @@ export const CalendlyModal = ({
     const initializeCalendly = () => {
       if (calendlyRef.current && window.Calendly) {
         try {
-          // Clear any existing content
           calendlyRef.current.innerHTML = '';
 
-          // Initialize Calendly widget
           window.Calendly.initInlineWidget({
             url,
             parentElement: calendlyRef.current,
@@ -65,7 +63,6 @@ export const CalendlyModal = ({
           setIsLoading(false);
         }
       } else if (isOpen) {
-        // Retry after a short delay
         timeoutId = setTimeout(initializeCalendly, 100);
       }
     };
@@ -91,7 +88,6 @@ export const CalendlyModal = ({
     };
 
     if (isOpen) {
-      // Track modal open event
       sendGAEvent({
         event: GA_EVENTS.CALENDLY_MODAL_OPENED,
         value: title,
@@ -109,7 +105,6 @@ export const CalendlyModal = ({
   }, [isOpen, url, title]);
 
   const handleClose = () => {
-    // Track modal close event
     sendGAEvent({
       event: GA_EVENTS.CALENDLY_MODAL_CLOSED,
       value: title,

@@ -1,10 +1,5 @@
-// Central registry of GA4 event names.
-//
-// GA4 constraints: event names max 40 chars, [a-z0-9_], must start with a letter.
-// Convention: user_<verb>_<element>_on_<location> — the location lives in the
-// name itself so every event is distinguishable in GA reports without
-// cross-filtering params. Dynamic values (link id, project name, video id, …)
-// stay in event params, never in the name.
+// GA4: names max 40 chars, [a-z0-9_], start with a letter. Convention:
+// user_<verb>_<element>_on_<location>; dynamic values stay in event params.
 export const GA_EVENTS = {
   // Book-a-call CTAs
   BOOK_CALL_ON_HERO: 'user_clicked_book_call_on_hero',
@@ -62,9 +57,8 @@ export const GA_EVENTS = {
   EXTRACTOR_FAILED: 'user_failed_extraction_on_extractor',
   EXTRACTOR_MP3_DOWNLOADED: 'user_downloaded_mp3_on_extractor',
 
-  // Subtitle generator funnel. MODEL_GATE_REACHED is the one that matters most:
-  // it marks the point where a ~170 MB download is disclosed, so the drop-off
-  // between it and MODEL_READY is the real cost of running the model on-device.
+  // MODEL_GATE_REACHED marks where the ~170 MB download is disclosed; drop-off
+  // to MODEL_READY is the real cost of running the model on-device.
   SUBTITLER_FILE_SELECTED: 'user_selected_file_on_subtitler',
   SUBTITLER_MODEL_GATE_REACHED: 'user_reached_model_gate_on_subtitler',
   SUBTITLER_MODEL_READY: 'user_loaded_model_on_subtitler',
@@ -72,6 +66,10 @@ export const GA_EVENTS = {
   SUBTITLER_FAILED: 'user_failed_transcription_on_subtitler',
   SUBTITLER_EXPORTED: 'user_downloaded_subtitles_on_subtitler',
   SUBTITLER_CANCELLED: 'user_cancelled_job_on_subtitler',
+
+  // Not a user action, so it skips the convention above; `metric_name` param
+  // (LCP, INP, CLS, FCP, TTFB) distinguishes one event name per metric.
+  WEB_VITAL_REPORTED: 'web_vital_reported',
 } as const;
 
 export type BookCallCtaLocation = keyof typeof GA_EVENTS.BOOK_CALL_CTA;

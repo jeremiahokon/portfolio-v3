@@ -7,7 +7,7 @@
  * indices: to apply an edit it has to know not just which words survived but which
  * ones were inserted and deleted around them.
  *
- * No behaviour change to the scorer — `pairWordsByText` now maps these pairs back
+ * No behaviour change to the scorer, `pairWordsByText` now maps these pairs back
  * to its own objects.
  */
 
@@ -60,7 +60,7 @@ export function lcsIndexPairs(
  *
  * Case- and punctuation-insensitive, and that is load-bearing rather than
  * incidental. The most common edit by far is fixing capitalisation or adding a
- * comma — "hello" to "Hello,". Under this key the token still *matches*, so it is
+ * comma, "hello" to "Hello,". Under this key the token still *matches*, so it is
  * treated as a surviving word whose text changed rather than as a deletion and an
  * insertion, and it keeps its measured timing untouched for free.
  */

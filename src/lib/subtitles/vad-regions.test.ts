@@ -70,7 +70,7 @@ describe('regionsFromProbabilities', () => {
 
   it('closes an open region when the audio ends mid-speech', () => {
     // Losing this would drop the final sentence of every file that does not end
-    // in silence — which is most of them.
+    // in silence: which is most of them.
     const regions = detect(series([0.01, 10], [0.9, 40]));
 
     expect(regions).toHaveLength(1);

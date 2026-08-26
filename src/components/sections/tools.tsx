@@ -1,18 +1,9 @@
-import { TrackedTransitionLink } from '@/ui/tracked-transition-link';
-
 import { GA_EVENTS } from '@/lib/analytics-events';
 import { tools } from '@/lib/tools';
 
-// This banner used to advertise one tool. It named the audio extractor in the
-// heading, described only the audio extractor, and put "browse all tools" — the
-// only hint that a second one existed — in small text under the button. A reader
-// who did not want to strip audio out of a video had no reason to click anything.
-//
-// The tools are the most underused asset on the site: they are free, they need no
-// account, and they run entirely on the visitor's own machine, which is a live
-// demonstration of the engineering rather than a claim about it. So the banner now
-// renders every entry in lib/tools.ts as its own card with its own CTA. Ship a
-// third tool and it appears here automatically — nothing in this file names one.
+import { TrackedTransitionLink } from '@/custom/tracked-transition-link';
+
+// Renders every entry in lib/tools.ts as its own card: nothing here names a specific tool.
 export default function Tools() {
   return (
     <section
@@ -20,13 +11,9 @@ export default function Tools() {
       className="relative w-full px-4 py-16 md:px-10 md:py-20"
     >
       <div className="mx-auto max-w-6xl">
-        {/* 1rem on mobile, not 2. This banner nests a padded card inside a padded
-            card inside the section's own px-4 gutter, and at p-8 the three stacked
-            up to ~72px of chrome on each side of a 390px screen — the tool cards
-            were left about half the viewport wide. The padding only needs to be
-            generous once the layout goes side-by-side. */}
+        {/* p-4 not p-8 on mobile: nested padded cards inside the section's own
+            gutter left tool cards at half the viewport width on a 390px screen. */}
         <div className="relative flex flex-col gap-8 overflow-hidden rounded-sm border border-[#2C3333]/10 bg-[#2C3333]/[0.03] p-4 md:p-10">
-          {/* Ambient glow */}
           <div className="bg-sky/15 pointer-events-none absolute -top-1/3 -right-1/4 h-[300px] w-[300px] rounded-sm blur-[110px]" />
 
           <div className="relative z-10 flex max-w-2xl flex-col gap-4">
@@ -35,7 +22,7 @@ export default function Tools() {
             </span>
 
             <h2 className="text-footer-background text-3xl leading-tight font-bold tracking-tight md:text-4xl">
-              {tools.length} free tools —{' '}
+              {tools.length} free tools ·{' '}
               <em className="font-family-instrument font-normal italic">
                 no signup, nothing uploaded
               </em>
@@ -43,9 +30,9 @@ export default function Tools() {
             </h2>
 
             <p className="font-family-inter text-ink/85 text-base leading-relaxed">
-              Both run entirely inside your browser — your files never leave
-              your device. Same privacy-first engineering I bring to client
-              work, free to use right now.
+              Both run entirely inside your browser. Your files never leave your
+              device. Same privacy-first engineering I bring to client work,
+              free to use right now.
             </p>
           </div>
 

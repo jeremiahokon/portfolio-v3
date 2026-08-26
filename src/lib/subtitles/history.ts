@@ -11,7 +11,7 @@ import type { Cue, Word } from './types';
  * what the operations are.
  *
  * Bounded, because a long editing session over a 39-minute transcript would
- * otherwise retain every intermediate `Word[]` — each around 5,800 objects — for
+ * otherwise retain every intermediate `Word[]`, each around 5,800 objects, for
  * the lifetime of the tab.
  */
 
@@ -36,8 +36,8 @@ export function createHistory(present: TranscriptState): History {
 /**
  * Records a new state.
  *
- * A no-op operation returns the same array references — every function in
- * `edit.ts` and `retext.ts` is written to do exactly that — so identity is a
+ * A no-op operation returns the same array references, every function in
+ * `edit.ts` and `retext.ts` is written to do exactly that, so identity is a
  * reliable signal that nothing happened, and pressing a key that changes nothing
  * must not consume an undo step.
  */

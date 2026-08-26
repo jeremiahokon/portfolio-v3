@@ -5,7 +5,7 @@ import type { AsrSegment } from './types';
  *
  * Whisper under greedy decoding can enter a repetition loop: it re-emits the same
  * token sequence until it exhausts the generation budget, and every repeat arrives
- * as its own timestamped segment. The 39-minute fixture contains two of them —
+ * as its own timestamped segment. The 39-minute fixture contains two of them,
  * **86 consecutive "Thank you." segments inside 2.9 seconds of audio**, and 44
  * "Yeah, you can be..." inside 8 seconds. Together they produced 128 junk cues,
  * 17% of that file, and they are also where its 409 CPS maximum and most of its
@@ -16,8 +16,8 @@ import type { AsrSegment } from './types';
  * real artifact instead of by re-running a model. It cannot degrade a good
  * transcript, because it only fires on output that is physically impossible as
  * speech. And transformers.js 4.2.0 has no temperature fallback and no
- * compression-ratio check — the two mechanisms OpenAI's implementation uses to
- * detect and retry a failed decode — so nothing upstream of us will catch this.
+ * compression-ratio check, the two mechanisms OpenAI's implementation uses to
+ * detect and retry a failed decode, so nothing upstream of us will catch this.
  * A mild `repetition_penalty` in `asr.worker.ts` reduces how often the loop
  * happens; this bounds the damage when it happens anyway.
  */
@@ -28,7 +28,7 @@ import type { AsrSegment } from './types';
  * The readability ceiling for *reading* a subtitle is 20 CPS (section 2.4). This
  * is a different bound: the fastest rate a human can physically *articulate*.
  * Very fast speech reaches roughly 20 CPS, so 25 leaves clear headroom above
- * anything real while sitting far below the pathology — the 86-repeat run implies
+ * anything real while sitting far below the pathology, the 86-repeat run implies
  * 296 CPS, an order of magnitude out.
  *
  * Using an articulation-rate test rather than a repeat count is what makes this
@@ -54,7 +54,7 @@ function density(text: string): number {
  * The surviving segment keeps the run's full time span rather than only the first
  * segment's, because the span is the one thing the loop got right: the speaker did
  * say something across that window. Keeping it also means the collapsed cue has a
- * sane duration — the 2.9 s "Thank you." becomes a readable 3.4 CPS cue instead of
+ * sane duration, the 2.9 s "Thank you." becomes a readable 3.4 CPS cue instead of
  * a 34 ms one.
  *
  * Collapses to one copy, not two. When a decode has failed this way there is no
@@ -116,14 +116,14 @@ export function collapseDegenerateRuns(segments: AsrSegment[]): AsrSegment[] {
  *
  * The two need different treatment, and the difference matters. A run of 86
  * identical segments is a decode failure and the repeats are not real, so they are
- * discarded. A lone segment is ordinary speech that Whisper timestamped badly —
- * "after a sub-up period" is a real phrase somebody said — so **the text is kept
+ * discarded. A lone segment is ordinary speech that Whisper timestamped badly,
+ * "after a sub-up period" is a real phrase somebody said, so **the text is kept
  * and the timing is repaired.** Deleting it would lose real words to fix a
  * cosmetic problem.
  *
  * Only the end moves. Pulling the start earlier would reach back into the previous
  * segment's time, and a subtitle appearing before its words were spoken is a worse
- * defect than a short one — the same priority `normalizeCues` already applies.
+ * defect than a short one, the same priority `normalizeCues` already applies.
  * Expansion stops at the next segment's start, so a repair can never create an
  * overlap; a segment boxed in on both sides is left as it is and reaches the QC
  * panel, which is the honest outcome when there is genuinely no room.
@@ -134,7 +134,7 @@ export function repairImpossibleSpans(segments: AsrSegment[]): AsrSegment[] {
   const out = segments.map((segment, index) => {
     const span = segment.end - segment.start;
     const chars = density(segment.text);
-    // Nothing pronounceable — a stray "..." — so there is no articulation rate to
+    // Nothing pronounceable (a stray "...") so there is no articulation rate to
     // be impossible. `density` counts punctuation, which is right for measuring
     // subtitle reading speed and wrong for deciding whether anything was said.
     if (chars === 0 || normalize(segment.text) === '') return segment;
@@ -142,7 +142,10 @@ export function repairImpossibleSpans(segments: AsrSegment[]): AsrSegment[] {
 
     const needed = chars / MAX_ARTICULATION_CPS;
     const ceiling = segments[index + 1]?.start ?? segment.start + needed;
-    const end = Math.min(segment.start + needed, Math.max(ceiling, segment.end));
+    const end = Math.min(
+      segment.start + needed,
+      Math.max(ceiling, segment.end)
+    );
 
     if (end === segment.end) return segment;
     changed = true;
@@ -157,7 +160,7 @@ export function repairImpossibleSpans(segments: AsrSegment[]): AsrSegment[] {
  * How many segments `collapseDegenerateRuns` would remove.
  *
  * Reported to the user rather than silently discarded. A transcript that lost 128
- * of its segments to a failed decode is a transcript worth being told about — the
+ * of its segments to a failed decode is a transcript worth being told about, the
  * audio in those windows may genuinely not have been transcribed, since a loop
  * consumes the generation budget and truncates whatever real speech followed it.
  */

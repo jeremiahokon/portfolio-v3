@@ -6,15 +6,15 @@ import { toBlobURL } from '@ffmpeg/util';
  *
  * The only thing the audio extractor and the subtitle pipeline genuinely share
  * is the expensive part: fetching and instantiating a ~32 MB WASM core. They do
- * not share a decode layer — one wants an MP3 file the user downloads, the
- * other wants raw PCM the pipeline consumes — so this module deliberately owns
+ * not share a decode layer: one wants an MP3 file the user downloads, the
+ * other wants raw PCM the pipeline consumes: so this module deliberately owns
  * loading and caching only. Command construction, progress semantics and error
  * taxonomy stay with each caller.
  *
  * Single-threaded core: no SharedArrayBuffer, so the page needs no
  * cross-origin isolation (COOP/COEP) headers. That deliberately avoids the
  * multi-threaded core's module-worker chunk, which Vercel's edge blocks with
- * ERR_BLOCKED_BY_RESPONSE in a require-corp context — the extractor hung on
+ * ERR_BLOCKED_BY_RESPONSE in a require-corp context: the extractor hung on
  * "Warming up the audio engine" in production as a result. There is no
  * ffmpeg-core.worker.js in the single-threaded build, so no workerURL.
  *
@@ -48,7 +48,7 @@ export interface EngineHandlers {
  *
  * Handlers are registered per call rather than per engine so two tools can
  * share the instance without seeing each other's logs. Always call the
- * returned function when the job ends — a leaked handler keeps a closure over
+ * returned function when the job ends: a leaked handler keeps a closure over
  * component state alive for the page's lifetime.
  */
 export function subscribeEngine({
@@ -68,7 +68,7 @@ export function subscribeEngine({
  * Returns the shared engine, loading it on first call.
  *
  * Assumes a single job at a time. The engine owns one virtual filesystem, so
- * two concurrent callers would collide on mount points and output paths — both
+ * two concurrent callers would collide on mount points and output paths: both
  * tools live on separate routes and both guard their own UI while busy, so this
  * holds today. Revisit before running two jobs in one page.
  */
@@ -88,10 +88,8 @@ export async function getEngine(signal?: AbortSignal): Promise<FFmpeg> {
       for (const handler of logHandlers) handler(message);
     });
 
-    // The signal is the SECOND argument, not part of the config. Everything in
-    // the config object is postMessage'd to the worker, and an AbortSignal is
-    // not structured-cloneable — putting it there fails with a DataCloneError
-    // before the core ever loads.
+    // Signal as the second argument, not in config: config is postMessage'd to
+    // the worker, and AbortSignal is not structured-cloneable.
     await ffmpeg.load(
       {
         coreURL: await toBlobURL(
@@ -131,7 +129,7 @@ export function isEngineLoaded(): boolean {
  *
  * Without this the worker and ~32 MB heap stay resident for the page's life
  * after a job finishes. Callers that terminate must not hold a reference to the
- * old instance — the next `getEngine()` builds a fresh one.
+ * old instance: the next `getEngine()` builds a fresh one.
  */
 export function terminateEngine(): void {
   const current = engine;

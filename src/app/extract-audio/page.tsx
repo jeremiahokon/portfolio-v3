@@ -3,14 +3,15 @@ import { Link as TransitionLink } from 'next-view-transitions';
 import { ShieldCheck, Zap } from 'lucide-react';
 import type { Metadata } from 'next';
 
-import { Reveal } from '@/ui/reveal';
-
 import { BookCallCta } from '@/components/book-call-cta';
 import AudioExtractorLoader from '@/components/extract-audio/audio-extractor-loader';
 import { FaqAccordion } from '@/components/extract-audio/faq-accordion';
 
 import { SITE_URL } from '@/lib/constant';
 import { extractAudioFaqs } from '@/lib/extract-audio-faqs';
+import { tools } from '@/lib/tools';
+
+import { Reveal } from '@/custom/reveal';
 
 export const metadata: Metadata = {
   title: 'Free Video to MP3 Audio Extractor',
@@ -32,6 +33,10 @@ export const metadata: Metadata = {
 };
 
 export default function ExtractAudioPage() {
+  const subtitlesTool = tools.find(
+    (tool) => tool.slug === 'video-to-subtitles'
+  );
+
   const webApplicationSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
@@ -68,7 +73,7 @@ export default function ExtractAudioPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      {/* Cohesive full-viewport backdrop — sits behind the transparent global
+      {/* Cohesive full-viewport backdrop: sits behind the transparent global
           header too, so header and body share one seamless background. */}
       <div className="bg-background pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="bg-sky/20 absolute -top-1/4 -left-1/4 h-[600px] w-[600px] rounded-sm blur-[120px]" />
@@ -121,6 +126,39 @@ export default function ExtractAudioPage() {
 
         <AudioExtractorLoader />
 
+        {/* How it works + supported formats */}
+        <Reveal className="mx-auto mt-20 w-full max-w-2xl">
+          <h2 className="text-footer-background text-center text-2xl font-bold tracking-tight md:text-4xl">
+            How it{' '}
+            <em className="font-family-instrument text-sky-text font-normal italic">
+              works
+            </em>
+          </h2>
+          <ol className="font-family-inter text-ink/80 mt-8 flex flex-col gap-4 text-base leading-relaxed md:text-lg">
+            <li>
+              <span className="text-sky-text font-bold">1.</span> Drop in your
+              video: MP4, MOV, MKV, AVI, WEBM or M4V, up to 1 GB.
+            </li>
+            <li>
+              <span className="text-sky-text font-bold">2.</span> Your browser
+              extracts the audio track using WebAssembly. Nothing leaves your
+              device.
+            </li>
+            <li>
+              <span className="text-sky-text font-bold">3.</span> Download the
+              MP3, ready to use.
+            </li>
+          </ol>
+          <p className="font-family-inter text-ink/80 mt-8 text-sm leading-relaxed md:text-base">
+            <span className="text-footer-background font-semibold">
+              Supported formats:
+            </span>{' '}
+            works with MP4, MOV, MKV, AVI, WEBM and M4V video files up to 1 GB,
+            and always outputs a high-quality variable-bitrate MP3 (around 190
+            kbps).
+          </p>
+        </Reveal>
+
         {/* FAQ */}
         <Reveal className="mx-auto mt-20 w-full max-w-3xl">
           <h2 className="text-footer-background text-center text-2xl font-bold tracking-tight md:text-4xl">
@@ -131,6 +169,21 @@ export default function ExtractAudioPage() {
           </h2>
           <FaqAccordion faqs={extractAudioFaqs} />
         </Reveal>
+
+        {subtitlesTool && (
+          <Reveal className="mt-10">
+            <p className="font-family-inter text-ink/75 text-center text-base md:text-lg">
+              Need the words from this video, not just the audio?{' '}
+              <TransitionLink
+                href={subtitlesTool.href}
+                className="text-link font-semibold"
+              >
+                Try {subtitlesTool.name}
+              </TransitionLink>
+              .
+            </p>
+          </Reveal>
+        )}
 
         <Reveal className="w-full">
           <BookCallCta location="extract_audio" />

@@ -15,8 +15,8 @@ import { useReducedMotion } from '@/lib/hooks';
  * wrong once before landing here.
  *
  * Fading a *container* multiplies its opacity into every colour inside it, and this
- * site's muted text is already an alpha of `--ink`. So `text-ink/75` — which clears
- * 4.5:1 on its own — sits at an effective 0.56 inside a 0.75 container and fails.
+ * site's muted text is already an alpha of `--ink`. So `text-ink/75` (which clears
+ * 4.5:1 on its own) sits at an effective 0.56 inside a 0.75 container and fails.
  * My first attempt raised the fade's floor to the measured 0.75 minimum and the
  * failing-node count went *up*, from 50 to 72, because the two alphas compound. There
  * is no floor that fixes it: any container opacity below 1 drags every muted colour
@@ -26,7 +26,7 @@ import { useReducedMotion } from '@/lib/hooks';
  * and it does not gate largest-contentful-paint the way an opacity animation does. The
  * entrance still reads as an entrance.
  *
- * To restore the fade, add `opacity` back to both states — and accept that muted text
+ * To restore the fade, add `opacity` back to both states, and accept that muted text
  * is unreadable while it runs.
  */
 export function Reveal({

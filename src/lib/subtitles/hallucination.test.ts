@@ -41,7 +41,7 @@ describe('dropHallucinations', () => {
       { text: 'Speak soon.', start: 12.3, end: 13 },
     ];
 
-    // Quiet, but it has neighbours — this is a real exchange.
+    // Quiet, but it has neighbours: this is a real exchange.
     expect(dropHallucinations(segments, flat(0)).map((s) => s.text)).toEqual(
       segments.map((s) => s.text)
     );
@@ -69,7 +69,9 @@ describe('dropHallucinations', () => {
   });
 
   it('treats the file edges as isolated', () => {
-    const only: AsrSegment[] = [{ text: 'Thanks for watching', start: 0, end: 3 }];
+    const only: AsrSegment[] = [
+      { text: 'Thanks for watching', start: 0, end: 3 },
+    ];
 
     expect(dropHallucinations(only, flat(0))).toEqual([]);
   });
@@ -90,8 +92,12 @@ describe('dropHallucinations', () => {
       { text: 'next', start: 1 + gap, end: 2 + gap },
     ];
 
-    expect(dropHallucinations(at(ISOLATION_GAP - 0.1), flat(0))).toHaveLength(2);
-    expect(dropHallucinations(at(ISOLATION_GAP + 0.1), flat(0))).toHaveLength(1);
+    expect(dropHallucinations(at(ISOLATION_GAP - 0.1), flat(0))).toHaveLength(
+      2
+    );
+    expect(dropHallucinations(at(ISOLATION_GAP + 0.1), flat(0))).toHaveLength(
+      1
+    );
   });
 
   it('returns the input unchanged when nothing is dropped', () => {

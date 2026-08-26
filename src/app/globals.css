@@ -9,13 +9,13 @@
   /*
    * The accent, dark enough to read as text.
    *
-   * `--sky-deep` is 1.94:1 against the page background — Lighthouse flagged it on
+   * `--sky-deep` is 1.94:1 against the page background: Lighthouse flagged it on
    * links and italic emphasis, and it is genuinely hard to read, not a technicality.
    * It stays exactly as it is for borders, fills and icons, where contrast minimums do
    * not apply and the lighter tone is the brand. This is the value for anything that
    * is *text*. Measured against every surface it actually lands on, because the first
    * value I picked cleared the page background at 4.61:1 and still failed on the
-   * slightly darker #d4d4d4 panel (4.39) and on the sky/15 chip (4.33) — "passes on the
+   * slightly darker #d4d4d4 panel (4.39) and on the sky/15 chip (4.33): "passes on the
    * background I thought of" is not the same as passing:
    *   page #d9d9d9 5.27 · card #f0f0f0 6.53 · panel #d4d4d4 5.02 · sky/15 chip 4.95
    */
@@ -100,7 +100,7 @@
    * Every step of the scale is deliberately the same value rather than a
    * progression. Tailwind ships eight radius tokens and only four were overridden
    * here, so `rounded-sm` and `rounded-sm` were still resolving to the framework
-   * defaults — which is how a codebase ends up with 1rem and 1.5rem corners nobody
+   * defaults, which is how a codebase ends up with 1rem and 1.5rem corners nobody
    * chose. Pinning all eight means any `rounded-*` a component reaches for gives
    * the same corner, and a future change to the design language is one value here.
    */
@@ -135,7 +135,7 @@ body {
   display: none;
 }
 
-/* Premium scrollbar — the track blends into the page background so it reads as
+/* Premium scrollbar: the track blends into the page background so it reads as
    part of the surface, and the thumb is a slim, soft pill of the dark brand
    colour that darkens on hover. A track-coloured border insets the thumb so it
    stays thin without a hard edge. Firefox gets the `scrollbar-*` equivalents. */
@@ -183,40 +183,6 @@ body {
   );
 }
 
-.dark {
-  --background: oklch(0.13 0.028 261.692);
-  --foreground: oklch(0.985 0.002 247.839);
-  --card: oklch(0.21 0.034 264.665);
-  --card-foreground: oklch(0.985 0.002 247.839);
-  --popover: oklch(0.21 0.034 264.665);
-  --popover-foreground: oklch(0.985 0.002 247.839);
-  --primary: oklch(0.928 0.006 264.531);
-  --primary-foreground: oklch(0.21 0.034 264.665);
-  --secondary: oklch(0.278 0.033 256.848);
-  --secondary-foreground: oklch(0.985 0.002 247.839);
-  --muted: oklch(0.278 0.033 256.848);
-  --muted-foreground: oklch(0.707 0.022 261.325);
-  --accent: oklch(0.278 0.033 256.848);
-  --accent-foreground: oklch(0.985 0.002 247.839);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.21 0.034 264.665);
-  --sidebar-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-accent: oklch(0.278 0.033 256.848);
-  --sidebar-accent-foreground: oklch(0.985 0.002 247.839);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -231,7 +197,7 @@ body {
    * Tailwind v4 changed the preflight so `button` gets `cursor: default` rather
    * than the browser's `cursor: pointer`, which is why interactive elements across
    * this codebase stopped feeling clickable. Fixed once here rather than by adding
-   * `cursor-pointer` to a hundred-odd call sites — a utility class on every button
+   * `cursor-pointer` to a hundred-odd call sites: a utility class on every button
    * is a rule the next component will forget, whereas this cannot be forgotten.
    *
    * Disabled controls get `not-allowed` instead, because a pointer cursor on a
@@ -265,6 +231,14 @@ body {
    they read as clickable at rest (hover only strengthens the underline). */
 @utility text-link {
   @apply font-family-instrument text-sky-text decoration-sky-text/40 hover:decoration-sky-text italic underline underline-offset-4 transition-colors;
+}
+
+/* Shared keyboard-focus ring for hand-written interactive elements that don't
+   already carry their own focus-visible treatment, so a new component doesn't
+   have to reinvent one. Existing bespoke rings (transcript editor, dropzones)
+   are intentional and left as-is. */
+@utility focus-ring {
+  @apply focus-visible:ring-ring/50 rounded-sm outline-none focus-visible:ring-2;
 }
 
 /* Marquee animations */
@@ -342,7 +316,7 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* Film grain — one fixed full-viewport layer so the texture is seamless
+/* Film grain: one fixed full-viewport layer so the texture is seamless
    across header, hero, and content. High baseFrequency keeps the specks fine
    so it reads as film, not static. Sits above page content (z-30) but below
    the header (z-50), menu overlay, and dialogs, and ignores the pointer. */
@@ -389,7 +363,7 @@ body {
   }
 }
 
-/* Scroll-driven parallax for featured work images — compositor thread only,
+/* Scroll-driven parallax for featured work images: compositor thread only,
    absent (harmlessly) where animation-timeline is unsupported. */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {

@@ -31,7 +31,7 @@ import { type FromWorker, isToWorker, type ToWorker } from './protocol';
  *
  * Every timestamp the user finally sees comes from here. Whisper supplies the
  * words; this decides where they are. One non-autoregressive forward pass per
- * window, then a trellis and a backtrack — which is why re-timing after an edit is
+ * window, then a trellis and a backtrack: which is why re-timing after an edit is
  * cheap rather than a re-transcription.
  *
  * The interesting work is in `align-ctc.ts` and `ctc-vocab.ts`, both pure and both
@@ -44,7 +44,7 @@ import { type FromWorker, isToWorker, type ToWorker } from './protocol';
  *
  * The model's `conv_stride` is [5,2,2,2,2,2,2], which multiplies to 320 samples;
  * at 16 kHz that is exactly 20 ms. Derived rather than guessed, and asserted
- * against the model's real output length below — if a different checkpoint strides
+ * against the model's real output length below: if a different checkpoint strides
  * differently, that assertion is what will say so.
  */
 const FRAME_SECONDS = 320 / 16_000;
@@ -87,7 +87,7 @@ function fail(jobId: string, code: ErrorCode, err: unknown): void {
  * first attempt and it failed at runtime, because that shape is an internal detail
  * of a library at a prerelease pin. `vocab.json` is 358 bytes, is part of the
  * model's public contract, and is fetched at the same pinned revision as the
- * weights — so it cannot drift from them, and no library refactor can break it.
+ * weights: so it cannot drift from them, and no library refactor can break it.
  *
  * The label set is not optional detail: it decides which characters this
  * checkpoint can represent at all, and getting it wrong would index every token
@@ -203,8 +203,7 @@ async function align(
   const samples = new Float32Array(message.pcm);
   const tokenized = tokenizeForCtc(message.tokens, vocabulary);
 
-  // Nothing representable in this window — a stretch of pure digits, say. Report
-  // no words rather than an empty alignment the caller might mistake for success.
+  // Nothing representable in this window (e.g. pure digits): report no words explicitly.
   if (tokenized.tokens.length === 0) {
     post({
       t: 'align:done',
@@ -226,8 +225,7 @@ async function align(
     );
 
     if (emissions.vocabSize !== Object.keys(vocabulary.ids).length) {
-      // A mismatch here means the vocabulary and the model disagree, and every
-      // token id would index the wrong column. Better to fail loudly.
+      // vocabulary/model mismatch would index every token id into the wrong column: fail loudly
       throw new Error(
         `Model emits ${emissions.vocabSize} classes but the vocabulary has ${Object.keys(vocabulary.ids).length}`
       );
@@ -245,9 +243,7 @@ async function align(
       const { start, end } = spanToSeconds(span, FRAME_SECONDS, message.offset);
 
       return {
-        // The caller matches results back to its own words by this index, so a
-        // window that dropped some words still lands the rest correctly.
-        text: message.tokens[word.wordIndex] ?? '',
+        text: message.tokens[word.wordIndex] ?? '', // matched back to the caller's words by this index
         start,
         end,
         conf: span.score,

@@ -72,13 +72,11 @@ describe('scoreBoundaries', () => {
     expect(score.recall).toBe(0);
   });
 
-  // The reason scoreWords exists. Documented as a known limitation rather than
-  // fixed, because the time-only metric is still the right tool for detecting
-  // invented boundaries — it is just the wrong tool for the gate.
+  // The reason scoreWords exists: this metric is right for detecting invented
+  // boundaries but wrong for the gate.
   it('has a known blind spot: a uniform drift through dense speech', () => {
-    // Every word attributed to the wrong span — an unambiguous failure — yet
-    // boundaries 0.22-0.42s apart mean each drifted one lands within the collar
-    // of its neighbour.
+    // Every word is attributed to the wrong span, yet each drifted boundary still
+    // lands within the collar of its neighbour.
     const score = scoreBoundaries(
       boundaries(reference),
       boundaries(shift(reference, 0.35)),

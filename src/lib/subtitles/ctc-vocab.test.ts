@@ -100,7 +100,7 @@ describe('tokenizeForCtc', () => {
   });
 
   it('keeps the letters of a mixed word and still aligns it', () => {
-    // "3rd" keeps "RD" — imperfect, but the word is genuinely present in the
+    // "3rd" keeps "RD": imperfect, but the word is genuinely present in the
     // acoustics and partial letters place it far better than a fallback would.
     const result = tokenizeForCtc(['3rd'], vocab);
 

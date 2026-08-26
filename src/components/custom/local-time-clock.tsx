@@ -14,8 +14,7 @@ function getCurrentTime() {
 }
 
 export function LocalTimeClock() {
-  // Starts null so the first client render matches the server-rendered
-  // placeholder exactly; the real time fills in right after mount.
+  // Starts null so the first client render matches the server-rendered placeholder; the real time fills in right after mount.
   const [time, setTime] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,18 +31,17 @@ export function LocalTimeClock() {
           Local Time
         </span>
         <span className="text-xl leading-[100%] font-medium -tracking-[2%] text-current">
-          --:-- GMT+1
+          --:-- GMT+1, Nigeria
         </span>
       </span>
     );
   }
 
-  // Split "2:32 PM" into hours, minutes, period
   const colonIndex = time.indexOf(':');
   const hours = time.slice(0, colonIndex);
-  const rest = time.slice(colonIndex + 1); // "32 PM"
+  const rest = time.slice(colonIndex + 1);
   const minutes = rest.slice(0, 2);
-  const period = rest.slice(2).trim(); // "PM"
+  const period = rest.slice(2).trim();
 
   return (
     <m.span
@@ -75,7 +73,9 @@ export function LocalTimeClock() {
           </m.span>
         </AnimatePresence>
         <span className="ml-1">{period}</span>
-        <span className="ml-1.5 text-sm text-current opacity-80">GMT+1</span>
+        <span className="ml-1.5 text-sm text-current opacity-80">
+          GMT+1, Nigeria
+        </span>
       </span>
     </m.span>
   );

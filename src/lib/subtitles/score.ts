@@ -4,7 +4,7 @@ import { lcsIndexPairs } from './lcs';
  * The M2 acceptance gate: how accurate are the aligner's word boundaries?
  *
  * Pure, so it runs in Node against committed JSON with no browser, no model and
- * no audio. That is the point — the gate has to be re-runnable per dtype
+ * no audio. That is the point, the gate has to be re-runnable per dtype
  * (fp16 / q4f16 / int8) and per code change, cheaply, or it will not get run.
  *
  * **Why precision *and* recall, at a collar.** A single "average error in
@@ -13,9 +13,9 @@ import { lcsIndexPairs } from './lcs';
  * a boundary counts as correct only if it lands within `collar` seconds of a
  * true one, and then:
  *
- * - **recall** — what fraction of true boundaries did we find? Low recall means
+ * - **recall**, what fraction of true boundaries did we find? Low recall means
  *   real word edges are missing or badly placed.
- * - **precision** — what fraction of our boundaries are real? Low precision
+ * - **precision**, what fraction of our boundaries are real? Low precision
  *   means we are inventing edges.
  *
  * Reporting only one is how a bad aligner passes: emit a boundary every 50 ms and
@@ -81,7 +81,7 @@ export interface BoundaryScore {
  * Every boundary a word list defines: each word contributes a start and an end.
  *
  * Adjacent words in continuous speech share an instant, and the duplicate is
- * kept deliberately rather than deduplicated — a boundary that is both the end of
+ * kept deliberately rather than deduplicated, a boundary that is both the end of
  * one word and the start of the next is genuinely two things the aligner had to
  * get right, and collapsing them would quietly halve the weight of fluent speech
  * relative to isolated words.
@@ -97,7 +97,7 @@ export function boundaries(words: TimedWord[]): number[] {
  * boundary can claim at most one reference boundary and vice versa. Without that
  * constraint a single hypothesis boundary sitting between two nearby reference
  * boundaries would satisfy both, and a cluster of hypothesis boundaries could all
- * claim the same reference one — either way the score would flatter the aligner.
+ * claim the same reference one, either way the score would flatter the aligner.
  *
  * Greedy is optimal here because both sequences are sorted and the collar is a
  * fixed window: taking the earliest available match never blocks a better one.
@@ -165,17 +165,15 @@ function normalize(text: string): string {
  * subsequence.
  *
  * A forced aligner is *given* the transcript, so the two sequences normally match
- * token for token. LCS is here for the cases where they do not — a dropped token,
- * a differently split contraction — so a single mismatch shifts one pair rather
+ * token for token. LCS is here for the cases where they do not, a dropped token,
+ * a differently split contraction, so a single mismatch shifts one pair rather
  * than destroying the alignment of everything after it.
  */
 export function pairWordsByText(
   reference: TimedWord[],
   hypothesis: TimedWord[]
 ): Array<[TimedWord, TimedWord]> {
-  // The LCS itself lives in `lcs.ts` because the editor needs the same pairing to
-  // decide what an edit inserted and deleted. Same algorithm, same normalisation,
-  // no behaviour change here.
+  // LCS lives in `lcs.ts`, the editor needs the same pairing for insert/delete.
   return lcsIndexPairs(
     reference.map((w) => normalize(w.text)),
     hypothesis.map((w) => normalize(w.text))
@@ -196,8 +194,8 @@ export interface WordScore extends BoundaryScore {
  *
  * **This exists because the purely time-based metric has a blind spot that would
  * have let a badly broken aligner through.** Scoring `scoreBoundaries` on a
- * reference shifted by a uniform 350 ms — every word attributed to the wrong span,
- * an unambiguous failure — returns 0.75 recall, because in continuous speech
+ * reference shifted by a uniform 350 ms, every word attributed to the wrong span,
+ * an unambiguous failure, returns 0.75 recall, because in continuous speech
  * boundaries sit 0.2–0.4 s apart and each drifted boundary lands within the collar
  * of its *neighbour*. Nearest-in-time matching cannot tell "aligned" from "off by
  * one word".
@@ -285,9 +283,9 @@ export function isHardWord(word: TimedWord): boolean {
   const text = word.text;
 
   return (
-    // Any digit — "2026", "14:30", "3rd".
+    // Any digit, "2026", "14:30", "3rd".
     /\d/.test(text) ||
-    // Two or more capitals in a row — "API", "SDK", "NASA".
+    // Two or more capitals in a row, "API", "SDK", "NASA".
     /\p{Lu}{2,}/u.test(text) ||
     // A symbol that is read aloud as a word: currency, percent, ampersand.
     /[$£€%&@#+=]/.test(text)
@@ -324,10 +322,10 @@ export function formatReport(rows: ScoreReportRow[], threshold = 0.9): string {
     const o = row.overall;
     const size = row.approxBytes
       ? `${(row.approxBytes / 1_000_000).toFixed(1)} MB`
-      : '—';
+      : 'N/A';
     const hard = row.hard
       ? `${row.hard.precision.toFixed(3)} / ${row.hard.recall.toFixed(3)}`
-      : '—';
+      : 'N/A';
 
     return `| ${row.label} | ${size} | ${o.precision.toFixed(3)} | ${o.recall.toFixed(3)} | ${o.f1.toFixed(3)} | ${(o.meanAbsoluteError * 1000).toFixed(0)} ms | ${(o.maxAbsoluteError * 1000).toFixed(0)} ms | ${hard} | ${passesGate(o, threshold) ? 'PASS' : 'fail'} |`;
   });
@@ -340,7 +338,7 @@ export function formatReport(rows: ScoreReportRow[], threshold = 0.9): string {
  *
  * Deliberately not the most accurate. Once a tier is accurate enough to caption
  * with, further accuracy is worth less than the megabytes it costs on a page
- * whose job is to earn a call — so extra precision beyond the threshold buys
+ * whose job is to earn a call, so extra precision beyond the threshold buys
  * nothing and download weight is the top risk.
  */
 export function chooseTier(

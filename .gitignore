@@ -49,6 +49,10 @@ scripts/
 # playwright mcp
 .playwright-mcp/
 
+# playwright test runner
+/playwright-report/
+/test-results/
+
 # Prose docs and fixtures. Ignored on purpose: `docs/fixtures/` holds a private
 # client recording, and publishing a business conversation into a public
 # portfolio repo to gain a test fixture is not a defensible trade. The tests

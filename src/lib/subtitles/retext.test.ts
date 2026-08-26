@@ -3,7 +3,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { resetRetextIds, retextCue } from './retext';
 import type { Cue, Word } from './types';
 
-function word(text: string, start: number, end: number, extra: Partial<Word> = {}): Word {
+function word(
+  text: string,
+  start: number,
+  end: number,
+  extra: Partial<Word> = {}
+): Word {
   return {
     id: `w-${text}-${start}`,
     text,
@@ -38,7 +43,7 @@ function fixture(): { words: Word[]; cues: Cue[] } {
 
 beforeEach(resetRetextIds);
 
-describe('retextCue — the timing invariant', () => {
+describe('retextCue: the timing invariant', () => {
   it('leaves start and end byte-identical when only text changes', () => {
     const { words, cues } = fixture();
 
@@ -61,7 +66,7 @@ describe('retextCue — the timing invariant', () => {
 
     const out = retextCue(words, cues, 0, 'The, arrc. number!');
 
-    // Same count, same timings, and every word still carries its own id — so
+    // Same count, same timings, and every word still carries its own id: so
     // nothing was spliced and no confidence was discarded.
     expect(out.words).toHaveLength(6);
     expect(out.words[1]!.id).toBe(words[1]!.id);
@@ -89,7 +94,7 @@ describe('retextCue — the timing invariant', () => {
   });
 });
 
-describe('retextCue — word count changes and reindexing', () => {
+describe('retextCue: word count changes and reindexing', () => {
   it('reindexes every following cue when one word becomes two', () => {
     const { words, cues } = fixture();
 
@@ -168,14 +173,14 @@ describe('retextCue — word count changes and reindexing', () => {
 
     for (const w of inserted) {
       // conf 0 means unmeasured, which qc.ts already distinguishes from badly
-      // aligned — these must not read as alignment failures.
+      // aligned: these must not read as alignment failures.
       expect(w.conf).toBe(0);
       expect(w.edited).toBe(true);
     }
   });
 });
 
-describe('retextCue — guards', () => {
+describe('retextCue: guards', () => {
   it('refuses to empty a cue', () => {
     const { words, cues } = fixture();
 
@@ -215,11 +220,14 @@ describe('retextCue — guards', () => {
   });
 });
 
-describe('retextCue — round trips', () => {
+describe('retextCue: round trips', () => {
   it('returns to the original text through a sequence of edits', () => {
     const { words, cues } = fixture();
     const render = (w: Word[], c: Cue) =>
-      w.slice(c.wordStart, c.wordEnd + 1).map((x) => x.text).join(' ');
+      w
+        .slice(c.wordStart, c.wordEnd + 1)
+        .map((x) => x.text)
+        .join(' ');
 
     let state = retextCue(words, cues, 0, 'the ARC Limited number');
     state = retextCue(state.words, state.cues, 0, 'the arrc number');
@@ -248,8 +256,8 @@ describe('retextCue — round trips', () => {
       expected = cue.wordEnd + 1;
     }
     expect(expected).toBe(state.words.length);
-    expect(
-      state.words.map((w) => w.text).join(' ')
-    ).toBe('ARC is quite wrong here and there');
+    expect(state.words.map((w) => w.text).join(' ')).toBe(
+      'ARC is quite wrong here and there'
+    );
   });
 });

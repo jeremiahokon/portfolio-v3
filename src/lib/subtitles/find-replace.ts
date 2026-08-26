@@ -7,13 +7,13 @@ import type { Cue, Word } from './types';
  * **The highest-leverage feature in the editor, and it was absent from the
  * original M3 scope.** Measured on the 39-minute Zoom call: 241 wrong tokens over
  * roughly 79 distinct terms, dominated by proper nouns and industry vocabulary the
- * model cannot know — Amadeus, ARC, IATA, a company name, a person's name. The
+ * model cannot know, Amadeus, ARC, IATA, a company name, a person's name. The
  * same wrong name recurring eleven times is *one* action here and eleven
  * corrections without it.
  *
  * It also turned out to be the *only* mechanism available. Whisper supports prompt
  * conditioning, which would fix these terms before they are ever wrong, but
- * transformers.js 4.2.0 declares `prompt_ids` and implements nothing — so there is
+ * transformers.js 4.2.0 declares `prompt_ids` and implements nothing, so there is
  * no way to tell the model the vocabulary up front (open question 9). Correcting
  * after the fact is the whole game.
  *
@@ -22,7 +22,7 @@ import type { Cue, Word } from './types';
  * within a single cue, grouped by cue, and applied **cue-descending** so every
  * index is still valid when its turn comes. That ordering removes the index-drift
  * class of bug outright rather than compensating for it, and it means find and
- * replace inherits every guarantee `retext.test.ts` already proves — surviving
+ * replace inherits every guarantee `retext.test.ts` already proves, surviving
  * words keep byte-identical timing, following cues reindex correctly.
  */
 
@@ -68,8 +68,8 @@ function wordMatches(
  * Every occurrence of `query`, which may be several words.
  *
  * **Matches never cross a cue boundary.** A phrase spanning two cues has no
- * obvious owner for its replacement — the words would have to be split between
- * them by some rule nobody asked for — so those are left alone rather than handled
+ * obvious owner for its replacement, the words would have to be split between
+ * them by some rule nobody asked for, so those are left alone rather than handled
  * badly. In practice cue boundaries land in pauses, so a phrase rarely straddles
  * one anyway.
  */
@@ -108,7 +108,7 @@ export function findMatches(
 /**
  * Substitutes `replacement` into one word range, keeping the punctuation.
  *
- * Replacing "arrc," with "ARC" should give "ARC," — dropping the comma would make
+ * Replacing "arrc," with "ARC" should give "ARC,": dropping the comma would make
  * every correction cost a second edit to put the punctuation back, which would make
  * the feature annoying enough to stop using.
  */
@@ -121,10 +121,12 @@ function substitute(
   const first = words[from]?.text ?? '';
   const last = words[to]?.text ?? '';
 
-  // A token with no letters or digits at all — a stray "..." — is all punctuation,
+  // A token with no letters or digits at all (a stray "...") is all punctuation,
   // and taking both its lead and its trail would duplicate the whole thing.
-  const lead = core(first) === '' ? '' : (/^[^\p{L}\p{N}]*/u.exec(first)?.[0] ?? '');
-  const trail = core(last) === '' ? '' : (/[^\p{L}\p{N}]*$/u.exec(last)?.[0] ?? '');
+  const lead =
+    core(first) === '' ? '' : (/^[^\p{L}\p{N}]*/u.exec(first)?.[0] ?? '');
+  const trail =
+    core(last) === '' ? '' : (/[^\p{L}\p{N}]*$/u.exec(last)?.[0] ?? '');
 
   return `${lead}${replacement}${trail}`;
 }
@@ -140,7 +142,7 @@ export interface ReplaceResult {
  * Replaces every match.
  *
  * Cues are rewritten whole rather than word by word, because `retextCue` takes
- * text and works out the diff itself — which is also what makes the unchanged
+ * text and works out the diff itself, which is also what makes the unchanged
  * words in an edited cue keep their measured timings.
  */
 export function replaceAll(

@@ -6,8 +6,8 @@ import type { AsrSegment } from './types';
  * Drops Whisper's stock hallucinations on non-speech audio.
  *
  * The 39-minute Zoom call opens with a cue reading `"you"` over the first two
- * seconds, followed by 333 seconds of nothing. There is no speech there — it is the
- * waiting-room join chime — and Whisper produced a word from it.
+ * seconds, followed by 333 seconds of nothing. There is no speech there, it is the
+ * waiting-room join chime, and Whisper produced a word from it.
  *
  * **`dropSilentRegions` cannot catch this, and was right not to.** That gate drops
  * *silence*, and a join chime is *noise*: its RMS clears `SILENCE_RMS` comfortably.
@@ -15,7 +15,7 @@ import type { AsrSegment } from './types';
  * spoken words, which is a far worse trade than leaving one bogus cue in.
  *
  * So this is a narrower instrument. Whisper's hallucinations on non-speech are not
- * arbitrary — the model was trained on captioned video and falls back on the phrases
+ * arbitrary, the model was trained on captioned video and falls back on the phrases
  * that pad the end of one. That makes them recognisable, but recognisable text alone
  * is nowhere near enough to delete on: people really do say "thank you" and "bye".
  *
@@ -23,15 +23,15 @@ import type { AsrSegment } from './types';
  * wrong about it:
  *
  * 1. **The text is a known stock phrase.** Necessary, and on its own worthless.
- * 2. **The segment is isolated** — seconds of nothing on both sides. Speech in a
+ * 2. **The segment is isolated**, seconds of nothing on both sides. Speech in a
  *    conversation has neighbours; a hallucination invented from room tone does not.
- * 3. **The audio is nearly silent** — quiet enough that no one could have been
+ * 3. **The audio is nearly silent**, quiet enough that no one could have been
  *    speaking, but above the point where `dropSilentRegions` would already have
  *    removed the region.
  *
  * A real, quietly-spoken, completely isolated "thank you" would still be dropped.
  * That is the one false positive this design accepts, it needs all three conditions
- * to line up, and the alternative — presenting invented words as transcript — is
+ * to line up, and the alternative, presenting invented words as transcript, is
  * worse. The editor also shows the result before anything is exported.
  */
 
@@ -40,7 +40,7 @@ import type { AsrSegment } from './types';
  *
  * Deliberately short and literal rather than a clever pattern. Every entry here is
  * a phrase a human might genuinely say, so the list is doing none of the work on its
- * own — conditions 2 and 3 are. A longer list would widen the blast radius without
+ * own, conditions 2 and 3 are. A longer list would widen the blast radius without
  * making the detection more certain.
  */
 const STOCK_PHRASES = new Set([
@@ -71,8 +71,8 @@ export const ISOLATION_GAP = 2;
 /**
  * RMS below which no one was speaking.
  *
- * Five times `SILENCE_RMS`, so this fires on the band between "provably silent" —
- * already handled upstream — and "quiet". A measured clear utterance on this
+ * Five times `SILENCE_RMS`, so this fires on the band between "provably silent",
+ * already handled upstream, and "quiet". A measured clear utterance on this
  * material sat at RMS 0.146, more than an order of magnitude above, so ordinary
  * speech is nowhere near this line.
  */
@@ -104,8 +104,10 @@ export function dropHallucinations(
     const previous = segments[index - 1];
     const next = segments[index + 1];
     // A segment at either end of the file has nothing on that side, which counts
-    // as isolated — the leading-silence case is exactly the one being fixed.
-    const before = previous ? segment.start - previous.end : Number.POSITIVE_INFINITY;
+    // as isolated, the leading-silence case is exactly the one being fixed.
+    const before = previous
+      ? segment.start - previous.end
+      : Number.POSITIVE_INFINITY;
     const after = next ? next.start - segment.end : Number.POSITIVE_INFINITY;
     if (before < gap || after < gap) return true;
 

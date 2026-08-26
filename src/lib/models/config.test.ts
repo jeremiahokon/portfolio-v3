@@ -12,7 +12,7 @@ describe('ASR manifest', () => {
 
   it('keeps q4 for the decoder on both backends', () => {
     // The int8 decoder is 66 MB smaller and was the obvious Safari fix, but ORT
-    // 1.26-dev cannot create a session from it at all — see the table in
+    // 1.26-dev cannot create a session from it at all: see the table in
     // config.ts. Anything that flips this needs a measurement, not a guess.
     expect(ASR.dtype.decoder_model_merged).toBe('q4');
   });
@@ -24,7 +24,7 @@ describe('ASR manifest', () => {
 
 describe('weight file counts', () => {
   it('records what a complete download leaves cached', () => {
-    // Silero is genuinely one file — no config.json, no tokenizer — which is
+    // Silero is genuinely one file, no config.json, no tokenizer, which is
     // the whole reason the cache manager cannot use a shared constant.
     expect(VAD.weightFiles).toBe(1);
     // Whisper caches an encoder and a merged decoder.

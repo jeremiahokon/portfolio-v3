@@ -1,25 +1,39 @@
 {
-  "generatedAt": "2026-08-15T12:11:58.353Z",
+  "generatedAt": "2026-08-26T11:47:34.762Z",
   "videos": [
+    {
+      "id": "-lhVZ_s-LAU",
+      "title": "What does your Monday Morning look like?",
+      "viewCount": 4,
+      "thumbnailUrl": "https://i.ytimg.com/vi/-lhVZ_s-LAU/maxresdefault.jpg",
+      "publishedAt": "2026-08-26T08:05:49Z"
+    },
+    {
+      "id": "JHQB2OrDV2A",
+      "title": "Product Demo ( Admin Journey) - Dokita Telemedicine Platform",
+      "viewCount": 0,
+      "thumbnailUrl": "https://i.ytimg.com/vi/JHQB2OrDV2A/maxresdefault.jpg",
+      "publishedAt": "2026-08-26T07:11:32Z"
+    },
     {
       "id": "l7N5K_BUiMc",
       "title": "Product Demo (Patient Journey) - Dokita Telemedicine Platform",
-      "viewCount": 12,
+      "viewCount": 13,
       "thumbnailUrl": "https://i.ytimg.com/vi/l7N5K_BUiMc/maxresdefault.jpg",
       "publishedAt": "2026-08-11T12:01:06Z"
     },
     {
       "id": "-0kmwpvGJVc",
-      "title": "Dokita Product Demo",
-      "viewCount": 8,
+      "title": "Dokita Telemedicine Platform",
+      "viewCount": 11,
       "thumbnailUrl": "https://i.ytimg.com/vi/-0kmwpvGJVc/maxresdefault.jpg",
       "publishedAt": "2026-07-24T16:27:47Z",
-      "description": "Telemedicine Platfrom Walkthrough - https://dokita-website.vercel.app/"
+      "description": "Telemedicine Platform Walkthrough - https://dokita-website.vercel.app/"
     },
     {
       "id": "cPlMLAKCJeg",
       "title": "Extract audio from any video for free, no signup, no watermark, and no upload.",
-      "viewCount": 16,
+      "viewCount": 19,
       "thumbnailUrl": "https://i.ytimg.com/vi/cPlMLAKCJeg/maxresdefault.jpg",
       "publishedAt": "2026-07-23T11:30:15Z",
       "description": "No sign-up, no paywall, no watermark. And because it runs right in your browser, you're not wasting data uploading and downloading your video to some random server — it all happens on your device. Drop in a clip, get your MP3, done. 🎧\n\nWhat's a tool you use that's stuck behind a paywall for no reason? Tell me below — I might build the next one."
@@ -30,13 +44,6 @@
       "viewCount": 29,
       "thumbnailUrl": "https://i.ytimg.com/vi/Hn4ZPBhCKpk/maxresdefault.jpg",
       "publishedAt": "2026-07-14T07:15:49Z"
-    },
-    {
-      "id": "AOH6HErQQK4",
-      "title": "Don't Underestimate your Competition!",
-      "viewCount": 2,
-      "thumbnailUrl": "https://i.ytimg.com/vi/AOH6HErQQK4/maxresdefault.jpg",
-      "publishedAt": "2026-06-26T15:01:30Z"
     },
     {
       "id": "he-uobSPSzY",

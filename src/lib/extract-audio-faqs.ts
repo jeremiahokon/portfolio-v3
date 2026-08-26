@@ -1,5 +1,5 @@
 // The visible FAQ accordion and the FAQPage JSON-LD on /extract-audio must
-// stay in sync — search engines penalize structured data that doesn't match
+// stay in sync: search engines penalize structured data that doesn't match
 // on-page content. Both read from this single array.
 export interface Faq {
   question: string;
@@ -10,7 +10,7 @@ export const extractAudioFaqs: Faq[] = [
   {
     question: 'Is this video to MP3 extractor really free?',
     answer:
-      'Yes — completely free. No sign up, no watermark, and no usage limits.',
+      'Yes, completely free. No sign up, no watermark, and no usage limits.',
   },
   {
     question: 'Are my videos uploaded to a server?',

@@ -50,7 +50,7 @@ export function FaqAccordion({ faqs }: { faqs: Faq[] }) {
                 </m.span>
               </button>
             </h3>
-            {/* Height-collapse only — the answers must stay in the
+            {/* Height-collapse only: the answers must stay in the
                 server-rendered DOM so on-page content keeps matching the
                 FAQPage JSON-LD. */}
             <m.div

@@ -17,7 +17,7 @@ import type { Cue, Word } from './types';
  * The user types into the cue; this function works out what they actually changed.
  *
  * **The invariant that survives it.** Words the edit did not change keep their
- * `start` and `end` *byte-identical* — the M3 acceptance criterion — because they
+ * `start` and `end` *byte-identical*, the M3 acceptance criterion, because they
  * are the same objects, not recomputed ones. And since the pairing key ignores
  * case and punctuation (`lcs.ts:tokenKey`), the most common edits of all,
  * capitalisation and punctuation, change no timing whatsoever.
@@ -80,7 +80,7 @@ function distribute(
  * Rewrites the words of `cues[cueIndex]` from `text`.
  *
  * Returns the inputs unchanged when nothing changed, or when the edit would leave
- * the cue with no words — emptying a cue is a deletion, which is a different
+ * the cue with no words, emptying a cue is a deletion, which is a different
  * operation with different consequences for the cues around it, and silently
  * treating it as one here would be a trap.
  */
@@ -126,8 +126,8 @@ export function retextCue(
    * timing, id, confidence and lock, and only its text changes. That covers
    * correcting a word in place, and it is why a lock survives an ordinary edit.
    *
-   * When the counts differ the run is genuinely re-segmented — one word became
-   * two, or three became one — and there is no honest mapping from old timings to
+   * When the counts differ the run is genuinely re-segmented, one word became
+   * two, or three became one, and there is no honest mapping from old timings to
    * new tokens, so the run's span is redistributed and the results are marked
    * unmeasured. A `timeLocked` word inside such a run does lose its lock, because
    * the boundary it described no longer refers to anything.
@@ -184,7 +184,7 @@ export function retextCue(
     );
 
     // The anchor itself survives. Same object when the text is byte-identical,
-    // otherwise the same timing with new text — this is the path a punctuation or
+    // otherwise the same timing with new text, this is the path a punctuation or
     // capitalisation fix takes, and it must not touch `start` or `end`.
     const anchorWord = old[oldIndex]!;
     const token = tokens[newIndex]!;
@@ -209,7 +209,11 @@ export function retextCue(
 
   const delta = rebuilt.length - old.length;
 
-  const nextWords = [...words.slice(0, from), ...rebuilt, ...words.slice(to + 1)];
+  const nextWords = [
+    ...words.slice(0, from),
+    ...rebuilt,
+    ...words.slice(to + 1),
+  ];
 
   const nextCues = cues.map((existing, index) => {
     if (index < cueIndex) return existing;
