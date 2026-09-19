@@ -16,6 +16,10 @@ import { SITE_URL, X_HANDLE } from '@/lib/constant';
 
 import './globals.css';
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 /**
  * Only the faces something actually renders: no `font-light` exists in `src`,
  * so there's no 300 weight here. Before adding a face, audit usage with:
