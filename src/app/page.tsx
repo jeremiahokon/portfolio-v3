@@ -14,6 +14,10 @@ import YouTubeVideo from '@/components/sections/youtube-video';
 import { SITE_URL } from '@/lib/constant';
 import { getShortsData } from '@/lib/youtube';
 
+// TODO: Cache Components adoption. Refactor this route so this opt-out can be removed.
+// See: https://nextjs.org/docs/app/guides/migrating-to-cache-components
+export const instant = false;
+
 // No `title` here on purpose: the layout's `template` would double the
 // "| Jeremiah Okon" suffix onto the already-complete default title.
 export const metadata: Metadata = {

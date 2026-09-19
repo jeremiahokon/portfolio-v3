@@ -1,5 +1,6 @@
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
+import nextPlugin from '@next/eslint-plugin-next';
+import globals from 'globals';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import reactPlugin from 'eslint-plugin-react';
 import simpleImportSortPlugin from 'eslint-plugin-simple-import-sort';
@@ -9,11 +10,6 @@ import unicornPlugin from 'eslint-plugin-unicorn';
 import a11yPlugin from 'eslint-plugin-jsx-a11y';
 import playwrightPlugin from 'eslint-plugin-playwright';
 import prettierConfig from 'eslint-config-prettier';
-
-// For compatibility with some plugins that haven't migrated to flat config
-const compat = new FlatCompat({
-  baseDirectory: import.meta.dirname,
-});
 
 const config = [
   // Ignores
@@ -35,6 +31,15 @@ const config = [
 
   // Base JS config
   js.configs.recommended,
+
+  // Node globals for plain JS/MJS config and script files (everything else
+  // is TypeScript, which already has `no-undef` turned off below).
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
 
   // TypeScript config
   {
@@ -116,12 +121,20 @@ const config = [
   },
 
   // Next.js config
-  ...compat.config({
-    extends: ['next/core-web-vitals'],
-    parserOptions: {
-      requireConfigFile: false,
+  // `eslint-config-next`'s bundled flat config also registers its own react,
+  // react-hooks, jsx-a11y and import plugin instances, which collide with the
+  // ones configured by hand above ("Cannot redefine plugin"). Importing
+  // `@next/eslint-plugin-next` directly avoids that, per Next's own migration
+  // guidance for projects that already configure those plugins separately.
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      '@next/next': nextPlugin,
     },
-  }),
+    rules: {
+      ...nextPlugin.configs['core-web-vitals'].rules,
+    },
+  },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     rules: {

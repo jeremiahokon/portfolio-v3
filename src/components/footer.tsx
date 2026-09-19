@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { sendGAEvent } from '@next/third-parties/google';
 
 import { Calendar, ChevronUp } from 'lucide-react';
@@ -26,6 +26,13 @@ export default function Footer() {
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const [isEmailHovered, setIsEmailHovered] = useState(false);
   const [isCalendlyOpen, setIsCalendlyOpen] = useState(false);
+  // Starts null so the prerendered shell doesn't bake in a build-time year;
+  // the real value fills in right after mount, same pattern as LocalTimeClock.
+  const [year, setYear] = useState<number | null>(null);
+
+  useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   const handleScrollToTop = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -263,7 +270,7 @@ export default function Footer() {
         animate={isInView ? 'visible' : 'hidden'}
         transition={{ delay: 0.6 }}
       >
-        All rights reserved &copy; {new Date().getFullYear()} • Jeremiah Okon
+        All rights reserved &copy; {year !== null && `${year} • `}Jeremiah Okon
       </m.span>
 
       <CalendlyModal

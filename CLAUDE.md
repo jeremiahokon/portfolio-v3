@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # Tooling
 
 - Always use `pnpm` for package management and running scripts in this repo (`pnpm install`, `pnpm dev`, `pnpm build`, `pnpm vitest run`, etc.), never `npm` or `yarn`.
